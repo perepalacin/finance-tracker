@@ -1,6 +1,6 @@
 package com.pere_palacin.app.controllers;
 
-import com.pere_palacin.app.models.Users;
+import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,12 +15,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/sign-up")
-    public Users register (Users user) {
+    public UserDao register (UserDao user) {
         return authService.register(user);
     }
 
     @PostMapping("/sign-in")
-    public String login (Users user) {
+    public String login (UserDao user) {
         return authService.verify(user);
     }
 

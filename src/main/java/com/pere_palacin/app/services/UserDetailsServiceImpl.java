@@ -1,7 +1,7 @@
 package com.pere_palacin.app.services;
 
 import com.pere_palacin.app.models.UserPrincipal;
-import com.pere_palacin.app.models.Users;
+import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +18,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Users user = userRepository.findByUsername(username);
+        UserDao user = userRepository.findByUsername(username);
         if (user == null) {
             System.out.println("User Not Found");
             throw new UsernameNotFoundException("user not found");

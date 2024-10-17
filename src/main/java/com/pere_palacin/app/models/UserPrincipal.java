@@ -1,5 +1,6 @@
 package com.pere_palacin.app.models;
 
+import com.pere_palacin.app.domains.UserDao;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,9 +11,9 @@ import java.util.Collections;
 //Object were we store the userdetails of the user that is trying to login
 public class UserPrincipal implements UserDetails {
 
-    private Users user;
+    private UserDao user;
 
-    public UserPrincipal (Users user) {
+    public UserPrincipal (UserDao user) {
         this.user = user;
     }
 
