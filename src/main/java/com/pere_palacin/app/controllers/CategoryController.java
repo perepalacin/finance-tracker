@@ -34,11 +34,9 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryDto> getCategory (@PathVariable UUID id) {
-        Optional<CategoryDao> foundCategoryDao = categoryService.findById(id);
-        return foundCategoryDao.map(categoryDao -> {
-            CategoryDto categoryDto = categoryMapper.mapTo(categoryDao);
-            return new ResponseEntity<>(categoryDto, HttpStatus.OK);
-        }).orElse(new ResponseEntity<>(NOT_FOUND));
+        CategoryDao foundCategoryDao = categoryService.findById(id);
+        CategoryDto categoryDto = categoryMapper.mapTo(foundCategoryDao);
+        return new ResponseEntity<>(categoryDto, HttpStatus.OK);
     }
 
     @PostMapping("")

@@ -40,15 +40,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Optional<CategoryDao> findById(UUID id) {
-        return categoryRespository.findById(id);
+    public CategoryDao findById(UUID id) {
+        return categoryRespository.findById(id).orElseThrow(
+                () -> new CategoryNotFoundException(id)
+        );
     }
 
     @Override
     public CategoryDao updateCategory(CategoryDao categoryDao, UUID id) {
-        CategoryDao categoryToUpdate = categoryRespository.findById(id).orElseThrow(
-                () -> new CategoryNotFoundException(id)
-        );
+        CategoryDao categoryToUpdate = this.findById(id);
         categoryToUpdate.setCategoryName(categoryDao.getCategoryName());
         categoryToUpdate.setIconName(categoryDao.getIconName());
         categoryRespository.save(categoryToUpdate);
@@ -57,9 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(UUID id) {
-        CategoryDao categoryDao = categoryRespository.findById(id).orElseThrow(
-                () -> new CategoryNotFoundException(id)
-        );
+        CategoryDao categoryDao = this.findById(id);
         categoryRespository.delete(categoryDao);
     }
 }

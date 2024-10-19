@@ -1,12 +1,12 @@
 package com.pere_palacin.app.domains;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,11 +14,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
+@Getter
+@Setter
 @Table(name = "bank_accounts")
 public class BankAccountDao {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    private String name;
     private BigDecimal currentBalance;
     @Column(nullable = false)
     private BigDecimal initialAmount;
@@ -26,13 +30,17 @@ public class BankAccountDao {
     private BigDecimal totalExpenses;
     private BigDecimal totalTransferOut;
     private BigDecimal totalTransferIn;
+    private BigDecimal totalInvested;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @CreatedDate
-    private Date created_at;
+    private Instant created_at;
 
-    @ManyToOne(cascade = CascadeType.ALL) //We swap the id for the object it relates to and we provide the type of relationship on top.
-    @JoinColumn(name = "users")
+    @LastModifiedDate
+    private Instant updated_at;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserDao user;
 }
