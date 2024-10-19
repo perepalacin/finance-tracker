@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.pere_palacin.app.exceptions.CategoryNotFoundException;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +34,32 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDao> findAll() {
-        return categoryRespository.findAll();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserDao user = userRepository.findByUsername(username);
+        return categoryRespository.findByUserId(user.getId());
     }
 
     @Override
     public Optional<CategoryDao> findById(UUID id) {
         return categoryRespository.findById(id);
+    }
+
+    @Override
+    public CategoryDao updateCategory(CategoryDao categoryDao, UUID id) {
+        CategoryDao categoryToUpdate = categoryRespository.findById(id).orElseThrow(
+                () -> new CategoryNotFoundException(id)
+        );
+        categoryToUpdate.setCategoryName(categoryDao.getCategoryName());
+        categoryToUpdate.setIconName(categoryDao.getIconName());
+        categoryRespository.save(categoryToUpdate);
+        return categoryToUpdate;
+    }
+
+    @Override
+    public void deleteCategory(UUID id) {
+        CategoryDao categoryDao = categoryRespository.findById(id).orElseThrow(
+                () -> new CategoryNotFoundException(id)
+        );
+        categoryRespository.delete(categoryDao);
     }
 }

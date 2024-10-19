@@ -5,15 +5,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.pere_palacin.app.domains.CategoryDao;
 import com.pere_palacin.app.domains.dto.CategoryDto;
@@ -51,5 +47,19 @@ public class CategoryController {
         CategoryDao savedCategoryDao = categoryService.createCategory(categoryDao);
         CategoryDto savedCategoryDto = categoryMapper.mapTo(savedCategoryDao);
         return new ResponseEntity<>(savedCategoryDto, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryDto> updateCategory(@RequestBody CategoryDto categoryDto, @PathVariable UUID id) {
+        CategoryDao categoryDao = categoryMapper.mapFrom(categoryDto);
+        CategoryDao savedCategoryDao = categoryService.updateCategory(categoryDao, id);
+        CategoryDto savedCategoryDto = categoryMapper.mapTo(savedCategoryDao);
+        return new ResponseEntity<>(savedCategoryDto, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CategoryDto> deleteCategory (@PathVariable UUID id) {
+        categoryService.deleteCategory(id);
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 }
