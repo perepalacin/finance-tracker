@@ -2,9 +2,7 @@ package com.pere_palacin.app.domains.dto;
 
 import com.pere_palacin.app.domains.UserDao;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,8 +19,12 @@ import java.util.UUID;
 @Builder
 public class BankAccountDto {
     private UUID id;
+    @NotBlank(message = "Account name is required")
+    @Size(min = 2, max = 30, message = "The account name must have between 3 and 30 characters.")
     private String name;
     private BigDecimal currentBalance;
+    @NotBlank(message = "Initial amount is required")
+    @PositiveOrZero(message = "Initial amount must be positive or zero")
     private BigDecimal initialAmount;
     private BigDecimal totalIncome;
     private BigDecimal totalExpenses;

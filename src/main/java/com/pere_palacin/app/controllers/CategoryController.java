@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import jakarta.validation.Valid;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -40,7 +41,7 @@ public class CategoryController {
     }
 
     @PostMapping("")
-    public ResponseEntity<CategoryDto> createCategory(@RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
         CategoryDao categoryDao = categoryMapper.mapFrom(categoryDto);
         CategoryDao savedCategoryDao = categoryService.createCategory(categoryDao);
         CategoryDto savedCategoryDto = categoryMapper.mapTo(savedCategoryDao);
@@ -48,7 +49,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDto> updateCategory(@RequestBody CategoryDto categoryDto, @PathVariable UUID id) {
+    public ResponseEntity<CategoryDto> updateCategory(@Valid @RequestBody CategoryDto categoryDto, @PathVariable UUID id) {
         CategoryDao categoryDao = categoryMapper.mapFrom(categoryDto);
         CategoryDao savedCategoryDao = categoryService.updateCategory(categoryDao, id);
         CategoryDto savedCategoryDto = categoryMapper.mapTo(savedCategoryDao);
