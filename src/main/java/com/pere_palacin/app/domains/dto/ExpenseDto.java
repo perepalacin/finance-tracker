@@ -1,19 +1,19 @@
 package com.pere_palacin.app.domains.dto;
 
-import com.pere_palacin.app.domains.BankAccountDao;
-import com.pere_palacin.app.domains.CategoryDao;
-import com.pere_palacin.app.domains.UserDao;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class ExpenseDto {
     private UUID id;
 
@@ -26,11 +26,11 @@ public class ExpenseDto {
 
     private String annotation;
 
-    @NotBlank(message = "It is required to assign an expense to a category")
+    @NotNull(message = "It is required to assign an expense to a category")
     private UUID categoryId;
     private CategoryDto categoryDto;
 
-    @NotBlank(message = "It is required to assign an expense to a bank account")
+    @NotNull(message = "It is required to assign an expense to a bank account")
     private UUID bankAccountId;
     private BankAccountDto bankAccountDto;
 

@@ -11,6 +11,10 @@ public interface BankAccountService {
     BankAccountDao createAccount(BankAccountDao bankAccountDao);
     List<BankAccountDao> findAll();
     BankAccountDao findById(UUID id);
-    BankAccountDao updateAccount(UUID id, BigDecimal amount);
+    BankAccountDao updateAccount(UUID id, BankAccountDao bankAccountDao);
+    void addAssociatedExpense(BankAccountDao bankAccountDao, BigDecimal amountSpent);
+    void editAssociatedExpense(BankAccountDao bankAccountDao, BigDecimal initialAmount, BigDecimal newAmount);
+    void deleteAssociatedExpense(BankAccountDao bankAccountDao, BigDecimal amountToRemove);
     void deleteAccount(UUID id);
+
 }

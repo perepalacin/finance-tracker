@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
+//Enables autogeneration of certain columns such as Created at and updated at.
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 class JpaAuditingConfiguration {

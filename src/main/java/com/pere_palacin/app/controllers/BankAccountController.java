@@ -8,6 +8,7 @@ import com.pere_palacin.app.mappers.impl.BankAccountMapper;
 import com.pere_palacin.app.mappers.impl.CategoryMapper;
 import com.pere_palacin.app.services.BankAccountService;
 import com.pere_palacin.app.services.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,8 +49,9 @@ public class BankAccountController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BankAccountDto> updateAccount(@PathVariable UUID id) {
-        BankAccountDao updatedBankAccountDao = bankAccountService.updateAccount(id, new BigDecimal(500));
+    public ResponseEntity<BankAccountDto> updateAccount(@PathVariable UUID id, @Valid @RequestBody BankAccountDto bankAccountDto) {
+        BankAccountDao bankAccountDao = bankAccountMapper.mapFrom(bankAccountDto);
+        BankAccountDao updatedBankAccountDao = bankAccountService.updateAccount(id, bankAccountDao);
         BankAccountDto updatedBankAccountDto = bankAccountMapper.mapTo(updatedBankAccountDao);
         return new ResponseEntity<>(updatedBankAccountDto, HttpStatus.OK);
     }

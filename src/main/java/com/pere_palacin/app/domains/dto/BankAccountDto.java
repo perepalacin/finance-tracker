@@ -23,7 +23,6 @@ public class BankAccountDto {
     @Size(min = 2, max = 30, message = "The account name must have between 3 and 30 characters.")
     private String name;
     private BigDecimal currentBalance;
-    @NotBlank(message = "Initial amount is required")
     @PositiveOrZero(message = "Initial amount must be positive or zero")
     private BigDecimal initialAmount;
     private BigDecimal totalIncome;

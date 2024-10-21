@@ -2,14 +2,19 @@ package com.pere_palacin.app.domains;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -28,12 +33,13 @@ public class ExpenseDao {
     private BigDecimal amount;
     private String annotation;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "categories", referencedColumnName = "id")
     private CategoryDao category;
 
-    @ManyToOne(cascade = CascadeType.ALL) //We swap the id for the object it relates to and we provide the type of relationship on top.
+    @ManyToOne //We swap the id for the object it relates to and we provide the type of relationship on top.
     @JoinColumn(name = "bank_accounts", referencedColumnName = "id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private BankAccountDao bankAccount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
