@@ -1,9 +1,6 @@
 package com.pere_palacin.app.controllers;
 
-import com.pere_palacin.app.exceptions.BankAcountNotFoundException;
-import com.pere_palacin.app.exceptions.CategoryNotFoundException;
-import com.pere_palacin.app.exceptions.ExpenseNotFoundException;
-import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
+import com.pere_palacin.app.exceptions.*;
 import com.pere_palacin.app.responses.CustomErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +37,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(NOT_FOUND).body(errorResponse);
     }
 
+    @ExceptionHandler(IncomeSourceNotFoundException.class)
+    public ResponseEntity<CustomErrorResponse> handleIncomeSourceNotFound(IncomeSourceNotFoundException ex) {
+        CustomErrorResponse errorResponse = new CustomErrorResponse(NOT_FOUND.value(), ex.getMessage());
+        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+    }
+
     @ExceptionHandler(UnauthorizedRequestException.class)
     public ResponseEntity<CustomErrorResponse> handleUnauthorizedRequest(UnauthorizedRequestException ex) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(UNAUTHORIZED.value(), ex.getMessage());
@@ -49,12 +52,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> notValid(MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<String> errors = new ArrayList<>();
-
         ex.getAllErrors().forEach(err -> errors.add(err.getDefaultMessage()));
-
         Map<String, List<String>> result = new HashMap<>();
         result.put("errors", errors);
-
         return new ResponseEntity<>(result, BAD_REQUEST);
     }
+
+
 }
