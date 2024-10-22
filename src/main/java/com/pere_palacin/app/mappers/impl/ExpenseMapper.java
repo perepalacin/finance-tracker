@@ -16,6 +16,7 @@ public class ExpenseMapper implements Mapper<ExpenseDao, ExpenseDto> {
     private final ModelMapper modelMapper;
     private final CategoryMapper categoryMapper;
     private final BankAccountMapper bankAccountMapper;
+
 @Override
        public ExpenseDto mapTo(ExpenseDao expenseDao) {
            ExpenseDto expenseDto = modelMapper.map(expenseDao, ExpenseDto.class);
