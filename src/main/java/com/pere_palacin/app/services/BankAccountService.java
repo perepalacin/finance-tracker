@@ -15,6 +15,9 @@ public interface BankAccountService {
     void addAssociatedExpense(BankAccountDao bankAccountDao, BigDecimal amountSpent);
     void editAssociatedExpense(BankAccountDao bankAccountDao, BigDecimal initialAmount, BigDecimal newAmount);
     void deleteAssociatedExpense(BankAccountDao bankAccountDao, BigDecimal amountToRemove);
+    void addAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal incomeAmount);
+    void editAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal initialIncome, BigDecimal newIncome);
+    void deleteAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal amountToRemove);
     void deleteAccount(UUID id);
 
 }

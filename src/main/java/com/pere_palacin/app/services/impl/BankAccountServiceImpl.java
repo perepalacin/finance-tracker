@@ -89,6 +89,27 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
+    public void addAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal incomeAmount) {
+        bankAccountDao.setCurrentBalance(bankAccountDao.getCurrentBalance().add(incomeAmount));
+        bankAccountDao.setTotalIncome(bankAccountDao.getTotalIncome().add(incomeAmount));
+        bankAccountRepository.save(bankAccountDao);
+    }
+
+    @Override
+    public void editAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal initialIncome, BigDecimal newIncome) {
+        bankAccountDao.setCurrentBalance(bankAccountDao.getCurrentBalance().subtract(initialIncome).add(newIncome));
+        bankAccountDao.setTotalIncome(bankAccountDao.getTotalIncome().subtract(initialIncome).add(newIncome));
+        bankAccountRepository.save(bankAccountDao);
+    }
+
+    @Override
+    public void deleteAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal amountToRemove) {
+        bankAccountDao.setCurrentBalance(bankAccountDao.getCurrentBalance().subtract(amountToRemove));
+        bankAccountDao.setTotalIncome(bankAccountDao.getTotalIncome().subtract(amountToRemove));
+        bankAccountRepository.save(bankAccountDao);
+    }
+
+    @Override
     public void deleteAccount(UUID id) {
         BankAccountDao bankAccountDao = this.findById(id);
         bankAccountRepository.delete(bankAccountDao);

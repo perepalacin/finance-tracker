@@ -65,7 +65,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (!Objects.equals(bankAccountDao.getUser().getId(), user.getId())) {
             throw new UnauthorizedRequestException();
         }
-        expenseDao.setBankAccount(bankAccountDao);
         bankAccountService.addAssociatedExpense(bankAccountDao, expenseDao.getAmount());
         expenseDao.setBankAccount(bankAccountDao);
         return expenseRepository.save(expenseDao);

@@ -19,10 +19,6 @@ public class IncomeSourceDao {
     private String color;
 
     @ManyToOne
-    @JoinColumn(name = "incomes", referencedColumnName = "id")
-    private IncomeDao income;
-
-    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserDao user;
 }

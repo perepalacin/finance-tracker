@@ -43,6 +43,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(NOT_FOUND).body(errorResponse);
     }
 
+    @ExceptionHandler(IncomeNotFoundException.class)
+    public ResponseEntity<CustomErrorResponse> handleIncomeNotFound(IncomeNotFoundException ex) {
+        CustomErrorResponse errorResponse = new CustomErrorResponse(NOT_FOUND.value(), ex.getMessage());
+        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+    }
+
     @ExceptionHandler(UnauthorizedRequestException.class)
     public ResponseEntity<CustomErrorResponse> handleUnauthorizedRequest(UnauthorizedRequestException ex) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(UNAUTHORIZED.value(), ex.getMessage());
