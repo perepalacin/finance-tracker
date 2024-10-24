@@ -52,6 +52,12 @@ public class IncomeSourceServiceImpl implements IncomeSourceService {
     @Override
     public IncomeSourceDao updateIncomeSource(IncomeSourceDao incomeSourceDao, UUID id) {
         IncomeSourceDao incomeSourceToUpdate = this.findById(id);
+//        TODO: Move this to a helper method! It repeats all the time in the code base!
+//        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+//        UserDao user = userRepository.findByUsername(username);
+//        if (!Objects.equals(incomeSourceDao.getUser().getId(), user.getId())) {
+//            throw new UnauthorizedRequestException();
+//        }
         incomeSourceToUpdate.setName(incomeSourceDao.getName());
         incomeSourceToUpdate.setColor(incomeSourceDao.getColor());
         incomeSourceRepository.save(incomeSourceToUpdate);
