@@ -1,6 +1,7 @@
 package com.pere_palacin.app.services;
 
 import com.pere_palacin.app.domains.BankAccountDao;
+import com.pere_palacin.app.domains.TransferDao;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,5 +20,9 @@ public interface BankAccountService {
     void editAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal initialIncome, BigDecimal newIncome);
     void deleteAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal amountToRemove);
     void deleteAccount(UUID id);
+    void createTransfer(BankAccountDao receivingBankAccount, BankAccountDao sendingBankAccount, BigDecimal amount);
+    void changeReceivingTransferAccount(BankAccountDao oldReceivingAccount, BankAccountDao newReceivingAccount, BigDecimal amount);
+    void changeSendingReceivingTransferAccount(BankAccountDao oldSendingAccount, BankAccountDao newSendingAccount, BigDecimal amount);
+    void deleteTransfer(BankAccountDao receivingBankAccount, BankAccountDao sendingBankAccount, BigDecimal amount);
 
 }

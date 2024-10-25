@@ -68,7 +68,6 @@ public class IncomeServiceImpl implements IncomeService {
         bankAccountService.addAssociatedIncome(bankAccountDao, incomeDao.getAmount());
         incomeDao.setBankAccount(bankAccountDao);
         return incomeRepository.save(incomeDao);
-
     }
 
     @Override
