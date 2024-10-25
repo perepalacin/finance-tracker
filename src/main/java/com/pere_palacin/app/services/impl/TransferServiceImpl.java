@@ -78,17 +78,25 @@ public class TransferServiceImpl implements TransferService {
         if (!Objects.equals(user.getId(), transferToEdit.getUser().getId())) {
             throw new UnauthorizedRequestException();
         }
-        BankAccountDao receivingBankAccount = bankAccountService.findById(receivingBankAccountId);
-        if (!Objects.equals(receivingBankAccount.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
+        if (receivingBankAccountId != transferToEdit.getReceivingAccount().getId()) {
+            BankAccountDao newReceivingBankAccount = bankAccountService.findById(receivingBankAccountId);
+            if (!Objects.equals(newReceivingBankAccount.getUser().getId(), user.getId())) {
+                throw new UnauthorizedRequestException();
+            }
+            transferToEdit.setReceivingAccount(newReceivingBankAccount);
+            bankAccountService.changeReceivingTransferAccount(transferDao.getReceivingAccount(), newReceivingBankAccount, transferDao.getAmount());
+        } else {
         }
-        transferDao.setReceivingAccount(receivingBankAccount);
-        BankAccountDao sendingBankAccount = bankAccountService.findById(sendingBankAccountId);
-        if (!Objects.equals(sendingBankAccount.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
+        if (sendingBankAccountId != transferToEdit.getSendingAccount().getId()) {
+            BankAccountDao newSendingBankAccount = bankAccountService.findById(sendingBankAccountId);
+            if (!Objects.equals(newSendingBankAccount.getUser().getId(), user.getId())) {
+                throw new UnauthorizedRequestException();
+            }
+            transferToEdit.setSendingAccount(newSendingBankAccount);
+            bankAccountService.changeSendingReceivingTransferAccount(transferToEdit.getSendingAccount(), newSendingBankAccount, transferDao.getAmount());
+        } else {
+
         }
-        transferToEdit.setReceivingAccount(receivingBankAccount);
-        transferToEdit.setSendingAccount(sendingBankAccount);
         transferToEdit.setAmount(transferDao.getAmount());
         transferToEdit.setName(transferDao.getName());
         transferToEdit.setAnnotation(transferDao.getAnnotation());
@@ -103,6 +111,15 @@ public class TransferServiceImpl implements TransferService {
         if (!Objects.equals(transferToDelete.getUser().getId(), user.getId())) {
             throw new UnauthorizedRequestException();
         }
+        BankAccountDao receivingBankAccount = bankAccountService.findById(transferToDelete.getReceivingAccount().getId());
+        if (!Objects.equals(receivingBankAccount.getUser().getId(), user.getId())) {
+            throw new UnauthorizedRequestException();
+        }
+        BankAccountDao sendingBankAccount = bankAccountService.findById(transferToDelete.getSendingAccount().getId());
+        if (!Objects.equals(sendingBankAccount.getUser().getId(), user.getId())) {
+            throw new UnauthorizedRequestException();
+        }
+        bankAccountService.deleteTransfer(receivingBankAccount, sendingBankAccount, transferToDelete.getAmount());
         transferRepository.delete(transferToDelete);
     }
 }
