@@ -114,4 +114,56 @@ public class BankAccountServiceImpl implements BankAccountService {
         BankAccountDao bankAccountDao = this.findById(id);
         bankAccountRepository.delete(bankAccountDao);
     }
+
+    @Override
+    public void createTransfer(BankAccountDao receivingBankAccount, BankAccountDao sendingBankAccount, BigDecimal amount) {
+        receivingBankAccount.setTotalTransferIn(receivingBankAccount.getTotalTransferIn().add(amount));
+        receivingBankAccount.setCurrentBalance(receivingBankAccount.getCurrentBalance().add(amount));
+        sendingBankAccount.setTotalTransferOut(sendingBankAccount.getTotalTransferOut().add(amount));
+        sendingBankAccount.setCurrentBalance(sendingBankAccount.getCurrentBalance().subtract(amount));
+        bankAccountRepository.save(receivingBankAccount);
+        bankAccountRepository.save(sendingBankAccount);
+    }
+
+    @Override
+    public void editTransferAmount(BankAccountDao bankAccountDao, BigDecimal oldAmount, BigDecimal newAmount, boolean isTransferOut) {
+        if (isTransferOut) {
+            bankAccountDao.setCurrentBalance(bankAccountDao.getCurrentBalance().add(oldAmount).subtract(newAmount));
+            bankAccountDao.setTotalTransferOut(bankAccountDao.getTotalTransferOut().subtract(oldAmount).add(newAmount));
+        } else {
+            bankAccountDao.setCurrentBalance(bankAccountDao.getCurrentBalance().subtract(oldAmount).add(newAmount));
+            bankAccountDao.setTotalTransferIn(bankAccountDao.getTotalTransferIn().subtract(oldAmount).add(newAmount));
+        }
+        bankAccountRepository.save(bankAccountDao);
+    }
+
+    @Override
+    public void changeReceivingTransferAccount(BankAccountDao oldReceivingAccount, BankAccountDao newReceivingAccount, BigDecimal amount) {
+        oldReceivingAccount.setCurrentBalance(oldReceivingAccount.getCurrentBalance().subtract(amount));
+        oldReceivingAccount.setTotalTransferIn(oldReceivingAccount.getTotalTransferIn().subtract(amount));
+        newReceivingAccount.setCurrentBalance(newReceivingAccount.getCurrentBalance().add(amount));
+        newReceivingAccount.setTotalTransferIn(newReceivingAccount.getTotalTransferIn().add(amount));
+        bankAccountRepository.save(oldReceivingAccount);
+        bankAccountRepository.save(newReceivingAccount);
+    }
+
+    @Override
+    public void changeSendingReceivingTransferAccount(BankAccountDao oldSendingAccount, BankAccountDao newSendingAccount, BigDecimal amount) {
+        oldSendingAccount.setCurrentBalance(oldSendingAccount.getCurrentBalance().add(amount));
+        oldSendingAccount.setTotalTransferOut(oldSendingAccount.getTotalTransferOut().subtract(amount));
+        newSendingAccount.setCurrentBalance(newSendingAccount.getCurrentBalance().subtract(amount));
+        newSendingAccount.setTotalTransferOut(newSendingAccount.getTotalTransferOut().add(amount));
+        bankAccountRepository.save(oldSendingAccount);
+        bankAccountRepository.save(newSendingAccount);
+    }
+
+    @Override
+    public void deleteTransfer(BankAccountDao receivingBankAccount, BankAccountDao sendingBankAccount, BigDecimal amount) {
+        receivingBankAccount.setCurrentBalance(receivingBankAccount.getCurrentBalance().subtract(amount));
+        receivingBankAccount.setTotalTransferIn(receivingBankAccount.getTotalTransferIn().subtract(amount));
+        sendingBankAccount.setCurrentBalance(sendingBankAccount.getCurrentBalance().add(amount));
+        sendingBankAccount.setTotalTransferOut(sendingBankAccount.getTotalTransferOut().subtract(amount));
+        bankAccountRepository.save(receivingBankAccount);
+        bankAccountRepository.save(receivingBankAccount);
+    }
 }

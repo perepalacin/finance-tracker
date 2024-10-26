@@ -21,8 +21,8 @@ public interface BankAccountService {
     void deleteAssociatedIncome(BankAccountDao bankAccountDao, BigDecimal amountToRemove);
     void deleteAccount(UUID id);
     void createTransfer(BankAccountDao receivingBankAccount, BankAccountDao sendingBankAccount, BigDecimal amount);
+    void editTransferAmount(BankAccountDao bankAccountDao, BigDecimal oldAmount, BigDecimal newAmount, boolean isTransferOut);
     void changeReceivingTransferAccount(BankAccountDao oldReceivingAccount, BankAccountDao newReceivingAccount, BigDecimal amount);
     void changeSendingReceivingTransferAccount(BankAccountDao oldSendingAccount, BankAccountDao newSendingAccount, BigDecimal amount);
     void deleteTransfer(BankAccountDao receivingBankAccount, BankAccountDao sendingBankAccount, BigDecimal amount);
-
 }

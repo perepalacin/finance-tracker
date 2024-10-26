@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -51,6 +52,7 @@ public class TransferServiceImpl implements TransferService {
         return transferDao;
     }
 
+    @Transactional
     @Override
     public TransferDao registerTransfer(TransferDao transferDao, UUID receivingBankAccountId, UUID sendingBankAccountId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -70,6 +72,7 @@ public class TransferServiceImpl implements TransferService {
         return transferRepository.save(transferDao);
     }
 
+    @Transactional
     @Override
     public TransferDao updateTransfer(UUID id, TransferDao transferDao, UUID receivingBankAccountId, UUID sendingBankAccountId) {
         TransferDao transferToEdit = this.findById(id);
@@ -86,6 +89,7 @@ public class TransferServiceImpl implements TransferService {
             transferToEdit.setReceivingAccount(newReceivingBankAccount);
             bankAccountService.changeReceivingTransferAccount(transferDao.getReceivingAccount(), newReceivingBankAccount, transferDao.getAmount());
         } else {
+            bankAccountService.editTransferAmount(transferToEdit.getReceivingAccount(), transferToEdit.getAmount(), transferDao.getAmount(), true);
         }
         if (sendingBankAccountId != transferToEdit.getSendingAccount().getId()) {
             BankAccountDao newSendingBankAccount = bankAccountService.findById(sendingBankAccountId);
@@ -95,7 +99,7 @@ public class TransferServiceImpl implements TransferService {
             transferToEdit.setSendingAccount(newSendingBankAccount);
             bankAccountService.changeSendingReceivingTransferAccount(transferToEdit.getSendingAccount(), newSendingBankAccount, transferDao.getAmount());
         } else {
-
+            bankAccountService.editTransferAmount(transferToEdit.getSendingAccount(), transferToEdit.getAmount(), transferDao.getAmount(), false);
         }
         transferToEdit.setAmount(transferDao.getAmount());
         transferToEdit.setName(transferDao.getName());
@@ -103,6 +107,7 @@ public class TransferServiceImpl implements TransferService {
         return transferRepository.save(transferToEdit);
     }
 
+    @Transactional
     @Override
     public void deleteTransfer(UUID id) {
         TransferDao transferToDelete = this.findById(id);
