@@ -47,7 +47,7 @@ public class InvestmentCategoryController {
     public ResponseEntity<InvestmentCategoryDto> updateInvestmentCategory(@Valid @RequestBody InvestmentCategoryDto investmentCategoryDto, @PathVariable UUID id) {
         InvestmentCategoryDao investmentCategoryDao = investmentCategoryMapper.mapFrom(investmentCategoryDto);
         InvestmentCategoryDao savedInvestmentCategoryDao = investmentCategoryService.updateInvestmentCategory(investmentCategoryDao, id);
-        InvestmentCategoryDto savedInvestmentCategoryDto = investmentCategoryMapper.mapTo(investmentCategoryDao);
+        InvestmentCategoryDto savedInvestmentCategoryDto = investmentCategoryMapper.mapTo(savedInvestmentCategoryDao);
         return new ResponseEntity<>(savedInvestmentCategoryDto, HttpStatus.OK);
     }
 

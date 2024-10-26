@@ -9,12 +9,14 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+@EntityListeners(AuditingEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -27,17 +29,17 @@ public class InvestmentDao {
     private UUID id;
 
     private String name;
+    private String annotation;
     private Date startDate;
     private Date endDate;
 
     private BigDecimal amountInvested;
-    private BigDecimal currentAmount;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private UserDao user;
+    @JoinColumn(name = "investment_category", referencedColumnName = "id")
+    private InvestmentCategoryDao investmentCategory;
 
-    @ManyToOne //We swap the id for the object it relates to and we provide the type of relationship on top.
+    @ManyToOne
     @JoinColumn(name = "bank_accounts", referencedColumnName = "id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private BankAccountDao bankAccount;
@@ -48,4 +50,9 @@ public class InvestmentDao {
 
     @LastModifiedDate
     private Instant updated_at;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private UserDao user;
+
 }

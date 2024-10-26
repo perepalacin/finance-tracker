@@ -21,23 +21,21 @@ import java.util.UUID;
 public class InvestmentDto {
     private UUID id;
 
-    @NotBlank(message = "Income name is required")
-    @Size(min = 2, max = 30, message = "The income name must have between 3 and 30 characters")
+    @NotBlank(message = "Investment name is required")
+    @Size(min = 2, max = 30, message = "The investment name must have between 3 and 30 characters")
     private String name;
 
-    @PositiveOrZero(message = "The amount received needs to be positive or zero")
-    private BigDecimal amount;
+    @PositiveOrZero(message = "The amount invested needs to be positive or zero")
+    private BigDecimal amountInvested;
 
     private String annotation;
 
-    @NotNull(message = "It is required to assign an income to an income source")
-    private UUID incomeSourceId;
-    private IncomeSourceDto incomeSourceDto;
+    @NotNull(message = "It is requires to assign an investment category to an investment")
+    private UUID investmentCategoryId;
+    private InvestmentCategoryDto investmentCategoryDto;
 
-    @NotNull(message = "It is required to assign an income to a bank account")
+    @NotNull(message = "It is required to assign an investment to a bank account")
     private UUID bankAccountId;
     private BankAccountDto bankAccountDto;
-
-    private Instant updated_at;
 
 }

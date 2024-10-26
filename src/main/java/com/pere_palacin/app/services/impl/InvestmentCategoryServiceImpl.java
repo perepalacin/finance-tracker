@@ -5,6 +5,7 @@ import com.pere_palacin.app.domains.IncomeSourceDao;
 import com.pere_palacin.app.domains.InvestmentCategoryDao;
 import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.exceptions.IncomeSourceNotFoundException;
+import com.pere_palacin.app.exceptions.InvestmentCategoryNotFoundException;
 import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
 import com.pere_palacin.app.repositories.InvestmentCategoryRepository;
 import com.pere_palacin.app.repositories.UserRepository;
@@ -42,7 +43,7 @@ public class InvestmentCategoryServiceImpl implements InvestmentCategoryService 
     @Override
     public InvestmentCategoryDao findById(UUID id) {
         InvestmentCategoryDao investmentCategoryDao = investmentCategoryRepository.findById(id).orElseThrow(
-                () -> new IncomeSourceNotFoundException(id)
+                () -> new InvestmentCategoryNotFoundException(id)
         );
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDao user = userRepository.findByUsername(username);

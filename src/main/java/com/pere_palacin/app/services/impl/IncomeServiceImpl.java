@@ -85,7 +85,7 @@ public class IncomeServiceImpl implements IncomeService {
             bankAccountService.deleteAssociatedIncome(incomeToEdit.getBankAccount(), incomeToEdit.getAmount());
             bankAccountService.addAssociatedIncome(bankAccountDao, incomeDao.getAmount());
         } else {
-            bankAccountService.editAssociatedExpense(bankAccountDao, incomeToEdit.getAmount(), incomeDao.getAmount());
+            bankAccountService.editAssociatedIncome(bankAccountDao, incomeToEdit.getAmount(), incomeDao.getAmount());
         }
         incomeDao.setBankAccount(bankAccountDao);
         incomeToEdit.setAmount(incomeDao.getAmount());

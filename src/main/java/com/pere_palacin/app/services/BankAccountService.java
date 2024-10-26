@@ -25,4 +25,7 @@ public interface BankAccountService {
     void changeReceivingTransferAccount(BankAccountDao oldReceivingAccount, BankAccountDao newReceivingAccount, BigDecimal amount);
     void changeSendingReceivingTransferAccount(BankAccountDao oldSendingAccount, BankAccountDao newSendingAccount, BigDecimal amount);
     void deleteTransfer(BankAccountDao receivingBankAccount, BankAccountDao sendingBankAccount, BigDecimal amount);
+    BankAccountDao addInvestment(BankAccountDao bankAccountDao, BigDecimal investedAmount);
+    BankAccountDao updateInvestedAmount(BankAccountDao bankAccountDao, BigDecimal newAmount, BigDecimal oldAmount);
+    void deleteInvestedAmount(BankAccountDao bankAccountDao, BigDecimal amount);
 }

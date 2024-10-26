@@ -51,10 +51,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TransferNotFoundException.class)
     public ResponseEntity<CustomErrorResponse> handleTransferNotFound(TransferNotFoundException ex) {
-        CustomErrorResponse errorResponse = new CustomErrorResponse(UNAUTHORIZED.value(), ex.getMessage());
+        CustomErrorResponse errorResponse = new CustomErrorResponse(NOT_FOUND.value(), ex.getMessage());
         return ResponseEntity.status(NOT_FOUND).body(errorResponse);
     }
 
+    @ExceptionHandler(InvestmentCategoryNotFoundException.class)
+    public ResponseEntity<CustomErrorResponse> handleInvestmentCategoryNotFound(InvestmentCategoryNotFoundException ex) {
+        CustomErrorResponse errorResponse = new CustomErrorResponse(NOT_FOUND.value(), ex.getMessage());
+        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(InvestmentNotFoundException.class)
+    public ResponseEntity<CustomErrorResponse> handleInvestmentCategoryNotFound(InvestmentNotFoundException ex) {
+        CustomErrorResponse errorResponse = new CustomErrorResponse(NOT_FOUND.value(), ex.getMessage());
+        return ResponseEntity.status(NOT_FOUND).body(errorResponse);
+    }
     @ExceptionHandler(UnauthorizedRequestException.class)
     public ResponseEntity<CustomErrorResponse> handleUnauthorizedRequest(UnauthorizedRequestException ex) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(UNAUTHORIZED.value(), ex.getMessage());

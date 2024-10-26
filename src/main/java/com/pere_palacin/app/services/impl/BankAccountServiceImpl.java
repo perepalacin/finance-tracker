@@ -166,4 +166,22 @@ public class BankAccountServiceImpl implements BankAccountService {
         bankAccountRepository.save(receivingBankAccount);
         bankAccountRepository.save(receivingBankAccount);
     }
+
+    @Override
+    public BankAccountDao addInvestment(BankAccountDao bankAccountDao, BigDecimal investedAmount) {
+        bankAccountDao.setTotalInvested(bankAccountDao.getTotalInvested().add(investedAmount));
+        return bankAccountRepository.save(bankAccountDao);
+    }
+
+    @Override
+    public BankAccountDao updateInvestedAmount(BankAccountDao bankAccountDao, BigDecimal newAmount, BigDecimal oldAmount) {
+        bankAccountDao.setTotalInvested(bankAccountDao.getTotalInvested().subtract(oldAmount).add(newAmount));
+        return bankAccountRepository.save(bankAccountDao);
+    }
+
+    @Override
+    public void deleteInvestedAmount(BankAccountDao bankAccountDao, BigDecimal amount) {
+        bankAccountDao.setTotalInvested(bankAccountDao.getTotalInvested().subtract(amount));
+        bankAccountRepository.save(bankAccountDao);
+    }
 }
