@@ -82,11 +82,13 @@ public class InvestmentServiceImpl implements InvestmentService {
             investmentToEdit.setInvestmentCategory(investmentCategoryDao);
         }
         if (!Objects.equals(investmentToEdit.getBankAccount().getId(), bankAccountId)) {
-            // TODO: An exception is thrown here! check out why bankAccountDao is empty!
+            // TODO: Transfer amount is not changing on both accounts, check out why!?
+            bankAccountService.deleteInvestedAmount(investmentToEdit.getBankAccount(), investmentToEdit.getAmountInvested());
             investmentToEdit.setBankAccount(bankAccountService.addInvestment(bankAccountService.findById(bankAccountId), investmentDao.getAmountInvested()));
-            bankAccountService.deleteInvestedAmount(investmentDao.getBankAccount(), investmentToEdit.getAmountInvested());
+            investmentToEdit.setAmountInvested(investmentDao.getAmountInvested());
         } else if (!Objects.equals(investmentDao.getAmountInvested(), investmentToEdit.getAmountInvested())){
             investmentToEdit.setBankAccount(bankAccountService.updateInvestedAmount(investmentToEdit.getBankAccount(), investmentDao.getAmountInvested(), investmentToEdit.getAmountInvested()));
+            investmentToEdit.setAmountInvested(investmentDao.getAmountInvested());
         }
         investmentToEdit.setName(investmentDao.getName());
         investmentToEdit.setStartDate(investmentDao.getStartDate());
