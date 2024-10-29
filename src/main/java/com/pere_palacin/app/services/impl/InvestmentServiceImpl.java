@@ -82,7 +82,6 @@ public class InvestmentServiceImpl implements InvestmentService {
             investmentToEdit.setInvestmentCategory(investmentCategoryDao);
         }
         if (!Objects.equals(investmentToEdit.getBankAccount().getId(), bankAccountId)) {
-            // TODO: Transfer amount is not changing on both accounts, check out why!?
             bankAccountService.deleteInvestedAmount(investmentToEdit.getBankAccount(), investmentToEdit.getAmountInvested());
             investmentToEdit.setBankAccount(bankAccountService.addInvestment(bankAccountService.findById(bankAccountId), investmentDao.getAmountInvested()));
             investmentToEdit.setAmountInvested(investmentDao.getAmountInvested());

@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -26,9 +27,10 @@ public class ExpenseDto {
 
     private String annotation;
 
-    @NotNull(message = "It is required to assign an expense to a category")
-    private UUID categoryId;
-    private CategoryDto categoryDto;
+    @NotNull(message = "It is required to assign at least one category to this expense")
+    private Set<UUID> expenseCategoryIds;
+
+    private Set<CategoryDto> expenseCategoryDtos;
 
     @NotNull(message = "It is required to assign an expense to a bank account")
     private UUID bankAccountId;

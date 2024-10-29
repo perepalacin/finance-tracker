@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -33,9 +34,13 @@ public class ExpenseDao {
     private BigDecimal amount;
     private String annotation;
 
-    @ManyToOne
-    @JoinColumn(name = "categories", referencedColumnName = "id")
-    private CategoryDao category;
+    @ManyToMany
+    @JoinTable(
+            name = "categories_expenses",
+            joinColumns = @JoinColumn(name = "expense_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<CategoryDao> expenseCategories;
 
     @ManyToOne //We swap the id for the object it relates to and we provide the type of relationship on top.
     @JoinColumn(name = "bank_accounts", referencedColumnName = "id")

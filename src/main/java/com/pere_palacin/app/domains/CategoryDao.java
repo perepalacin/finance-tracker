@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedDate;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -22,6 +23,9 @@ public class CategoryDao {
     @Column(nullable = false)
     private String categoryName;
     private String iconName;
+
+    @ManyToMany(mappedBy = "expenseCategories")
+    private Set<ExpenseDao> expensesAssociated;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

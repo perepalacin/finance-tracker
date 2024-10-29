@@ -22,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,19 +54,32 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Transactional
     @Override
-    public ExpenseDao registerExpense(ExpenseDao expenseDao, UUID categoryId, UUID bankAccountId) {
+    public ExpenseDao registerExpense(ExpenseDao expenseDao, UUID bankAccountId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDao user = userRepository.findByUsername(username);
         expenseDao.setUser(user);
-        CategoryDao categoryDao = categoryService.findById(categoryId);
-        if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
+
+        List<UUID> categoryIds = expenseDao.getExpenseCategories()
+                .stream()
+                .map(CategoryDao::getId)
+                .collect(Collectors.toList());
+
+        Set<CategoryDao> categoryDaos = categoryService.findAllById(categoryIds);
+
+        //TODO: move this to a method!
+        for (CategoryDao categoryDao : categoryDaos) {
+            if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
+                throw new UnauthorizedRequestException();
+            }
         }
-        expenseDao.setCategory(categoryDao);
+
+        expenseDao.setExpenseCategories(categoryDaos);
+
         BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
         if (!Objects.equals(bankAccountDao.getUser().getId(), user.getId())) {
             throw new UnauthorizedRequestException();
         }
+
         bankAccountService.addAssociatedExpense(bankAccountDao, expenseDao.getAmount());
         expenseDao.setBankAccount(bankAccountDao);
         return expenseRepository.save(expenseDao);
@@ -80,7 +95,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new UnauthorizedRequestException();
         }
         CategoryDao categoryDao = categoryService.findById(categoryId);
-        expenseDao.setCategory(categoryDao);
+//        expenseDao.setCategory(categoryDao);
         BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
         if (expenseToEdit.getBankAccount().getId() != bankAccountId) {
             bankAccountService.deleteAssociatedExpense(expenseToEdit.getBankAccount(), expenseToEdit.getAmount());

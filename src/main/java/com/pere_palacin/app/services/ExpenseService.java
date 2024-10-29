@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface ExpenseService {
     Page<ExpenseDao> findAll();
     ExpenseDao findById(UUID id);
-    ExpenseDao registerExpense(ExpenseDao expenseDao, UUID categoryId, UUID bankAccountId);
+    ExpenseDao registerExpense(ExpenseDao expenseDao, UUID bankAccountId);
     ExpenseDao updateExpense(UUID id, ExpenseDao expenseDao, UUID categoryId, UUID bankAccountId);
     void deleteExpense(UUID id);
 }

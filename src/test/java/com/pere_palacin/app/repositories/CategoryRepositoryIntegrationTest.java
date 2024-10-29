@@ -18,10 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) //Restarts the db and all the memory of the app based on the parameter you pass it. Play around with the arguments!
 public class CategoryRepositoryIntegrationTest {
 
-    private CategoryRespository underTest;
+    private CategoryRepository underTest;
 
     @Autowired
-    public CategoryRepositoryIntegrationTest(CategoryRespository underTest) {
+    public CategoryRepositoryIntegrationTest(CategoryRepository underTest) {
         this.underTest = underTest;
     }
 
