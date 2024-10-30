@@ -1,5 +1,6 @@
 package com.pere_palacin.app.domains;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -42,7 +43,7 @@ public class ExpenseDao {
     )
     private Set<CategoryDao> expenseCategories;
 
-    @ManyToOne //We swap the id for the object it relates to and we provide the type of relationship on top.
+    @ManyToOne
     @JoinColumn(name = "bank_accounts", referencedColumnName = "id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private BankAccountDao bankAccount;
@@ -54,7 +55,7 @@ public class ExpenseDao {
     @LastModifiedDate
     private Instant updated_at;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserDao user;
 }

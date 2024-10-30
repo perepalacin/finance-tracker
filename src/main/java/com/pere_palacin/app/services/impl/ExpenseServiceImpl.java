@@ -20,10 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,15 +84,53 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Transactional
     @Override
-    public ExpenseDao updateExpense(UUID id, ExpenseDao expenseDao, UUID categoryId, UUID bankAccountId) {
+    public ExpenseDao updateExpense(UUID id, ExpenseDao expenseDao, UUID suka, UUID bankAccountId) {
         ExpenseDao expenseToEdit = this.findById(id);
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDao user = userRepository.findByUsername(username);
         if (!Objects.equals(user.getId(), expenseToEdit.getUser().getId())) {
             throw new UnauthorizedRequestException();
         }
-        CategoryDao categoryDao = categoryService.findById(categoryId);
-//        expenseDao.setCategory(categoryDao);
+
+        Set<CategoryDao> existingCategories = expenseToEdit.getExpenseCategories();
+        Set<UUID> existingCategoryIds = existingCategories
+                .stream()
+                .map(CategoryDao::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> newCategoryIds = expenseDao.getExpenseCategories()
+                .stream()
+                .map(CategoryDao::getId)
+                .collect(Collectors.toSet());
+
+        Set<CategoryDao> categoryDaosToSave = new HashSet<>();
+        Set<UUID> alreadyFetchedCategoryIds = new HashSet<>();
+        for (CategoryDao categoryDao : existingCategories) {
+            if (newCategoryIds.contains(categoryDao.getId())) {
+                categoryDaosToSave.add(categoryDao);
+                alreadyFetchedCategoryIds.add(categoryDao.getId());
+            }
+        }
+
+        List<UUID> categoriesToFetch = new ArrayList<>();
+        for (UUID categoryId : newCategoryIds) {
+            if (!alreadyFetchedCategoryIds.contains(categoryId)) {
+                categoriesToFetch.add(categoryId);
+            }
+        }
+
+        if (!categoriesToFetch.isEmpty()) {
+            Set<CategoryDao> newCategories = categoryService.findAllById(categoriesToFetch);
+            for (CategoryDao categoryDao : newCategories) {
+                if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
+                    throw new UnauthorizedRequestException();
+                }
+            }
+            categoryDaosToSave.addAll(newCategories);
+        }
+
+        expenseToEdit.setExpenseCategories(categoryDaosToSave);
+
         BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
         if (expenseToEdit.getBankAccount().getId() != bankAccountId) {
             bankAccountService.deleteAssociatedExpense(expenseToEdit.getBankAccount(), expenseToEdit.getAmount());
@@ -107,7 +142,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         expenseToEdit.setAmount(expenseDao.getAmount());
         expenseToEdit.setName(expenseDao.getName());
         expenseToEdit.setAnnotation(expenseDao.getAnnotation());
-        return expenseRepository.save(expenseDao);
+        return expenseRepository.save(expenseToEdit);
     }
 
     @Override

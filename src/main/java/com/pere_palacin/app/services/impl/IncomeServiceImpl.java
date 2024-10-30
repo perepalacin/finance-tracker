@@ -1,14 +1,8 @@
 package com.pere_palacin.app.services.impl;
 
-import com.pere_palacin.app.domains.*;
-import com.pere_palacin.app.exceptions.IncomeNotFoundException;
-import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
-import com.pere_palacin.app.repositories.IncomeRepository;
-import com.pere_palacin.app.repositories.UserRepository;
-import com.pere_palacin.app.services.BankAccountService;
-import com.pere_palacin.app.services.IncomeService;
-import com.pere_palacin.app.services.IncomeSourceService;
-import lombok.RequiredArgsConstructor;
+import java.util.Objects;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +10,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.UUID;
+import com.pere_palacin.app.domains.BankAccountDao;
+import com.pere_palacin.app.domains.IncomeDao;
+import com.pere_palacin.app.domains.IncomeSourceDao;
+import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.exceptions.IncomeNotFoundException;
+import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
+import com.pere_palacin.app.repositories.IncomeRepository;
+import com.pere_palacin.app.repositories.UserRepository;
+import com.pere_palacin.app.services.BankAccountService;
+import com.pere_palacin.app.services.IncomeService;
+import com.pere_palacin.app.services.IncomeSourceService;
+
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
@@ -91,9 +96,7 @@ public class IncomeServiceImpl implements IncomeService {
         incomeToEdit.setAmount(incomeDao.getAmount());
         incomeToEdit.setName(incomeDao.getName());
         incomeToEdit.setAnnotation(incomeDao.getAnnotation());
-        return incomeRepository.save(incomeDao);
-        //TODO: TEST this feature both on income and expense
-        //TODO: CHECK if category and bank account has changed before calling the service
+        return incomeRepository.save(incomeToEdit);
     }
 
     @Override
