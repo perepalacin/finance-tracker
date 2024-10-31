@@ -7,6 +7,7 @@ import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
 import com.pere_palacin.app.repositories.BankAccountRepository;
 import com.pere_palacin.app.repositories.UserRepository;
 import com.pere_palacin.app.services.BankAccountService;
+import com.pere_palacin.app.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,12 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     private final BankAccountRepository bankAccountRepository;
     private final UserRepository userRepository;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     public BankAccountDao createAccount(BankAccountDao bankAccountDao) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
+        UUID userId = userDetailsService.getRequestingUserId();
+        UserDao user = UserDao.builder().id(userId).build();
         bankAccountDao.setUser(user);
         bankAccountDao.setTotalExpenses(new BigDecimal(0));
         bankAccountDao.setCurrentBalance(bankAccountDao.getInitialAmount());
@@ -39,13 +41,14 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public List<BankAccountDao> findAll() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        return bankAccountRepository.findByUserId(user.getId());
+        UUID userId = userDetailsService.getRequestingUserId();
+        return bankAccountRepository.findByUserId(userId);
     }
 
     @Override
     public BankAccountDao findById(UUID id) {
+        UUID userId = userDetailsService.getRequestingUserId();
+        //TODO: Check if authorized!
         return bankAccountRepository.findById(id).orElseThrow(
                 () -> new BankAcountNotFoundException(id)
         );
@@ -53,8 +56,8 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountDao updateAccount(UUID id, BankAccountDao bankAccountDao) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
+        UUID userId = userDetailsService.getRequestingUserId();
+        UserDao user = UserDao.builder().id(userId).build();
         BankAccountDao bankAccountToEdit = this.findById(id);
         if (!Objects.equals(user.getId(), bankAccountToEdit.getUser().getId())) {
             throw new UnauthorizedRequestException();

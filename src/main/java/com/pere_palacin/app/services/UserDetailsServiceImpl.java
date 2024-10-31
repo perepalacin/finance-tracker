@@ -1,13 +1,17 @@
 package com.pere_palacin.app.services;
 
+import com.pere_palacin.app.exceptions.UserIdNotFoundException;
 import com.pere_palacin.app.models.UserPrincipal;
 import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 //We need to implement our userDetailsService class in order to implement our own workflow to handle user authentication.
 @Service
@@ -23,7 +27,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             System.out.println("User Not Found");
             throw new UsernameNotFoundException("user not found");
         }
-
         return new UserPrincipal(user);
+    }
+
+    public UserDetails loadUserById(UUID userId) throws UserIdNotFoundException {
+        UserDao user = userRepository.findById(userId).orElseThrow(
+                () -> new UserIdNotFoundException(userId)
+        );
+        return new UserPrincipal(user);
+    }
+
+    public UUID getRequestingUserId () {
+        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

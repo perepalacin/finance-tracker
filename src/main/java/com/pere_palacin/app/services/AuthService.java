@@ -32,7 +32,6 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
         if (authentication.isAuthenticated()) {
             UserPrincipal authenticatedUser = (UserPrincipal) authentication.getPrincipal();
-            // User currentUser = userRepository.findByUsername(user.getUsername());
             return jwtService.generateToken(authenticatedUser.getUserId());
         }
         return "Failed";

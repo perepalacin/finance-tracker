@@ -9,7 +9,6 @@ import java.util.function.Function;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
@@ -41,7 +40,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String extractUserName(String token) {
+    public String extractUserId(String token) {
         // extract the username from jwt token
         return extractClaim(token, Claims::getSubject);
     }
@@ -60,9 +59,14 @@ public class JwtService {
                 .getPayload();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    // public boolean validateToken(String token, UserPrincipal userDetails) {
+    //     final UUID userId = UUID.fromString(extractUserId(token));
+    //     return (userId.equals(userDetails.getUserId()) && !isTokenExpired(token));
+    // }
+
+    public boolean validateToken(String token, UUID userid) {
+        final UUID USER_ID_FROM_TOKEN = UUID.fromString(extractUserId(token));
+        return (userid.equals(USER_ID_FROM_TOKEN)) && !isTokenExpired(token); 
     }
 
     private boolean isTokenExpired(String token) {

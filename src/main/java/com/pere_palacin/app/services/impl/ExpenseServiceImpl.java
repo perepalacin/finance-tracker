@@ -6,6 +6,7 @@ import com.pere_palacin.app.domains.ExpenseDao;
 import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.exceptions.ExpenseNotFoundException;
 import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
+import com.pere_palacin.app.models.UserPrincipal;
 import com.pere_palacin.app.repositories.ExpenseRepository;
 import com.pere_palacin.app.repositories.UserRepository;
 import com.pere_palacin.app.services.BankAccountService;
@@ -52,34 +53,37 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Transactional
     @Override
     public ExpenseDao registerExpense(ExpenseDao expenseDao, UUID bankAccountId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        expenseDao.setUser(user);
 
-        List<UUID> categoryIds = expenseDao.getExpenseCategories()
-                .stream()
-                .map(CategoryDao::getId)
-                .collect(Collectors.toList());
+        return null;
+//        UUID userId = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getDetails();
+//        UserDao user = new UserDao();
+//        user.setId(userId);
+//        expenseDao.setUser(user);
 
-        Set<CategoryDao> categoryDaos = categoryService.findAllById(categoryIds);
+//        List<UUID> categoryIds = expenseDao.getExpenseCategories()
+//                .stream()
+//                .map(CategoryDao::getId)
+//                .collect(Collectors.toList());
+//
+//        Set<CategoryDao> categoryDaos = categoryService.findAllById(categoryIds);
+//
+//        //TODO: move this to a method!
+//        for (CategoryDao categoryDao : categoryDaos) {
+//            if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
+//                throw new UnauthorizedRequestException();
+//            }
+//        }
+//
+//        expenseDao.setExpenseCategories(categoryDaos);
+//
+//        BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
+//        if (!Objects.equals(bankAccountDao.getUser().getId(), user.getId())) {
+//            throw new UnauthorizedRequestException();
+//        }
 
-        //TODO: move this to a method!
-        for (CategoryDao categoryDao : categoryDaos) {
-            if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
-                throw new UnauthorizedRequestException();
-            }
-        }
-
-        expenseDao.setExpenseCategories(categoryDaos);
-
-        BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
-        if (!Objects.equals(bankAccountDao.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
-        }
-
-        bankAccountService.addAssociatedExpense(bankAccountDao, expenseDao.getAmount());
-        expenseDao.setBankAccount(bankAccountDao);
-        return expenseRepository.save(expenseDao);
+//        bankAccountService.addAssociatedExpense(bankAccountDao, expenseDao.getAmount());
+//        expenseDao.setBankAccount(bankAccountDao);
+//        return expenseRepository.save(expenseDao);
     }
 
     @Transactional
