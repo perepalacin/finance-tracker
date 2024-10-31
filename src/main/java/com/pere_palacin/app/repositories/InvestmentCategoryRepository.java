@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface InvestmentCategoryRepository extends JpaRepository<InvestmentCategoryDao, UUID> {
-    List<InvestmentCategoryDao> findByUserId(Integer id);
+    List<InvestmentCategoryDao> findByUserId(UUID id);
 }

@@ -17,8 +17,8 @@ import lombok.*;
 public class UserDao {
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     @Column(unique = true)
     private String username;
     private String password;

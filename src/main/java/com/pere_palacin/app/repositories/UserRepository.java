@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserDao, Integer> {
+public interface UserRepository extends JpaRepository<UserDao, UUID> {
     UserDao findByUsername(String username);
 }

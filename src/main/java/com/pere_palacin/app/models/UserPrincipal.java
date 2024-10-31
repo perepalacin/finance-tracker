@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 
 //Object were we store the userdetails of the user that is trying to login
 public class UserPrincipal implements UserDetails {
@@ -31,6 +32,8 @@ public class UserPrincipal implements UserDetails {
     public String getPassword() {
         return user.getPassword();
     }
+
+    public UUID getUserId() { return user.getId(); }
 
     @Override
     public boolean isAccountNonExpired() {

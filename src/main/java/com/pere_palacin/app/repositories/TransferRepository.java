@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface TransferRepository extends JpaRepository<TransferDao, UUID> {
-    Page<TransferDao> findAllByUserIdOrderByName(Integer id, Pageable pageable);
+    Page<TransferDao> findAllByUserIdOrderByName(UUID id, Pageable pageable);
 }

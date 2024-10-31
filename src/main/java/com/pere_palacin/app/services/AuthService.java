@@ -1,13 +1,16 @@
 package com.pere_palacin.app.services;
 
-import com.pere_palacin.app.domains.UserDao;
-import com.pere_palacin.app.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.pere_palacin.app.models.UserPrincipal;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
@@ -28,7 +31,9 @@ public class AuthService {
     public String verify(UserDao user) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
         if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(user.getUsername());
+            UserPrincipal authenticatedUser = (UserPrincipal) authentication.getPrincipal();
+            // User currentUser = userRepository.findByUsername(user.getUsername());
+            return jwtService.generateToken(authenticatedUser.getUserId());
         }
         return "Failed";
     }

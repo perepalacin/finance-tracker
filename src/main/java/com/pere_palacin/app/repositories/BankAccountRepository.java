@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface BankAccountRepository extends JpaRepository<BankAccountDao, UUID> {
-    List<BankAccountDao> findByUserId(Integer id);
+    List<BankAccountDao> findByUserId(UUID id);
 }

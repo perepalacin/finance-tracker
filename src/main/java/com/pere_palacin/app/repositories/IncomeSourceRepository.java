@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface IncomeSourceRepository extends JpaRepository<IncomeSourceDao, UUID> {
-    List<IncomeSourceDao> findByUserId(Integer id);
+    List<IncomeSourceDao> findByUserId(UUID id);
 }
