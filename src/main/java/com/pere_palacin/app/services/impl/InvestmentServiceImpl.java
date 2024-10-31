@@ -17,8 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,15 +47,18 @@ public class InvestmentServiceImpl implements InvestmentService {
     }
 
     @Override
-    public InvestmentDao createInvestment(InvestmentDao investmentDao, UUID investmentCategoryId, UUID bankAccountId) {
+    public InvestmentDao createInvestment(InvestmentDao investmentDao, UUID bankAccountId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDao user = userRepository.findByUsername(username);
         investmentDao.setUser(user);
-        InvestmentCategoryDao investmentCategoryDao = investmentCategoryService.findById(investmentCategoryId);
-        if (!Objects.equals(investmentCategoryDao.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
+        Set<InvestmentCategoryDao> investmentCategoryDaos = investmentCategoryService.findAllById(investmentDao.getInvestmentCategories().stream().map(InvestmentCategoryDao::getId).toList());
+        for (InvestmentCategoryDao investmentCategoryDao : investmentCategoryDaos) {
+            if (!Objects.equals(investmentCategoryDao.getUser().getId(), user.getId())) {
+                throw new UnauthorizedRequestException();
+            }
         }
-        investmentDao.setInvestmentCategory(investmentCategoryDao);
+
+        investmentDao.setInvestmentCategories(investmentCategoryDaos);
         BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
         if (!Objects.equals(bankAccountDao.getUser().getId(), user.getId())) {
             throw new UnauthorizedRequestException();
@@ -67,20 +70,53 @@ public class InvestmentServiceImpl implements InvestmentService {
     }
 
     @Override
-    public InvestmentDao updateInvestment(UUID id, InvestmentDao investmentDao, UUID investmentCategoryId, UUID bankAccountId) {
+    public InvestmentDao updateInvestment(UUID id, InvestmentDao investmentDao, UUID bankAccountId) {
         InvestmentDao investmentToEdit = this.findById(id);
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDao user = userRepository.findByUsername(username);
         if (!Objects.equals(user.getId(), investmentToEdit.getUser().getId())) {
             throw new UnauthorizedRequestException();
         }
-        if (!Objects.equals(investmentToEdit.getInvestmentCategory().getId(), investmentCategoryId)) {
-            InvestmentCategoryDao investmentCategoryDao = investmentCategoryService.findById(investmentCategoryId);
-            if (!Objects.equals(user.getId(), investmentCategoryDao.getUser().getId())) {
-                throw new UnauthorizedRequestException();
+
+        Set<InvestmentCategoryDao> existingCategories = investmentToEdit.getInvestmentCategories();
+        Set<UUID> existingCategoryIds = existingCategories
+                .stream()
+                .map(InvestmentCategoryDao::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> newCategoryIds = investmentDao.getInvestmentCategories()
+                .stream()
+                .map(InvestmentCategoryDao::getId)
+                .collect(Collectors.toSet());
+
+        Set<InvestmentCategoryDao> investmentCategoryDaosToSave = new HashSet<>();
+        Set<UUID> alreadyFetchedCategoryIds = new HashSet<>();
+        for (InvestmentCategoryDao categoryDao : existingCategories) {
+            if (newCategoryIds.contains(categoryDao.getId())) {
+                investmentCategoryDaosToSave.add(categoryDao);
+                alreadyFetchedCategoryIds.add(categoryDao.getId());
             }
-            investmentToEdit.setInvestmentCategory(investmentCategoryDao);
         }
+
+        List<UUID> categoriesToFetch = new ArrayList<>();
+        for (UUID categoryId : newCategoryIds) {
+            if (!alreadyFetchedCategoryIds.contains(categoryId)) {
+                categoriesToFetch.add(categoryId);
+            }
+        }
+
+        if (!categoriesToFetch.isEmpty()) {
+            Set<InvestmentCategoryDao> newCategories = investmentCategoryService.findAllById(categoriesToFetch);
+            for (InvestmentCategoryDao categoryDao : newCategories) {
+                if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
+                    throw new UnauthorizedRequestException();
+                }
+            }
+            investmentCategoryDaosToSave.addAll(newCategories);
+        }
+
+        investmentToEdit.setInvestmentCategories(investmentCategoryDaosToSave);
+
         if (!Objects.equals(investmentToEdit.getBankAccount().getId(), bankAccountId)) {
             bankAccountService.deleteInvestedAmount(investmentToEdit.getBankAccount(), investmentToEdit.getAmountInvested());
             investmentToEdit.setBankAccount(bankAccountService.addInvestment(bankAccountService.findById(bankAccountId), investmentDao.getAmountInvested()));

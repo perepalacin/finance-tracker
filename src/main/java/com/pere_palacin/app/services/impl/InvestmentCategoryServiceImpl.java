@@ -4,6 +4,7 @@ import com.pere_palacin.app.domains.CategoryDao;
 import com.pere_palacin.app.domains.IncomeSourceDao;
 import com.pere_palacin.app.domains.InvestmentCategoryDao;
 import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.exceptions.CategoryNotFoundException;
 import com.pere_palacin.app.exceptions.IncomeSourceNotFoundException;
 import com.pere_palacin.app.exceptions.InvestmentCategoryNotFoundException;
 import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
@@ -14,9 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +51,20 @@ public class InvestmentCategoryServiceImpl implements InvestmentCategoryService 
             throw new UnauthorizedRequestException();
         }
         return investmentCategoryDao;
+    }
+
+    @Override
+    public Set<InvestmentCategoryDao> findAllById(List<UUID> categoryIds) {
+        List<InvestmentCategoryDao> investmentCategoryDaos = investmentCategoryRepository.findAllById(categoryIds);
+        Set<UUID> foundIds = investmentCategoryDaos.stream()
+                .map(InvestmentCategoryDao::getId)
+                .collect(Collectors.toSet());
+        for (UUID id : categoryIds) {
+            if (!foundIds.contains(id)) {
+                throw new CategoryNotFoundException(id);
+            }
+        }
+        return new HashSet<>(investmentCategoryDaos);
     }
 
     @Override

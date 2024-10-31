@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -35,9 +36,13 @@ public class InvestmentDao {
 
     private BigDecimal amountInvested;
 
-    @ManyToOne
-    @JoinColumn(name = "investment_category", referencedColumnName = "id")
-    private InvestmentCategoryDao investmentCategory;
+    @ManyToMany
+    @JoinTable(
+            name = "categories_investments",
+            joinColumns = @JoinColumn(name = "investment_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<InvestmentCategoryDao> investmentCategories;
 
     @ManyToOne
     @JoinColumn(name = "bank_accounts", referencedColumnName = "id")

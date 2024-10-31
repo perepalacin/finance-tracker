@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface InvestmentService {
     Page<InvestmentDao> findAll();
     InvestmentDao findById(UUID id);
-    InvestmentDao createInvestment(InvestmentDao investmentDao, UUID investmentCategoryId, UUID bankAccountId);
-    InvestmentDao updateInvestment(UUID id, InvestmentDao investmentDao, UUID investmentCategoryId, UUID bankAccountId);
+    InvestmentDao createInvestment(InvestmentDao investmentDao, UUID bankAccountId);
+    InvestmentDao updateInvestment(UUID id, InvestmentDao investmentDao, UUID bankAccountId);
     void deleteInvestment(UUID id);
 }

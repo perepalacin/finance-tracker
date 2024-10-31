@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -30,9 +31,10 @@ public class InvestmentDto {
 
     private String annotation;
 
-    @NotNull(message = "It is requires to assign an investment category to an investment")
-    private UUID investmentCategoryId;
-    private InvestmentCategoryDto investmentCategoryDto;
+    @NotNull(message = "It is required to assign at least one category to an investment")
+    private Set<UUID> investmentCategoriesId;
+
+    private Set<InvestmentCategoryDto> investmentCategoryDtos;
 
     @NotNull(message = "It is required to assign an investment to a bank account")
     private UUID bankAccountId;

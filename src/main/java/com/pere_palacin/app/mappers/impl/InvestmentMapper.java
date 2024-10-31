@@ -1,15 +1,15 @@
 package com.pere_palacin.app.mappers.impl;
 
-import com.pere_palacin.app.domains.IncomeDao;
+import com.pere_palacin.app.domains.InvestmentCategoryDao;
 import com.pere_palacin.app.domains.InvestmentDao;
-import com.pere_palacin.app.domains.dto.BankAccountDto;
-import com.pere_palacin.app.domains.dto.IncomeDto;
-import com.pere_palacin.app.domains.dto.IncomeSourceDto;
-import com.pere_palacin.app.domains.dto.InvestmentDto;
+import com.pere_palacin.app.domains.dto.*;
 import com.pere_palacin.app.mappers.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -22,8 +22,16 @@ public class InvestmentMapper implements Mapper<InvestmentDao, InvestmentDto> {
     @Override
     public InvestmentDao mapFrom(InvestmentDto investmentDto) {
         InvestmentDao investmentDao = modelMapper.map(investmentDto, InvestmentDao.class);
-        if (investmentDto.getInvestmentCategoryDto() != null) {
-            investmentDao.setInvestmentCategory(investmentCategoryMapper.mapFrom(investmentDto.getInvestmentCategoryDto()));
+        if (investmentDto.getInvestmentCategoryDtos() != null) {
+            Set<InvestmentCategoryDao> assignedCategories = investmentDto.getInvestmentCategoryDtos().stream()
+                    .map(investmentCategoryMapper::mapFrom)
+                    .collect(Collectors.toSet());
+            investmentDao.setInvestmentCategories(assignedCategories);
+        } else if (investmentDto.getInvestmentCategoriesId() != null) {
+            Set<InvestmentCategoryDao> assignedCategoriesIds = investmentDto.getInvestmentCategoriesId().stream()
+                    .map(id -> InvestmentCategoryDao.builder().id(id).build())
+                    .collect(Collectors.toSet());
+            investmentDao.setInvestmentCategories(assignedCategoriesIds);
         }
         if (investmentDto.getBankAccountDto() != null) {
             investmentDao.setBankAccount(bankAccountMapper.mapFrom(investmentDto.getBankAccountDto()));
@@ -34,8 +42,10 @@ public class InvestmentMapper implements Mapper<InvestmentDao, InvestmentDto> {
     @Override
     public InvestmentDto mapTo(InvestmentDao investmentDao) {
         InvestmentDto investmentDto = modelMapper.map(investmentDao, InvestmentDto.class);
-        if (investmentDao.getInvestmentCategory() != null) {
-            investmentDto.setInvestmentCategoryDto(investmentCategoryMapper.mapTo(investmentDao.getInvestmentCategory()));
+        if (investmentDao.getInvestmentCategories() != null) {
+            investmentDto.setInvestmentCategoryDtos(
+                    investmentDao.getInvestmentCategories().stream()
+                            .map(investmentCategoryMapper::mapTo).collect(Collectors.toSet()));
         }
         if (investmentDao.getBankAccount() != null) {
             investmentDto.setBankAccountDto(bankAccountMapper.mapTo(investmentDao.getBankAccount()));

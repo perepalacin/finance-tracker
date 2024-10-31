@@ -84,7 +84,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Transactional
     @Override
-    public ExpenseDao updateExpense(UUID id, ExpenseDao expenseDao, UUID suka, UUID bankAccountId) {
+    public ExpenseDao updateExpense(UUID id, ExpenseDao expenseDao, UUID bankAccountId) {
         ExpenseDao expenseToEdit = this.findById(id);
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         UserDao user = userRepository.findByUsername(username);
@@ -93,10 +93,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         Set<CategoryDao> existingCategories = expenseToEdit.getExpenseCategories();
-        Set<UUID> existingCategoryIds = existingCategories
-                .stream()
-                .map(CategoryDao::getId)
-                .collect(Collectors.toSet());
 
         Set<UUID> newCategoryIds = expenseDao.getExpenseCategories()
                 .stream()
@@ -131,14 +127,15 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         expenseToEdit.setExpenseCategories(categoryDaosToSave);
 
-        BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
         if (expenseToEdit.getBankAccount().getId() != bankAccountId) {
+            BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
             bankAccountService.deleteAssociatedExpense(expenseToEdit.getBankAccount(), expenseToEdit.getAmount());
             bankAccountService.addAssociatedExpense(bankAccountDao, expenseDao.getAmount());
+            // TODO: Check if this is mutable!
+            expenseToEdit.setBankAccount(bankAccountDao);
         } else {
-            bankAccountService.editAssociatedExpense(bankAccountDao, expenseToEdit.getAmount(), expenseDao.getAmount());
+            bankAccountService.editAssociatedExpense(expenseToEdit.getBankAccount(), expenseToEdit.getAmount(), expenseDao.getAmount());
         }
-        expenseDao.setBankAccount(bankAccountDao);
         expenseToEdit.setAmount(expenseDao.getAmount());
         expenseToEdit.setName(expenseDao.getName());
         expenseToEdit.setAnnotation(expenseDao.getAnnotation());

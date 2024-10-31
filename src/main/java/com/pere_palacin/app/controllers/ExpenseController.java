@@ -49,7 +49,7 @@ public class ExpenseController {
     public ResponseEntity<ExpenseDto> editExpense(@Valid @RequestBody ExpenseDto expenseDto, @PathVariable UUID id) {
         ExpenseDao expenseDao = expenseMapper.mapFrom(expenseDto);
 //       //TODO: category ids are missing!
-        ExpenseDao updatedExpenseDao = expenseService.updateExpense(id, expenseDao,expenseDto.getBankAccountId(), expenseDto.getBankAccountId());
+        ExpenseDao updatedExpenseDao = expenseService.updateExpense(id, expenseDao, expenseDto.getBankAccountId());
         ExpenseDto updatedExpenseDto = expenseMapper.mapTo(updatedExpenseDao);
         return new ResponseEntity<>(updatedExpenseDto, HttpStatus.OK);
     }

@@ -3,6 +3,7 @@ package com.pere_palacin.app.domains;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -20,6 +21,9 @@ public class InvestmentCategoryDao {
         @Column(nullable = false)
         private String investmentCategoryName;
         private String color;
+
+        @ManyToMany(mappedBy = "investmentCategories", cascade = {})
+        private Set<InvestmentDao> investmentAssociated;
 
         @ManyToOne
         @JoinColumn(name = "user_id", referencedColumnName = "id")

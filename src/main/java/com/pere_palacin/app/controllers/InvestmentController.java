@@ -31,7 +31,7 @@ public class InvestmentController {
     @PostMapping("")
     public ResponseEntity<InvestmentDto> createInvestment(@Valid @RequestBody InvestmentDto investmentDto) {
         InvestmentDao investmentDao = investmentMapper.mapFrom(investmentDto);
-        InvestmentDao savedInvestmentDao = investmentService.createInvestment(investmentDao, investmentDto.getInvestmentCategoryId(), investmentDto.getBankAccountId());
+        InvestmentDao savedInvestmentDao = investmentService.createInvestment(investmentDao, investmentDto.getBankAccountId());
         InvestmentDto savedInvestmentDto = investmentMapper.mapTo(savedInvestmentDao);
         return new ResponseEntity<>(savedInvestmentDto, CREATED);
     }
@@ -39,7 +39,7 @@ public class InvestmentController {
     @PutMapping("/{id}")
     public ResponseEntity<InvestmentDto> editInvestment(@Valid @RequestBody InvestmentDto investmentDto, @PathVariable UUID id) {
         InvestmentDao investmentDao = investmentMapper.mapFrom(investmentDto);
-        InvestmentDao updatedInvestmentDao = investmentService.updateInvestment(id, investmentDao, investmentDto.getInvestmentCategoryId(), investmentDto.getBankAccountId());
+        InvestmentDao updatedInvestmentDao = investmentService.updateInvestment(id, investmentDao, investmentDto.getBankAccountId());
         InvestmentDto updatedInvestmentDto = investmentMapper.mapTo(updatedInvestmentDao);
         return new ResponseEntity<>(updatedInvestmentDto, OK);
     }
