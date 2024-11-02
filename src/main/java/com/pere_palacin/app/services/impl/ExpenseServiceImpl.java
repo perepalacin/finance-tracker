@@ -5,19 +5,14 @@ import com.pere_palacin.app.domains.CategoryDao;
 import com.pere_palacin.app.domains.ExpenseDao;
 import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.exceptions.ExpenseNotFoundException;
-import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
-import com.pere_palacin.app.models.UserPrincipal;
 import com.pere_palacin.app.repositories.ExpenseRepository;
 import com.pere_palacin.app.repositories.UserRepository;
-import com.pere_palacin.app.services.BankAccountService;
-import com.pere_palacin.app.services.CategoryService;
-import com.pere_palacin.app.services.ExpenseService;
+import com.pere_palacin.app.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,69 +27,58 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final UserRepository userRepository;
     private final CategoryService categoryService;
     private final BankAccountService bankAccountService;
+    private final AuthService authService;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     public Page<ExpenseDao> findAll() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
+        UUID userId = userDetailsService.getRequestingUserId();
         Sort sort = Sort.by("name").ascending();
         //TODO: Add these parameters on the request!
         Pageable pageable = PageRequest.of(0, 10, sort);
-        return expenseRepository.findAllByUserIdOrderByName(user.getId(), pageable);
+        return expenseRepository.findAllByUserIdOrderByName(userId, pageable);
     }
 
     @Override
     public ExpenseDao findById(UUID id) {
-        return expenseRepository.findById(id).orElseThrow(
+        ExpenseDao expenseDao = expenseRepository.findById(id).orElseThrow(
                 () -> new ExpenseNotFoundException(id)
         );
+        authService.authorizeRequest(expenseDao.getUser().getId(), null);
+        return expenseDao;
     }
 
     @Transactional
     @Override
     public ExpenseDao registerExpense(ExpenseDao expenseDao, UUID bankAccountId) {
 
-        return null;
-//        UUID userId = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getDetails();
-//        UserDao user = new UserDao();
-//        user.setId(userId);
-//        expenseDao.setUser(user);
+        UUID userId = userDetailsService.getRequestingUserId();
+        UserDao user = new UserDao();
+        user.setId(userId);
+        expenseDao.setUser(user);
 
-//        List<UUID> categoryIds = expenseDao.getExpenseCategories()
-//                .stream()
-//                .map(CategoryDao::getId)
-//                .collect(Collectors.toList());
-//
-//        Set<CategoryDao> categoryDaos = categoryService.findAllById(categoryIds);
-//
-//        //TODO: move this to a method!
-//        for (CategoryDao categoryDao : categoryDaos) {
-//            if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
-//                throw new UnauthorizedRequestException();
-//            }
-//        }
-//
-//        expenseDao.setExpenseCategories(categoryDaos);
-//
-//        BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
-//        if (!Objects.equals(bankAccountDao.getUser().getId(), user.getId())) {
-//            throw new UnauthorizedRequestException();
-//        }
+        List<UUID> categoryIds = expenseDao.getExpenseCategories()
+                .stream()
+                .map(CategoryDao::getId)
+                .collect(Collectors.toList());
 
-//        bankAccountService.addAssociatedExpense(bankAccountDao, expenseDao.getAmount());
-//        expenseDao.setBankAccount(bankAccountDao);
-//        return expenseRepository.save(expenseDao);
+        Set<CategoryDao> categoryDaos = categoryService.findAllById(categoryIds);
+        expenseDao.setExpenseCategories(categoryDaos);
+
+        BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
+        authService.authorizeRequest(bankAccountDao.getUser().getId(), userId);
+
+        bankAccountService.addAssociatedExpense(bankAccountDao, expenseDao.getAmount());
+        expenseDao.setBankAccount(bankAccountDao);
+        return expenseRepository.save(expenseDao);
     }
 
     @Transactional
     @Override
     public ExpenseDao updateExpense(UUID id, ExpenseDao expenseDao, UUID bankAccountId) {
         ExpenseDao expenseToEdit = this.findById(id);
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        if (!Objects.equals(user.getId(), expenseToEdit.getUser().getId())) {
-            throw new UnauthorizedRequestException();
-        }
+        UUID userId = userDetailsService.getRequestingUserId();
+        authService.authorizeRequest(expenseToEdit.getUser().getId(), userId);
 
         Set<CategoryDao> existingCategories = expenseToEdit.getExpenseCategories();
 
@@ -121,11 +105,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         if (!categoriesToFetch.isEmpty()) {
             Set<CategoryDao> newCategories = categoryService.findAllById(categoriesToFetch);
-            for (CategoryDao categoryDao : newCategories) {
-                if (!Objects.equals(categoryDao.getUser().getId(), user.getId())) {
-                    throw new UnauthorizedRequestException();
-                }
-            }
+            authService.authorizeRequest(newCategories.stream().map(CategoryDao::getUser).map(UserDao::getId).collect(Collectors.toSet()), userId);
             categoryDaosToSave.addAll(newCategories);
         }
 
@@ -149,11 +129,6 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public void deleteExpense(UUID id) {
         ExpenseDao expenseToDelete = this.findById(id);
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        if (!Objects.equals(user.getId(), expenseToDelete.getUser().getId())) {
-            throw new UnauthorizedRequestException();
-        }
         BankAccountDao bankAccountDao = bankAccountService.findById(expenseToDelete.getBankAccount().getId());
         bankAccountService.deleteAssociatedExpense(bankAccountDao, expenseToDelete.getAmount());
         expenseRepository.delete(expenseToDelete);

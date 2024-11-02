@@ -3,6 +3,7 @@ package com.pere_palacin.app.services.impl;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.pere_palacin.app.services.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +19,6 @@ import com.pere_palacin.app.exceptions.IncomeNotFoundException;
 import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
 import com.pere_palacin.app.repositories.IncomeRepository;
 import com.pere_palacin.app.repositories.UserRepository;
-import com.pere_palacin.app.services.BankAccountService;
-import com.pere_palacin.app.services.IncomeService;
-import com.pere_palacin.app.services.IncomeSourceService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,15 +30,16 @@ public class IncomeServiceImpl implements IncomeService {
     private final UserRepository userRepository;
     private final IncomeSourceService incomeSourceService;
     private final BankAccountService bankAccountService;
+    private final AuthService authService;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     public Page<IncomeDao> findAllUserIncomes() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
+        UUID userId = userDetailsService.getRequestingUserId();
         Sort sort = Sort.by("name").ascending();
         //TODO: Add these parameters on the request!
         Pageable pageable = PageRequest.of(0, 10, sort);
-        return incomeRepository.findAllByUserIdOrderByName(user.getId(), pageable);
+        return incomeRepository.findAllByUserIdOrderByName(userId, pageable);
     }
 
     @Override
@@ -48,28 +47,19 @@ public class IncomeServiceImpl implements IncomeService {
         IncomeDao incomeDao = incomeRepository.findById(id).orElseThrow(
                 () -> new IncomeNotFoundException(id)
         );
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        if (!Objects.equals(incomeDao.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
-        }
+        authService.authorizeRequest(incomeDao.getUser().getId(), null);
         return incomeDao;
     }
 
     @Override
     public IncomeDao registerIncome(IncomeDao incomeDao, UUID incomeSourceId, UUID bankAccountId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
+        UUID userId = userDetailsService.getRequestingUserId();
+        UserDao user = UserDao.builder().id(userId).build();
         incomeDao.setUser(user);
         IncomeSourceDao incomeSourceDao = incomeSourceService.findById(incomeSourceId);
-        if (!Objects.equals(incomeSourceDao.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
-        }
         incomeDao.setIncomeSourceDao(incomeSourceDao);
         BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
-        if (!Objects.equals(bankAccountDao.getUser().getId(), user.getId())) {
-            throw new UnauthorizedRequestException();
-        }
+        authService.authorizeRequest(bankAccountDao.getUser().getId(), userId);
         bankAccountService.addAssociatedIncome(bankAccountDao, incomeDao.getAmount());
         incomeDao.setBankAccount(bankAccountDao);
         return incomeRepository.save(incomeDao);
@@ -78,11 +68,8 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public IncomeDao updateIncome(UUID id, IncomeDao incomeDao, UUID incomeSourceId, UUID bankAccountId) {
         IncomeDao incomeToEdit = this.findById(id);
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        if (!Objects.equals(user.getId(), incomeToEdit.getUser().getId())) {
-            throw new UnauthorizedRequestException();
-        }
+        UUID userId = userDetailsService.getRequestingUserId();
+        authService.authorizeRequest(incomeToEdit.getUser().getId(), userId);
         IncomeSourceDao incomeSourceDao = incomeSourceService.findById(incomeSourceId);
         incomeDao.setIncomeSourceDao(incomeSourceDao);
         BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);
@@ -102,11 +89,6 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public void deleteIncome(UUID id) {
         IncomeDao incomeToDelete = this.findById(id);
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        if (!Objects.equals(user.getId(), incomeToDelete.getUser().getId())) {
-            throw new UnauthorizedRequestException();
-        }
         BankAccountDao bankAccountDao = bankAccountService.findById(incomeToDelete.getBankAccount().getId());
         bankAccountService.deleteAssociatedIncome(bankAccountDao, incomeToDelete.getAmount());
         incomeRepository.delete(incomeToDelete);

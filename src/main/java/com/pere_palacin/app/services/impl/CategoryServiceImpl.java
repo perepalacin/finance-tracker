@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import com.pere_palacin.app.exceptions.CategoryNotFoundException;
 import com.pere_palacin.app.repositories.CategoryRepository;
+import com.pere_palacin.app.services.AuthService;
+import com.pere_palacin.app.services.UserDetailsServiceImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,20 +23,21 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Override
     public CategoryDao createCategory(CategoryDao categoryDao) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
+        UUID userId = userDetailsService.getRequestingUserId();
+        UserDao user = UserDao.builder().id(userId).build();
         categoryDao.setUser(user);
         return categoryRepository.save(categoryDao);
     }
 
     @Override
     public List<CategoryDao> findAll() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserDao user = userRepository.findByUsername(username);
-        return categoryRepository.findByUserId(user.getId());
+        UUID userId = userDetailsService.getRequestingUserId();
+        return categoryRepository.findByUserId(userId);
     }
 
     @Override
@@ -48,14 +51,17 @@ public class CategoryServiceImpl implements CategoryService {
                 throw new CategoryNotFoundException(id);
             }
         }
+        authService.authorizeRequest(categoryDaos.stream().map(categoryDao -> categoryDao.getUser().getId()).collect(Collectors.toSet()), null);
         return new HashSet<>(categoryDaos);
     }
 
     @Override
     public CategoryDao findById(UUID id) {
-        return categoryRepository.findById(id).orElseThrow(
+        CategoryDao categoryDao = categoryRepository.findById(id).orElseThrow(
                 () -> new CategoryNotFoundException(id)
         );
+        authService.authorizeRequest(categoryDao.getUser().getId(), null);
+        return categoryDao;
     }
 
     @Override

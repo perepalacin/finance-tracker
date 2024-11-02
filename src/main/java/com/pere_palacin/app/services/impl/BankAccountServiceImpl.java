@@ -6,6 +6,7 @@ import com.pere_palacin.app.exceptions.BankAcountNotFoundException;
 import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
 import com.pere_palacin.app.repositories.BankAccountRepository;
 import com.pere_palacin.app.repositories.UserRepository;
+import com.pere_palacin.app.services.AuthService;
 import com.pere_palacin.app.services.BankAccountService;
 import com.pere_palacin.app.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final BankAccountRepository bankAccountRepository;
     private final UserRepository userRepository;
     private final UserDetailsServiceImpl userDetailsService;
+    private final AuthService authService;
 
     @Override
     public BankAccountDao createAccount(BankAccountDao bankAccountDao) {
@@ -47,21 +49,17 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountDao findById(UUID id) {
-        UUID userId = userDetailsService.getRequestingUserId();
-        //TODO: Check if authorized!
-        return bankAccountRepository.findById(id).orElseThrow(
+        BankAccountDao bankAccountDao = bankAccountRepository.findById(id).orElseThrow(
                 () -> new BankAcountNotFoundException(id)
         );
+        authService.authorizeRequest(bankAccountDao.getUser().getId(), null);
+        return bankAccountDao;
     }
 
     @Override
     public BankAccountDao updateAccount(UUID id, BankAccountDao bankAccountDao) {
-        UUID userId = userDetailsService.getRequestingUserId();
-        UserDao user = UserDao.builder().id(userId).build();
         BankAccountDao bankAccountToEdit = this.findById(id);
-        if (!Objects.equals(user.getId(), bankAccountToEdit.getUser().getId())) {
-            throw new UnauthorizedRequestException();
-        }
+        authService.authorizeRequest(bankAccountToEdit.getUser().getId(), null);
         bankAccountToEdit.setName(bankAccountDao.getName());
         bankAccountToEdit.setCurrentBalance(bankAccountToEdit.getCurrentBalance().subtract(bankAccountToEdit.getInitialAmount()).add(bankAccountDao.getInitialAmount()));
         bankAccountToEdit.setInitialAmount(bankAccountDao.getInitialAmount());
