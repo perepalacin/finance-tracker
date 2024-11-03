@@ -2,6 +2,8 @@ package com.pere_palacin.app.controllers;
 
 import com.pere_palacin.app.domains.InvestmentDao;
 import com.pere_palacin.app.domains.dto.InvestmentDto;
+import com.pere_palacin.app.domains.sortBys.IncomeSortBy;
+import com.pere_palacin.app.domains.sortBys.InvestmentSortBy;
 import com.pere_palacin.app.mappers.impl.InvestmentMapper;
 import com.pere_palacin.app.services.InvestmentService;
 import jakarta.validation.Valid;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.*;
@@ -23,9 +26,14 @@ public class InvestmentController {
     private final InvestmentService investmentService;
 
     @GetMapping("")
-    public Page<InvestmentDto> listInvestments() {
-        Page<InvestmentDao> investmentsDao = investmentService.findAll();
-        return investmentsDao.map(investmentMapper::mapTo);
+    public List<InvestmentDto> listInvestments(
+            @RequestParam(defaultValue = "name") InvestmentSortBy orderBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "true") boolean ascending
+    ) {
+        List<InvestmentDao> investmentsDao = investmentService.findAll(orderBy, page, pageSize, ascending);
+        return investmentsDao.stream().map(investmentMapper::mapTo).toList();
     }
 
     @PostMapping("")

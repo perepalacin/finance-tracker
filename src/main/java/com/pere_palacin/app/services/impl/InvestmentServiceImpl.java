@@ -1,6 +1,7 @@
 package com.pere_palacin.app.services.impl;
 
 import com.pere_palacin.app.domains.*;
+import com.pere_palacin.app.domains.sortBys.InvestmentSortBy;
 import com.pere_palacin.app.exceptions.InvestmentNotFoundException;
 import com.pere_palacin.app.repositories.InvestmentRepository;
 import com.pere_palacin.app.repositories.UserRepository;
@@ -27,13 +28,14 @@ public class InvestmentServiceImpl implements InvestmentService {
     private final AuthService authService;
     private final UserDetailsServiceImpl userDetailsService;
 
+
+
     @Override
-    public Page<InvestmentDao> findAll() {
+    public List<InvestmentDao> findAll(InvestmentSortBy orderBy, int page, int pageSize, boolean ascending) {
         UUID userId = userDetailsService.getRequestingUserId();
-        Sort sort = Sort.by("name").ascending();
-        //TODO: Add these parameters on the request!
-        Pageable pageable = PageRequest.of(0, 10, sort);
-        return investmentRepository.findAllByUserIdOrderByName(userId, pageable);
+        Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+        return investmentRepository.findAllByUserId(userId, pageable).getContent();
     }
 
     @Override
@@ -48,6 +50,9 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Transactional
     @Override
     public InvestmentDao createInvestment(InvestmentDao investmentDao, UUID bankAccountId) {
+        UUID userId = userDetailsService.getRequestingUserId();
+        UserDao user = UserDao.builder().id(userId).build();
+        investmentDao.setUser(user);
         Set<InvestmentCategoryDao> investmentCategoryDaos = investmentCategoryService.findAllById(investmentDao.getInvestmentCategories().stream().map(InvestmentCategoryDao::getId).toList());
         investmentDao.setInvestmentCategories(investmentCategoryDaos);
         BankAccountDao bankAccountDao = bankAccountService.findById(bankAccountId);

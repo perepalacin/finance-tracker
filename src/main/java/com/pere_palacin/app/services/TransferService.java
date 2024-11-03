@@ -1,12 +1,15 @@
 package com.pere_palacin.app.services;
 
 import com.pere_palacin.app.domains.TransferDao;
+import com.pere_palacin.app.domains.sortBys.InvestmentSortBy;
+import com.pere_palacin.app.domains.sortBys.TransferSortBy;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface TransferService {
-    Page<TransferDao> findAll();
+    List<TransferDao> findAll(TransferSortBy orderBy, int page, int pageSize, boolean ascending);
     TransferDao findById(UUID id);
     TransferDao registerTransfer(TransferDao transferDao, UUID receivingBankAccountId, UUID sendingBankAccountId);
     TransferDao updateTransfer(UUID id, TransferDao transferDao, UUID receivingBankAccountId, UUID sendingBankAccountId);

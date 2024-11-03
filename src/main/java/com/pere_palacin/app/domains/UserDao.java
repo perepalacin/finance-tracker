@@ -15,12 +15,10 @@ import lombok.*;
 @Entity
 @Table(name = "users")
 public class UserDao {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @Column(unique = true)
     private String username;
     private String password;
-
 }

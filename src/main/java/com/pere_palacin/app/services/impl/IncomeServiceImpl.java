@@ -1,8 +1,10 @@
 package com.pere_palacin.app.services.impl;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.pere_palacin.app.domains.sortBys.IncomeSortBy;
 import com.pere_palacin.app.services.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,19 +29,18 @@ import lombok.RequiredArgsConstructor;
 public class IncomeServiceImpl implements IncomeService {
 
     private final IncomeRepository incomeRepository;
-    private final UserRepository userRepository;
     private final IncomeSourceService incomeSourceService;
     private final BankAccountService bankAccountService;
     private final AuthService authService;
     private final UserDetailsServiceImpl userDetailsService;
 
+
     @Override
-    public Page<IncomeDao> findAllUserIncomes() {
+    public List<IncomeDao> findAllUserIncomes(IncomeSortBy orderBy, int page, int pageSize, boolean ascending) {
         UUID userId = userDetailsService.getRequestingUserId();
-        Sort sort = Sort.by("name").ascending();
-        //TODO: Add these parameters on the request!
-        Pageable pageable = PageRequest.of(0, 10, sort);
-        return incomeRepository.findAllByUserIdOrderByName(userId, pageable);
+        Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+        return incomeRepository.findAllByUserId(userId, pageable).getContent();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.pere_palacin.app.controllers;
 
+import com.pere_palacin.app.domains.sortBys.ExpenseSortBy;
 import com.pere_palacin.app.exceptions.*;
 import com.pere_palacin.app.responses.CustomErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,11 +9,9 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -81,5 +80,29 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(result, BAD_REQUEST);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<CustomErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message;
+        Class<?> requiredType = ex.getRequiredType();
+
+        if (requiredType != null && requiredType.isEnum()) {
+            Object[] enumValues = requiredType.getEnumConstants();
+            message = String.format(
+                    "Invalid value '%s' for parameter '%s'. Valid values are: %s",
+                    ex.getValue(),
+                    ex.getName(),
+                    Arrays.toString(enumValues)
+            );
+        } else {
+            message = String.format(
+                    "Invalid value '%s' for parameter '%s'.",
+                    ex.getValue(),
+                    ex.getName()
+            );
+        }
+
+        CustomErrorResponse errorResponse = new CustomErrorResponse(BAD_REQUEST.value(), message);
+        return ResponseEntity.status(BAD_REQUEST).body(errorResponse);
+    }
 
 }

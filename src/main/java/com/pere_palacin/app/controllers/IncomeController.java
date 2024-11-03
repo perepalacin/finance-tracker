@@ -2,14 +2,15 @@ package com.pere_palacin.app.controllers;
 
 import com.pere_palacin.app.domains.IncomeDao;
 import com.pere_palacin.app.domains.dto.IncomeDto;
+import com.pere_palacin.app.domains.sortBys.IncomeSortBy;
 import com.pere_palacin.app.mappers.impl.IncomeMapper;
 import com.pere_palacin.app.services.IncomeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.*;
@@ -23,9 +24,14 @@ public class IncomeController {
     private final IncomeMapper incomeMapper;
 
     @GetMapping("")
-    public Page<IncomeDto> listIncomes() {
-        Page<IncomeDao> incomes = incomeService.findAllUserIncomes();
-        return incomes.map(incomeMapper::mapTo);
+    public List<IncomeDto> listIncomes(
+            @RequestParam(defaultValue = "name") IncomeSortBy orderBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "true") boolean ascending
+    ) {
+        List<IncomeDao> incomes = incomeService.findAllUserIncomes(orderBy, page, pageSize,ascending);
+        return incomes.stream().map(incomeMapper::mapTo).toList();
     }
 
     @PostMapping("")

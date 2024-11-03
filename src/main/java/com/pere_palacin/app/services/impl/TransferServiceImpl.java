@@ -1,6 +1,7 @@
 package com.pere_palacin.app.services.impl;
 
 import com.pere_palacin.app.domains.*;
+import com.pere_palacin.app.domains.sortBys.TransferSortBy;
 import com.pere_palacin.app.exceptions.ExpenseNotFoundException;
 import com.pere_palacin.app.exceptions.IncomeNotFoundException;
 import com.pere_palacin.app.exceptions.TransferNotFoundException;
@@ -16,10 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,12 +35,11 @@ public class TransferServiceImpl implements TransferService {
     private final UserDetailsServiceImpl userDetailsService;
 
     @Override
-    public Page<TransferDao> findAll() {
+    public List<TransferDao> findAll(TransferSortBy orderBy, int page, int pageSize, boolean ascending) {
         UUID userId = userDetailsService.getRequestingUserId();
-        Sort sort = Sort.by("name").ascending();
-        //TODO: Add these parameters on the request!
-        Pageable pageable = PageRequest.of(0, 10, sort);
-        return transferRepository.findAllByUserIdOrderByName(userId, pageable);
+        Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+        return transferRepository.findAllByUserIdOrderByName(userId, pageable).getContent();
     }
 
     @Override
@@ -63,7 +63,7 @@ public class TransferServiceImpl implements TransferService {
         transferDao.setReceivingAccount(receivingBankAccount);
 
         BankAccountDao sendingBankAccount = bankAccountService.findById(sendingBankAccountId);
-        transferDao.setReceivingAccount(sendingBankAccount);
+        transferDao.setSendingAccount(sendingBankAccount);
 
         bankAccountService.createTransfer(receivingBankAccount, sendingBankAccount, transferDao.getAmount());
 
@@ -75,14 +75,14 @@ public class TransferServiceImpl implements TransferService {
     public TransferDao updateTransfer(UUID id, TransferDao transferDao, UUID receivingBankAccountId, UUID sendingBankAccountId) {
         TransferDao transferToEdit = this.findById(id);
 
-        if (receivingBankAccountId != transferToEdit.getReceivingAccount().getId()) {
+        if (!Objects.equals(receivingBankAccountId, transferToEdit.getReceivingAccount().getId())) {
             BankAccountDao newReceivingBankAccount = bankAccountService.findById(receivingBankAccountId);
             transferToEdit.setReceivingAccount(newReceivingBankAccount);
             bankAccountService.changeReceivingTransferAccount(transferDao.getReceivingAccount(), newReceivingBankAccount, transferDao.getAmount());
         } else {
             bankAccountService.editTransferAmount(transferToEdit.getReceivingAccount(), transferToEdit.getAmount(), transferDao.getAmount(), true);
         }
-        if (sendingBankAccountId != transferToEdit.getSendingAccount().getId()) {
+        if (!Objects.equals(sendingBankAccountId, transferToEdit.getSendingAccount().getId())) {
             BankAccountDao newSendingBankAccount = bankAccountService.findById(sendingBankAccountId);
             transferToEdit.setSendingAccount(newSendingBankAccount);
             bankAccountService.changeSendingReceivingTransferAccount(transferToEdit.getSendingAccount(), newSendingBankAccount, transferDao.getAmount());

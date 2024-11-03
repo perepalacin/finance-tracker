@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface IncomeRepository extends JpaRepository<IncomeDao, UUID> {
-    Page<IncomeDao> findAllByUserIdOrderByName(UUID id, Pageable pageable);
+    Page<IncomeDao> findAllByUserId(UUID id, Pageable pageable);
 }

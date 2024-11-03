@@ -1,19 +1,14 @@
 package com.pere_palacin.app.controllers;
 
+import java.util.List;
 import java.util.UUID;
 
+import com.pere_palacin.app.domains.sortBys.ExpenseSortBy;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.CREATED;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.pere_palacin.app.domains.ExpenseDao;
 import com.pere_palacin.app.domains.dto.ExpenseDto;
@@ -32,9 +27,14 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @GetMapping("")
-    public Page<ExpenseDto> listExpenses() {
-        Page<ExpenseDao> expenses = expenseService.findAll();
-        return expenses.map(expenseMapper::mapTo);
+    public List<ExpenseDto> listExpenses(
+            @RequestParam(defaultValue = "name") ExpenseSortBy orderBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "true") boolean ascending
+    ) {
+        List<ExpenseDao> expenses = expenseService.findAll(orderBy, page, pageSize, ascending);
+        return expenses.stream().map(expenseMapper::mapTo).toList();
     }
 
     @PostMapping("")

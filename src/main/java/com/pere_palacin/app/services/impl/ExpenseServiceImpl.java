@@ -4,12 +4,11 @@ import com.pere_palacin.app.domains.BankAccountDao;
 import com.pere_palacin.app.domains.CategoryDao;
 import com.pere_palacin.app.domains.ExpenseDao;
 import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.domains.sortBys.ExpenseSortBy;
 import com.pere_palacin.app.exceptions.ExpenseNotFoundException;
 import com.pere_palacin.app.repositories.ExpenseRepository;
-import com.pere_palacin.app.repositories.UserRepository;
 import com.pere_palacin.app.services.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,19 +23,18 @@ import java.util.stream.Collectors;
 public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
-    private final UserRepository userRepository;
     private final CategoryService categoryService;
     private final BankAccountService bankAccountService;
     private final AuthService authService;
     private final UserDetailsServiceImpl userDetailsService;
 
+
     @Override
-    public Page<ExpenseDao> findAll() {
+    public List<ExpenseDao> findAll(ExpenseSortBy orderBy, int page, int pageSize, boolean ascending) {
         UUID userId = userDetailsService.getRequestingUserId();
-        Sort sort = Sort.by("name").ascending();
-        //TODO: Add these parameters on the request!
-        Pageable pageable = PageRequest.of(0, 10, sort);
-        return expenseRepository.findAllByUserIdOrderByName(userId, pageable);
+        Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+        return expenseRepository.findAllByUserId(userId, pageable).getContent();
     }
 
     @Override
