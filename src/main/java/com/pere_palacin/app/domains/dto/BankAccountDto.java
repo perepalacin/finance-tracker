@@ -1,16 +1,12 @@
 package com.pere_palacin.app.domains.dto;
 
-import com.pere_palacin.app.domains.UserDao;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.UUID;
 
 @Data

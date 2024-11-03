@@ -4,8 +4,8 @@ public enum IncomeSortBy {
     name("name"),
     amount("amount"),
     annotation("annotation"),
-    source("incomeSourceDao.name");
-//    TODO: Add more fields
+    source("incomeSourceDao.name"),
+    date("date");
 
     private final String fieldName;
 

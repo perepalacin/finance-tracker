@@ -1,5 +1,7 @@
 package com.pere_palacin.app.domains.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -7,7 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,5 +38,8 @@ public class ExpenseDto {
     private UUID bankAccountId;
     private BankAccountDto bankAccountDto;
 
-    private Instant updated_at;
+    @NotNull(message = "Expense date is required")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d-M-yyyy")
+    private LocalDate date;
+
 }

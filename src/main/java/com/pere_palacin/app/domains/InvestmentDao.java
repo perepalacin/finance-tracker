@@ -7,13 +7,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,8 +30,6 @@ public class InvestmentDao {
 
     private String name;
     private String annotation;
-    private Date startDate;
-    private Date endDate;
 
     private BigDecimal amountInvested;
 
@@ -49,12 +46,13 @@ public class InvestmentDao {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private BankAccountDao bankAccount;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreatedDate
-    private Instant created_at;
 
-    @LastModifiedDate
-    private Instant updated_at;
+    @Column(name = "start_date", nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d-M-yyyy")
+    private LocalDate startDate;
+
+    @Column(name = "end_date", nullable = false)
+    private LocalDate endDate;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

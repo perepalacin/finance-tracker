@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -39,12 +40,8 @@ public class IncomeDao {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private BankAccountDao bankAccount;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreatedDate
-    private Instant created_at;
-
-    @LastModifiedDate
-    private Instant updated_at;
+    @Column(name = "income_date", nullable = false)
+    private LocalDate date;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

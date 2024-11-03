@@ -4,8 +4,7 @@ public enum TransferSortBy {
     name("name"),
     amount("amount"),
     annotation("annotation"),
-    startDate("startDate"),
-    endDate("endDate"),
+    date("date"),
     category("investmentCategories.investmentCategoryName");
 
     //TODO: Add more fields!

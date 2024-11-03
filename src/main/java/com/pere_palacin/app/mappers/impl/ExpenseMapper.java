@@ -39,6 +39,7 @@ public class ExpenseMapper implements Mapper<ExpenseDao, ExpenseDto> {
                    .annotation(expenseDao.getAnnotation())
                    .expenseCategoryDtos(categoryDtos)
                    .bankAccountDto(bankAccountDto)
+                   .date(expenseDao.getDate())
                    .build();
        }
 

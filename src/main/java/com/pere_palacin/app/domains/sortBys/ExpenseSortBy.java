@@ -4,8 +4,8 @@ public enum ExpenseSortBy {
     name("name"),
     amount("amount"),
     category("expenseCategories.name"),
-    annotation("annotation");
-    //TODO: Add more fields
+    annotation("annotation"),
+    date("date");
 
     private final String fieldName;
 

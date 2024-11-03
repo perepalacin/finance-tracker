@@ -118,6 +118,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         } else {
             bankAccountService.editAssociatedExpense(expenseToEdit.getBankAccount(), expenseToEdit.getAmount(), expenseDao.getAmount());
         }
+        expenseToEdit.setDate(expenseDao.getDate());
         expenseToEdit.setAmount(expenseDao.getAmount());
         expenseToEdit.setName(expenseDao.getName());
         expenseToEdit.setAnnotation(expenseDao.getAnnotation());

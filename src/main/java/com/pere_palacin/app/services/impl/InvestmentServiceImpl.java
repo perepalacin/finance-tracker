@@ -1,21 +1,36 @@
 package com.pere_palacin.app.services.impl;
 
-import com.pere_palacin.app.domains.*;
-import com.pere_palacin.app.domains.sortBys.InvestmentSortBy;
-import com.pere_palacin.app.exceptions.InvestmentNotFoundException;
-import com.pere_palacin.app.repositories.InvestmentRepository;
-import com.pere_palacin.app.repositories.UserRepository;
-import com.pere_palacin.app.services.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.pere_palacin.app.domains.BankAccountDao;
+import com.pere_palacin.app.domains.InvestmentCategoryDao;
+import com.pere_palacin.app.domains.InvestmentDao;
+import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.domains.sortBys.InvestmentSortBy;
+import com.pere_palacin.app.exceptions.ImproperInvestmentDatesExpection;
+import com.pere_palacin.app.exceptions.InvestmentNotFoundException;
+import com.pere_palacin.app.repositories.InvestmentRepository;
+import com.pere_palacin.app.repositories.UserRepository;
+import com.pere_palacin.app.services.AuthService;
+import com.pere_palacin.app.services.BankAccountService;
+import com.pere_palacin.app.services.InvestmentCategoryService;
+import com.pere_palacin.app.services.InvestmentService;
+import com.pere_palacin.app.services.UserDetailsServiceImpl;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +65,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Transactional
     @Override
     public InvestmentDao createInvestment(InvestmentDao investmentDao, UUID bankAccountId) {
+        verifyInvestmentDates(investmentDao.getStartDate(), investmentDao.getEndDate());
         UUID userId = userDetailsService.getRequestingUserId();
         UserDao user = UserDao.builder().id(userId).build();
         investmentDao.setUser(user);
@@ -65,6 +81,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Transactional
     @Override
     public InvestmentDao updateInvestment(UUID id, InvestmentDao investmentDao, UUID bankAccountId) {
+        verifyInvestmentDates(investmentDao.getStartDate(), investmentDao.getEndDate());
         InvestmentDao investmentToEdit = this.findById(id);
         UUID userId = userDetailsService.getRequestingUserId();
         authService.authorizeRequest(investmentToEdit.getUser().getId(), userId);
@@ -112,6 +129,8 @@ public class InvestmentServiceImpl implements InvestmentService {
             investmentToEdit.setBankAccount(bankAccountService.updateInvestedAmount(investmentToEdit.getBankAccount(), investmentDao.getAmountInvested(), investmentToEdit.getAmountInvested()));
             investmentToEdit.setAmountInvested(investmentDao.getAmountInvested());
         }
+        investmentToEdit.setStartDate(investmentDao.getStartDate());
+        investmentToEdit.setEndDate(investmentDao.getEndDate());
         investmentToEdit.setName(investmentDao.getName());
         investmentToEdit.setStartDate(investmentDao.getStartDate());
         investmentToEdit.setEndDate(investmentDao.getEndDate());
@@ -125,6 +144,13 @@ public class InvestmentServiceImpl implements InvestmentService {
         InvestmentDao investmentToDelete = this.findById(id);
         bankAccountService.deleteInvestedAmount(investmentToDelete.getBankAccount(), investmentToDelete.getAmountInvested());
         investmentRepository.delete(investmentToDelete);
+    }
+
+    @Override
+    public void verifyInvestmentDates(LocalDate startDate, LocalDate endDate) throws ImproperInvestmentDatesExpection {
+        if (startDate.isAfter(endDate)) {
+            throw new ImproperInvestmentDatesExpection();
+        }
     }
 }
 

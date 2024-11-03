@@ -80,7 +80,8 @@ public class IncomeServiceImpl implements IncomeService {
         } else {
             bankAccountService.editAssociatedIncome(bankAccountDao, incomeToEdit.getAmount(), incomeDao.getAmount());
         }
-        incomeDao.setBankAccount(bankAccountDao);
+        incomeToEdit.setDate(incomeDao.getDate());
+        incomeToEdit.setBankAccount(bankAccountDao);
         incomeToEdit.setAmount(incomeDao.getAmount());
         incomeToEdit.setName(incomeDao.getName());
         incomeToEdit.setAnnotation(incomeDao.getAnnotation());

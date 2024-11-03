@@ -4,12 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -42,12 +40,8 @@ public class TransferDao {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private BankAccountDao sendingAccount;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreatedDate
-    private Instant created_at;
-
-    @LastModifiedDate
-    private Instant updated_at;
+    @Column(name = "transfer_date", nullable = false)
+    private LocalDate date;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

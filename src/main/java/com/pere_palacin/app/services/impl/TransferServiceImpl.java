@@ -89,6 +89,7 @@ public class TransferServiceImpl implements TransferService {
         } else {
             bankAccountService.editTransferAmount(transferToEdit.getSendingAccount(), transferToEdit.getAmount(), transferDao.getAmount(), false);
         }
+        transferToEdit.setDate(transferDao.getDate());
         transferToEdit.setAmount(transferDao.getAmount());
         transferToEdit.setName(transferDao.getName());
         transferToEdit.setAnnotation(transferDao.getAnnotation());

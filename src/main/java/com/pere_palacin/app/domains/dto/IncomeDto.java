@@ -1,7 +1,9 @@
 package com.pere_palacin.app.domains.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -10,7 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -37,5 +39,7 @@ public class IncomeDto {
     private UUID bankAccountId;
     private BankAccountDto bankAccountDto;
 
-    private Instant updated_at;
+    @NotNull(message = "Income date is required")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d-M-yyyy")
+    private LocalDate date;
 }
