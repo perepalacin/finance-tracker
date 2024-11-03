@@ -77,15 +77,15 @@ public class TransferServiceImpl implements TransferService {
 
         if (!Objects.equals(receivingBankAccountId, transferToEdit.getReceivingAccount().getId())) {
             BankAccountDao newReceivingBankAccount = bankAccountService.findById(receivingBankAccountId);
+            bankAccountService.changeReceivingTransferAccount(transferToEdit.getReceivingAccount(), newReceivingBankAccount, transferDao.getAmount());
             transferToEdit.setReceivingAccount(newReceivingBankAccount);
-            bankAccountService.changeReceivingTransferAccount(transferDao.getReceivingAccount(), newReceivingBankAccount, transferDao.getAmount());
         } else {
             bankAccountService.editTransferAmount(transferToEdit.getReceivingAccount(), transferToEdit.getAmount(), transferDao.getAmount(), true);
         }
         if (!Objects.equals(sendingBankAccountId, transferToEdit.getSendingAccount().getId())) {
             BankAccountDao newSendingBankAccount = bankAccountService.findById(sendingBankAccountId);
-            transferToEdit.setSendingAccount(newSendingBankAccount);
             bankAccountService.changeSendingReceivingTransferAccount(transferToEdit.getSendingAccount(), newSendingBankAccount, transferDao.getAmount());
+            transferToEdit.setSendingAccount(newSendingBankAccount);
         } else {
             bankAccountService.editTransferAmount(transferToEdit.getSendingAccount(), transferToEdit.getAmount(), transferDao.getAmount(), false);
         }
