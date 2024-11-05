@@ -1,7 +1,10 @@
+import { FormEvent, useState } from "react"
 
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import axios from "axios";
+
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
@@ -16,31 +19,49 @@ import {
     FormMessage,
   } from "../ui/form"
 
+
 const SignUpForm = () => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const signUpForm = useForm({
         resolver: zodResolver(SignUpFormSchema),
         defaultValues: {
-            username: "",
-            password: "",
+            username: username,
+            password: password
         },
     });
 
     const handleSignUp = (data: z.infer<typeof SignUpFormSchema>) => {
-        // Handle sign-up logic here
-        console.log("Sign Up Data:", data)
+        setIsLoading(true);
+        axios.post('/api/v1/auth/sign-up', {
+            username: data.username,
+            password: data.password,
+          })
+          .then(function (response) {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+        setIsLoading(false);
+    }
+
+
+    const handleSignIn = (event: FormEvent) => {
+        event.preventDefault();
     }
 
   return (
-    <div className="h-screen w-100 flex flex-col items-center justify-center">
-        <div className="h-100 w-100">
-            <Tabs defaultValue="signin">
+    <div className="h-screen w-full flex flex-col items-center justify-center">
+            <Tabs defaultValue="signin" className="w-full md:w-1/2 lg:w-1/3">
                 <TabsList >
-                    <TabsTrigger value="signin">Sign in</TabsTrigger>
-                    <TabsTrigger value="signup">Sign up</TabsTrigger>
+                    <TabsTrigger disabled={isLoading} value="signin">Sign in</TabsTrigger>
+                    <TabsTrigger disabled={isLoading} value="signup">Sign up</TabsTrigger>
                 </TabsList>
                 <TabsContent value="signin">
-                    <form onSubmit={() => {window.alert("Sign in")}}>
+                    <form onSubmit={handleSignIn}>
                         <Card>
                             <CardHeader>
                                 <CardTitle>Sign in</CardTitle>
@@ -51,15 +72,15 @@ const SignUpForm = () => {
                             <CardContent className="space-y-2">
                                 <div className="space-y-1">
                                 <Label htmlFor="username">Username</Label>
-                                <Input id="username" placeholder="JohnDoe" />
+                                <Input autoComplete="username" disabled={isLoading} id="username" placeholder="JohnDoe" value={username} onChange={(e) => setUsername(e.target.value)}/>
                                 </div>
                                 <div className="space-y-1">
                                 <Label htmlFor="password">Password</Label>
-                                <Input id="password" placeholder="password" type="password"/>
+                                <Input autoComplete="current-password" disabled={isLoading} id="password" placeholder="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
                                 </div>
                             </CardContent>
                             <CardFooter className="flex flex-row justify-end">
-                                <Button>Log in</Button>
+                                <Button disabled={isLoading}>Log in</Button>
                             </CardFooter>
                         </Card>
                     </form>
@@ -71,7 +92,7 @@ const SignUpForm = () => {
                             <CardHeader>
                                 <CardTitle>Sign up</CardTitle>
                                 <CardDescription>
-                                Welcome! Create an account for free to start tracking your finances anonymously!
+                                Welcome! Sign up for free to start tracking your finances
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-2">
@@ -79,10 +100,10 @@ const SignUpForm = () => {
                                 control={signUpForm.control}
                                 name="username"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="space-y-1">
                                     <FormLabel>Username</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="JohnDoe" {...field} />
+                                        <Input autoComplete="username" disabled={isLoading} placeholder="JohnDoe" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
@@ -92,10 +113,10 @@ const SignUpForm = () => {
                                 control={signUpForm.control}
                                 name="password"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="space-y-1">
                                     <FormLabel>Password</FormLabel>
                                     <FormControl>
-                                        <Input type="password" placeholder="Password" {...field} />
+                                        <Input autoComplete="new-password" disabled={isLoading} type="password" placeholder="Password" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
@@ -103,14 +124,13 @@ const SignUpForm = () => {
                                 />
                             </CardContent>
                             <CardFooter className="flex flex-row justify-end">
-                                <Button type="submit">Sign up</Button>
+                                <Button disabled={isLoading} type="submit">Sign up</Button>
                             </CardFooter>
                             </Card>
                         </form>
                         </Form>
                 </TabsContent>
             </Tabs>
-        </div>
     </div>
   )
 }
