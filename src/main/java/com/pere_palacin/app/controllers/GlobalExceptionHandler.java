@@ -80,6 +80,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(result, BAD_REQUEST);
     }
 
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<CustomErrorResponse> handleUsernameAlreadyTaken(UsernameAlreadyExistsException ex) {
+        CustomErrorResponse errorResponse = new CustomErrorResponse(CONFLICT.value(), ex.getMessage());
+        return ResponseEntity.status(CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(SomethingWentWrongException.class)
+    public ResponseEntity<CustomErrorResponse> handleSomethingWentWrong(SomethingWentWrongException ex) {
+        CustomErrorResponse errorResponse = new CustomErrorResponse(INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<CustomErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String message;

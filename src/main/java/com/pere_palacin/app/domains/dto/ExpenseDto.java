@@ -41,5 +41,4 @@ public class ExpenseDto {
     @NotNull(message = "Expense date is required")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d-M-yyyy")
     private LocalDate date;
-
 }
