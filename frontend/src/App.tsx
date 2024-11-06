@@ -9,9 +9,10 @@ function App() {
 
   return (
     <div>
-      <TopBar />
+      {/* <TopBar /> */}
       <Routes>
-        <Route path = "/auth" element={<SignUpForm />} />
+        <Route path = "/auth/sign-in" element={<SignUpForm />} />
+        <Route path = "/auth/sign-up" element={<SignUpForm />} />
         {/* <Route path= '/' element= {authUser ? <Home /> : <Navigate to={"/login"} />} />
         <Route path = '/login' element = {authUser ? <Navigate to = "/" /> : <Login />} />
         <Route path='/signup' element={authUser ? <Navigate to = "/"/> : <SignUp />} /> */}

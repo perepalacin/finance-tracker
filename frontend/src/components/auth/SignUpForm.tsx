@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import axios from "axios";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card"
@@ -18,9 +20,17 @@ import {
     FormLabel,
     FormMessage,
   } from "../ui/form"
+import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@radix-ui/react-toast";
 
 
 const SignUpForm = () => {
+
+    const location = useLocation();
+    const currentPath = location.pathname.split("/")[2];
+    console.log(currentPath);
+    const navigate = useNavigate();
+    
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -40,10 +50,31 @@ const SignUpForm = () => {
             password: data.password,
           })
           .then(function (response) {
-            console.log(response);
+            if (response.status === 201) {
+                toast({
+                    variant: "success",
+                    title: "Account created!",
+                    description: "Congratulations, your account has been created succesfully"
+                })
+                navigate("/auth/sign-in");
+                setUsername(data.username);
+                setPassword(data.password);
+            }
           })
           .catch(function (error) {
-            console.log(error);
+            if (error.status === 409) {
+                toast({
+                    variant: 'destructive',
+                    title: "Username taken",
+                    description: "This username already exists, please try another one",
+                });
+            } else {
+                toast({
+                    variant: 'destructive',
+                    title: "Something went wrong",
+                    description: "Please try again later"
+                });
+            }
           });
         setIsLoading(false);
     }
@@ -51,22 +82,49 @@ const SignUpForm = () => {
 
     const handleSignIn = (event: FormEvent) => {
         event.preventDefault();
+        axios.post('/api/v1/auth/sign-in', {
+            username: username,
+            password: password,
+          })
+          .then(function (response) {
+            if (response.status === 200) {
+                console.log(response);
+                navigate("/");
+            }
+          })
+          .catch(function (error) {
+            if (error.status === 409) {
+                toast({
+                    variant: 'destructive',
+                    title: "Username taken",
+                    description: "This username already exists, please try another one",
+                });
+            } else {
+                toast({
+                    variant: 'destructive',
+                    title: "Something went wrong",
+                    description: "Please try again later"
+                });
+            }
+          });
+        setIsLoading(false);
     }
 
   return (
-    <div className="h-screen w-full flex flex-col items-center justify-center">
-            <Tabs defaultValue="signin" className="w-full md:w-1/2 lg:w-1/3">
-                <TabsList >
-                    <TabsTrigger disabled={isLoading} value="signin">Sign in</TabsTrigger>
-                    <TabsTrigger disabled={isLoading} value="signup">Sign up</TabsTrigger>
+    <div className="h-screen w-full flex flex-col items-center justify-center relative">
+        <img src="https://wallpaperbat.com/img/764410-financial-district-macbook-air-wallpaper-download.jpg" className="absolute w-full h-full -z-10 shadow-inner"/>
+            <Tabs value={currentPath} defaultValue={"sign-in"} className="w-full md:w-1/2 lg:w-1/3 shadow-[0px_0px_30px_15px_rgba(0,0,0,0.4)] rounded-md">
+                <TabsList className="mt-2 ml-2">
+                    <TabsTrigger onClick={()=> {navigate('/auth/sign-in')}} disabled={isLoading} value="sign-in">Sign in</TabsTrigger>
+                    <TabsTrigger onClick={() => {navigate('/auth/sign-up')}} disabled={isLoading} value="sign-up">Sign up</TabsTrigger>
                 </TabsList>
-                <TabsContent value="signin">
+                <TabsContent value="sign-in">
                     <form onSubmit={handleSignIn}>
                         <Card>
                             <CardHeader>
                                 <CardTitle>Sign in</CardTitle>
                                 <CardDescription>
-                                    Welcome back! Log in to your account to keep tracking your finances
+                                    Welcome back! Log in to keep tracking your finances
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-2">
@@ -85,7 +143,7 @@ const SignUpForm = () => {
                         </Card>
                     </form>
                 </TabsContent>
-                <TabsContent value="signup">
+                <TabsContent value="sign-up" className="h-full">
                     <Form {...signUpForm}>
                         <form onSubmit={signUpForm.handleSubmit(handleSignUp)}>
                             <Card>
