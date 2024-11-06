@@ -1,21 +1,23 @@
 package com.pere_palacin.app.services;
 
-import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
-import com.pere_palacin.app.models.UserPrincipal;
+import java.util.Collection;
+import java.util.UUID;
+
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.exceptions.SomethingWentWrongException;
+import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
+import com.pere_palacin.app.exceptions.UsernameAlreadyExistsException;
+import com.pere_palacin.app.models.UserPrincipal;
 import com.pere_palacin.app.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
-
-import java.util.Collection;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +30,14 @@ public class AuthService {
     private final UserDetailsServiceImpl userDetailsService;
 
     public UserDao register (UserDao user) {
-        user.setPassword(encoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        try {
+            user.setPassword(encoder.encode(user.getPassword()));
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException ex) {
+            throw new UsernameAlreadyExistsException();
+        } catch (Exception ex) {
+            throw new SomethingWentWrongException();
+        }
     }
 
     public String verify(UserDao user) {
