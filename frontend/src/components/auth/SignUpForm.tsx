@@ -21,12 +21,14 @@ import {
     FormMessage,
   } from "../ui/form"
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@radix-ui/react-toast";
 
 
 const SignUpForm = () => {
 
     const location = useLocation();
     const currentPath = location.pathname.split("/")[2];
+    console.log(currentPath);
     const navigate = useNavigate();
     
     const [username, setUsername] = useState("");
@@ -83,7 +85,7 @@ const SignUpForm = () => {
         axios.post('/api/v1/auth/sign-in', {
             username: username,
             password: password,
-          }, { withCredentials: true })
+          })
           .then(function (response) {
             if (response.status === 200) {
                 console.log(response);
@@ -91,11 +93,11 @@ const SignUpForm = () => {
             }
           })
           .catch(function (error) {
-            if (error.status === 403) {
+            if (error.status === 409) {
                 toast({
                     variant: 'destructive',
-                    title: "Wrong credentials",
-                    description: "Username or password are incorrect, try again",
+                    title: "Username taken",
+                    description: "This username already exists, please try another one",
                 });
             } else {
                 toast({
