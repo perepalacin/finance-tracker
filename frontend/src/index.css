@@ -96,3 +96,86 @@
     @apply bg-background text-foreground;
   }
 }
+
+.button-transition {
+  transition: transform 0.3s ease-out;
+}
+
+.animate-add-button {
+  animation: rotate-left 0.3s ease-out forwards;
+}
+
+@keyframes rotate-left {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-45deg);
+  }
+}
+
+.animate-nested-add-button-1 {
+  animation: move-left 0.3s ease-out forwards;
+}
+
+@keyframes move-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-125%);
+  }
+}
+
+.animate-nested-add-button-1 {
+  animation: move-left-1 0.3s ease-out forwards;
+}
+
+@keyframes move-left-1 {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-125%);
+  }
+}
+
+.animate-nested-add-button-2 {
+  animation: move-left-2 0.3s ease-out forwards;
+}
+
+@keyframes move-left-2 {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-250%);
+  }
+}
+
+.animate-nested-add-button-3 {
+  animation: move-left-3 0.3s ease-out forwards;
+}
+
+@keyframes move-left-3 {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-375%);
+  }
+}
+
+.animate-nested-add-button-4 {
+  animation: move-left-4 0.3s ease-out forwards;
+}
+
+@keyframes move-left-4 {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-500%);
+  }
+}
+

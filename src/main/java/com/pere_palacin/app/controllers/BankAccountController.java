@@ -41,7 +41,7 @@ public class BankAccountController {
     }
 
     @PostMapping("")
-    public ResponseEntity<BankAccountDto> createBankAccount(@RequestBody BankAccountDto bankAccountDto) {
+    public ResponseEntity<BankAccountDto> createBankAccount(@Valid @RequestBody BankAccountDto bankAccountDto) {
         BankAccountDao bankAccountDao = bankAccountMapper.mapFrom(bankAccountDto);
         BankAccountDao savedBankAccountDao = bankAccountService.createAccount(bankAccountDao);
         BankAccountDto savedAccountDto = bankAccountMapper.mapTo(savedBankAccountDao);

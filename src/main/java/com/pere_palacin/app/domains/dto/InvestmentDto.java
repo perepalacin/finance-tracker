@@ -2,11 +2,7 @@ package com.pere_palacin.app.domains.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +24,7 @@ public class InvestmentDto {
     @Size(min = 2, max = 30, message = "The investment name must have between 3 and 30 characters")
     private String name;
 
-    @PositiveOrZero(message = "The amount invested needs to be positive or zero")
+    @Positive(message = "The amount invested needs to be a positive number")
     private BigDecimal amountInvested;
 
     private String annotation;

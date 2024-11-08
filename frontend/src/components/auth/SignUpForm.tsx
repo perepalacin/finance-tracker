@@ -21,7 +21,6 @@ import {
     FormMessage,
   } from "../ui/form"
 import { toast } from "@/hooks/use-toast";
-import { ToastAction } from "@radix-ui/react-toast";
 
 
 const SignUpForm = () => {
@@ -88,7 +87,8 @@ const SignUpForm = () => {
           })
           .then(function (response) {
             if (response.status === 200) {
-                console.log(response);
+                const bearerToken = response.data;
+                localStorage.setItem('token', `Bearer ${bearerToken}`);
                 navigate("/");
             }
           })
@@ -113,7 +113,7 @@ const SignUpForm = () => {
   return (
     <div className="h-screen w-full flex flex-col items-center justify-center relative">
         <img src="https://wallpaperbat.com/img/764410-financial-district-macbook-air-wallpaper-download.jpg" className="absolute w-full h-full -z-10 shadow-inner"/>
-            <Tabs value={currentPath} defaultValue={"sign-in"} className="w-full md:w-1/2 lg:w-1/3 shadow-[0px_0px_30px_15px_rgba(0,0,0,0.4)] rounded-md">
+            <Tabs value={currentPath} defaultValue={"sign-in"} className="w-full md:w-1/2 lg:w-1/3 shadow-[0px_0px_30px_15px_rgba(0,0,0,0.4)] rounded-md bg-muted">
                 <TabsList className="mt-2 ml-2">
                     <TabsTrigger onClick={()=> {navigate('/auth/sign-in')}} disabled={isLoading} value="sign-in">Sign in</TabsTrigger>
                     <TabsTrigger onClick={() => {navigate('/auth/sign-up')}} disabled={isLoading} value="sign-up">Sign up</TabsTrigger>

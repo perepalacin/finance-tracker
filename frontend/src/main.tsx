@@ -6,16 +6,17 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthContextProvider } from './context/AuthContext.tsx'
 import { ThemeProvider } from './context/ThemeContext.tsx'
 import { Toaster } from './components/ui/toaster.tsx'
+import { UserDataProvider } from './context/UserDataContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
       <AuthContextProvider>
-        <ThemeProvider>
-          <App />
-          <Toaster />
-        </ThemeProvider>
+        <UserDataProvider>
+          <ThemeProvider>
+            <App />
+            <Toaster />
+          </ThemeProvider>
+        </UserDataProvider>
       </AuthContextProvider>
-    </BrowserRouter>
   </StrictMode>,
 )
