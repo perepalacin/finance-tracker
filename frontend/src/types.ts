@@ -23,3 +23,11 @@ export interface BankAccountProps {
     totalTransferIn: number;
     totalInvested: number;
 }
+
+export interface AddButtonsProps {
+    areOptionsVisible: boolean;
+    isMainButton: boolean;
+    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    isOpen?: boolean;
+    renderButton?: boolean;
+}

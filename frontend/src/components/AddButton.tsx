@@ -1,9 +1,9 @@
 import { PlaneLanding, PlaneTakeoff, Plus } from 'lucide-react'
 import { Button } from './ui/button'
 import { useState } from 'react'
-import AddBankAccountDialog from './dialogs/AddBankAccountDialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import AddInvestmentDialog from './dialogs/AddInvestmentDialog';
+import AddBankAccountModal from './dialogs/AddBankAccountModal';
+import AddInvestmentModal from './dialogs/AddInvestmentModal';
 
 const AddButton = () => {
 
@@ -13,8 +13,8 @@ const AddButton = () => {
     <>
     {areOptionsVisible &&
         <>
-            <AddBankAccountDialog areOptionsVisible={areOptionsVisible} />
-            <AddInvestmentDialog areOptionsVisible={areOptionsVisible} />
+            <AddBankAccountModal areOptionsVisible={areOptionsVisible} isMainButton={true} />
+            <AddInvestmentModal areOptionsVisible={areOptionsVisible} isMainButton={true}/>
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -41,7 +41,7 @@ const AddButton = () => {
             </TooltipProvider>
         </>
     }
-    <Button variant={"outline"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition transition-transform ${areOptionsVisible ? 'animate-add-button' : ''}`} onClick={() => {console.log("click"); setAreOptionsVisible(prevState => !prevState)}}>
+    <Button variant={"outline"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition transition-transform ${areOptionsVisible ? 'animate-add-button' : ''}`} onClick={() => {setAreOptionsVisible(prevState => !prevState)}}>
         <Plus className='w-full h-full' strokeWidth={3} />
     </Button>
     </>

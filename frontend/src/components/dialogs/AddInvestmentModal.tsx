@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, IdCard } from "lucide-react"
+import { CalendarIcon, ChartNoAxesCombined, IdCard, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react";
 import axios from "axios";
@@ -26,11 +26,12 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { MultiSelect } from "../ui/multi-select";
 import { useUserData } from "@/context/UserDataContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { AddButtonsProps, BankAccountProps, InvestmentCategoryProps } from "@/types";
+import AddBankAccountDialog from "./AddBankAccountModal";
+import AddInvestmentCategoryModal from "./AddInvestmentCategoryModal";
+import { OPACITY_BG_CHANGE } from "@/helpers/Constants";
 
-
-interface AddButtonsProps {
-  areOptionsVisible: boolean;
-}
 
 const AddInvestmentSchema = z.object({
     name: z
@@ -45,20 +46,24 @@ const AddInvestmentSchema = z.object({
         .optional(),
     startDate: z.date({required_error: "Start date is required.",}),
     endDate: z.date({required_error: "End date is required.",}),
-    investmentCategoriesIds: z
+    investmentCategoriesId: z
       .array(z.string()),
     bankAccountId: z.string().uuid({message: "Please assign this investment a Bank Account"})
-    
-});
+}).refine((data) => data.endDate > data.startDate, {
+  message: "End date must be after start date.",
+  path: ["endDate"],
+});;
 
 type AddInvestmentFormValues = z.infer<typeof AddInvestmentSchema>;
 
-const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
-  const [open, setOpen] = useState(false);
+const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMainButton, variant = "ghost", isOpen=false, renderButton = true}) => {
+  const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInvestmentCategoryModalOpen, setIsInvestmentCategoryModalOpen] = useState(false);
+  const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
 
   const { investmentCategories, setInvestmentCategories, bankAccounts } = useUserData();
-  const IdCardIcon = () => <IdCard />;
+  // const IdCardIcon = () => <IdCard />;
 
   const form = useForm<AddInvestmentFormValues>({
     resolver: zodResolver(AddInvestmentSchema),
@@ -73,12 +78,19 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
     setIsLoading(true);
 
     const token = localStorage.getItem('token');
+
+    const formattedStartDate = format(data.startDate, 'dd-MM-yyyy');
+    const formattedEndDate = format(data.endDate, 'dd-MM-yyyy');
     axios.post(
-      "/api/v1/accounts",
+      "/api/v1/investments",
       {
         name: data.name,
         amountInvested: data.amountInvested,
-        annotation: data.annotation
+        annotation: data.annotation,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        bankAccountId: data.bankAccountId,
+        investmentCategoriesId: data.investmentCategoriesId
       },
       {
         headers: {
@@ -89,7 +101,7 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
         if (response.status === 201) {
           toast({
             variant: "success",
-            title: "Bank Account Created!",
+            title: "Investment created!",
             description: data.name + " has been added successfully.",
           });
           setOpen(false);
@@ -110,7 +122,7 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Unable to create bank account. Please try again later.",
+            description: "Unable to create investment. Please try again later.",
           })
         }
       })
@@ -125,9 +137,16 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
-              <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${areOptionsVisible ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
-                <ChartNoAxesCombined width={15} height={15} />
-              </Button>
+                {isMainButton ?
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${areOptionsVisible ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
+                    <ChartNoAxesCombined width={15} height={15} />
+                  </Button>
+                : renderButton &&
+                  <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
+                    <ChartNoAxesCombined width={15} height={15} />
+                    <p>Add an investment</p>
+                  </Button>
+                }
             </DialogTrigger>
               </TooltipTrigger>
               <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
@@ -266,7 +285,7 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
             </FormDescription>
             <FormField
               control={form.control}
-              name="investmentCategoriesIds"
+              name="investmentCategoriesId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Investment categories</FormLabel>
@@ -276,7 +295,12 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
                     placeholder="Select a set of investment categories"
                     variant={"secondary"}
                     animation={2}
-                  />
+                  >
+                    <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsInvestmentCategoryModalOpen(true)}>
+                      <Plus />
+                      <p>Add a new investment category</p>
+                    </Button>
+                  </MultiSelect>
                   <FormMessage />
                 </FormItem>
               )}
@@ -287,14 +311,24 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bank Account</FormLabel>
-                  <MultiSelect
-                    options={bankAccounts.map((item) => ({label: item.name, value: item.id, icon: IdCardIcon}))}
-                    onValueChange={field.onChange}
-                    placeholder="Select a set of investment categories"
-                    variant={"secondary"}
-                    animation={2}
-                    maxCount={1}
-                  />
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a bank account associated to the investment" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {bankAccounts.map((account: BankAccountProps) => {
+                        return (
+                          <SelectItem key= {account.id} value={account.id}><div className="flex flex-row gap-2 items-center"><IdCard /><p>{account.name}</p></div></SelectItem>
+                        )
+                      })}
+                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsBankAccountsModalOpen(true)}>
+                        <Plus />
+                        <p>Add a new bank account</p>
+                      </Button>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -306,9 +340,11 @@ const AddInvestmentDialog: React.FC<AddButtonsProps> =({areOptionsVisible}) => {
             </DialogFooter>
           </form>
         </Form>
+        <AddInvestmentCategoryModal areOptionsVisible={false} isMainButton={false} isOpen={isInvestmentCategoryModalOpen} renderButton={false}/>
+        <AddBankAccountDialog areOptionsVisible={areOptionsVisible} isMainButton={false} isOpen={isBankAccountsModalOpen} renderButton={false}/>
       </DialogContent>
     </Dialog>
   )
 }
 
-export default AddInvestmentDialog;
+export default AddInvestmentModal;

@@ -68,7 +68,6 @@ export function UserDataProvider({
     
       useEffect(() => {
           const token = localStorage.getItem('token');
-          console.log(token)
             if (token) {
               fetchInvestmentCategories(token);
               fetchBankAccounts(token);

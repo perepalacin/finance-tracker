@@ -27,7 +27,6 @@ const SignUpForm = () => {
 
     const location = useLocation();
     const currentPath = location.pathname.split("/")[2];
-    console.log(currentPath);
     const navigate = useNavigate();
     
     const [username, setUsername] = useState("");

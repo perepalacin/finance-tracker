@@ -27,6 +27,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { ScrollArea } from "./scroll-area";
 
 /**
  * Variants for the multi-select component to handle different styles.
@@ -118,6 +119,7 @@ interface MultiSelectProps
    * Optional, can be used to add custom styles.
    */
   className?: string;
+  children?: React.ReactNode
 }
 
 export const MultiSelect = React.forwardRef<
@@ -136,6 +138,7 @@ export const MultiSelect = React.forwardRef<
       modalPopover = false,
       asChild = false,
       className,
+      children,
       ...props
     },
     ref
@@ -213,7 +216,6 @@ export const MultiSelect = React.forwardRef<
                   {selectedValues.slice(0, maxCount).map((value) => {
                     const option = options.find((o) => o.value === value);
                     const IconComponent = option?.icon;
-                    console.log("option", option);
                     return (
                       <Badge
                         key={value}
@@ -285,7 +287,7 @@ export const MultiSelect = React.forwardRef<
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto p-0"
+          className="w-auto p-0 max-h-60 overflow-y-auto"
           align="start"
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
         >
@@ -339,6 +341,7 @@ export const MultiSelect = React.forwardRef<
                     </CommandItem>
                   );
                 })}
+                {children}
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup>
@@ -357,6 +360,7 @@ export const MultiSelect = React.forwardRef<
                       />
                     </>
                   )}
+
                   <CommandItem
                     onSelect={() => setIsPopoverOpen(false)}
                     className="flex-1 justify-center cursor-pointer max-w-full"
