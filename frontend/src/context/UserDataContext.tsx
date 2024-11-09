@@ -1,7 +1,6 @@
-import { BankAccountProps, InvestmentCategoryProps } from "@/types"
+import { BankAccountProps, IncomeSourceProps, InvestmentCategoryProps } from "@/types"
 import axios from "axios"
 import { createContext, useContext, useEffect, useState } from "react"
-import { redirect, useNavigate } from "react-router-dom"
 
 
 type UserDataProviderProps = {
@@ -12,7 +11,9 @@ type UserDataProviderState = {
   investmentCategories: InvestmentCategoryProps[];
   setInvestmentCategories: (categories: InvestmentCategoryProps[]) => void;
   bankAccounts: BankAccountProps[];
-  setBankAccounts: (bankAccounds: BankAccountProps[]) => void;
+  setBankAccounts: (bankAccounts: BankAccountProps[]) => void;
+  incomeSources: IncomeSourceProps[],
+  setIncomeSources: (incomeSources: IncomeSourceProps[]) => void;
 }
 
 const initialState: UserDataProviderState = {
@@ -20,6 +21,8 @@ const initialState: UserDataProviderState = {
   setInvestmentCategories: () => null,
   bankAccounts: [],
   setBankAccounts: () => null,
+  incomeSources: [],
+  setIncomeSources: () => null,
 }
 
 const UserDataProviderContext = createContext<UserDataProviderState>(initialState)
@@ -32,6 +35,7 @@ export function UserDataProvider({
 
     const [investmentCategories, setInvestmentCategories] = useState<InvestmentCategoryProps[]>([]);
     const [bankAccounts, setBankAccounts] = useState<BankAccountProps[]>([]);
+    const [incomeSources, setIncomeSources] = useState<IncomeSourceProps[]>([]);
 
 
     const fetchInvestmentCategories = (token: string) => {
@@ -65,26 +69,46 @@ export function UserDataProvider({
             console.error(error);
         });
     }
+
+    const fetchIncomeSources = (token: string) => {
+        axios.get('/api/v1/sources', {
+            headers: {
+                Authorization: token,
+            },
+        })
+        .then(response => {
+          if (response.status === 200) {
+            setIncomeSources(response.data);
+          }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
     
       useEffect(() => {
           const token = localStorage.getItem('token');
             if (token) {
               fetchInvestmentCategories(token);
               fetchBankAccounts(token);
+              fetchIncomeSources(token);
             } else {
                 //TODO: go back to sign in page
             }
       }, []);
-    
 
   const value = {
     investmentCategories,
     setInvestmentCategories: (categories: InvestmentCategoryProps[]) => {
-      setInvestmentCategories(categories)
+      setInvestmentCategories(categories);
     },
     bankAccounts,
     setBankAccounts: (accounts: BankAccountProps[]) => {
-        setBankAccounts(accounts)
+        setBankAccounts(accounts);
+    },
+    incomeSources,
+    setIncomeSources: (sources: IncomeSourceProps[]) => {
+        setIncomeSources(sources);
     }
   }
 

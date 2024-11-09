@@ -7,6 +7,8 @@ import {
   XCircle,
   ChevronDown,
   XIcon,
+  Trash2,
+  Edit,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -322,22 +324,28 @@ export const MultiSelect = React.forwardRef<
                     <CommandItem
                       key={option.value}
                       onSelect={() => toggleOption(option.value)}
-                      className="cursor-pointer"
+                      className="cursor-pointer flex flex-row justify-between items-center"
                     >
-                      <div
-                        className={cn(
-                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                          isSelected
+                      <div className="flex flex-row gap-1 items-center ">
+                        <div
+                          className={cn(
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                            isSelected
                             ? "bg-primary text-primary-foreground"
                             : "opacity-50 [&_svg]:invisible"
+                          )}
+                          >
+                          <CheckIcon className="h-4 w-4" />
+                        </div>
+                        {option.icon && (
+                          <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                         )}
-                      >
-                        <CheckIcon className="h-4 w-4" />
+                        <span>{option.label}</span>
                       </div>
-                      {option.icon && (
-                        <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span>{option.label}</span>
+                      <div className="flex flex-row gap-1">
+                        <Button size={"icon"} className="p-0 m-0 w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); console.log("click");}}><Edit /></Button>
+                        <Button size={"icon"} className="p-0 m-0  w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); console.log("click");}}><Trash2 /></Button>
+                      </div>
                     </CommandItem>
                   );
                 })}

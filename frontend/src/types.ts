@@ -24,10 +24,17 @@ export interface BankAccountProps {
     totalInvested: number;
 }
 
+export interface IncomeSourceProps {
+    id: string;
+    name: string;
+    color: string;
+}
+
 export interface AddButtonsProps {
     areOptionsVisible: boolean;
     isMainButton: boolean;
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
     isOpen?: boolean;
+    setIsOpen?: (isOpen: boolean) => void;
     renderButton?: boolean;
 }

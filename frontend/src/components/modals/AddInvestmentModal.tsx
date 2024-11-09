@@ -27,10 +27,9 @@ import { format } from "date-fns";
 import { MultiSelect } from "../ui/multi-select";
 import { useUserData } from "@/context/UserDataContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { AddButtonsProps, BankAccountProps, InvestmentCategoryProps } from "@/types";
+import { AddButtonsProps, BankAccountProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddInvestmentCategoryModal from "./AddInvestmentCategoryModal";
-import { OPACITY_BG_CHANGE } from "@/helpers/Constants";
 
 
 const AddInvestmentSchema = z.object({
@@ -52,25 +51,23 @@ const AddInvestmentSchema = z.object({
 }).refine((data) => data.endDate > data.startDate, {
   message: "End date must be after start date.",
   path: ["endDate"],
-});;
+});
 
 type AddInvestmentFormValues = z.infer<typeof AddInvestmentSchema>;
 
-const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMainButton, variant = "ghost", isOpen=false, renderButton = true}) => {
+const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isInvestmentCategoryModalOpen, setIsInvestmentCategoryModalOpen] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
 
-  const { investmentCategories, setInvestmentCategories, bankAccounts } = useUserData();
+  const { investmentCategories, bankAccounts } = useUserData();
   // const IdCardIcon = () => <IdCard />;
 
   const form = useForm<AddInvestmentFormValues>({
     resolver: zodResolver(AddInvestmentSchema),
     defaultValues: {
       name: "",
-      amountInvested: 0,
-      
     },
   });
 
@@ -105,6 +102,9 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
             description: data.name + " has been added successfully.",
           });
           setOpen(false);
+          if (setIsOpen) {
+            setIsOpen(false);
+          }
           form.reset();
         }
       })
@@ -132,21 +132,22 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
   };
   
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
-                {isMainButton ?
+                { renderButton && (isMainButton ?
                   <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${areOptionsVisible ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
-                    <ChartNoAxesCombined width={15} height={15} />
+                    {/* <ChartNoAxesCombined width={15} height={15} /> */}
+                    {String.fromCodePoint(0x1F4C8)}
                   </Button>
-                : renderButton &&
+                :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
                     <ChartNoAxesCombined width={15} height={15} />
                     <p>Add an investment</p>
                   </Button>
-                }
+                )}
             </DialogTrigger>
               </TooltipTrigger>
               <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
@@ -310,7 +311,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
               name="bankAccountId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bank Account</FormLabel>
+                  <FormLabel>Bank Account*</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -320,10 +321,15 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
                     <SelectContent>
                       {bankAccounts.map((account: BankAccountProps) => {
                         return (
-                          <SelectItem key= {account.id} value={account.id}><div className="flex flex-row gap-2 items-center"><IdCard /><p>{account.name}</p></div></SelectItem>
+                            <SelectItem key= {account.id} value={account.id}>
+                              <div className="flex flex-row gap-2 items-center">
+                                <IdCard />
+                                <p>{account.name}</p>
+                              </div>
+                            </SelectItem>
                         )
                       })}
-                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsBankAccountsModalOpen(true)}>
+                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => {setIsBankAccountsModalOpen(true)}}>
                         <Plus />
                         <p>Add a new bank account</p>
                       </Button>
@@ -340,8 +346,8 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
             </DialogFooter>
           </form>
         </Form>
-        <AddInvestmentCategoryModal areOptionsVisible={false} isMainButton={false} isOpen={isInvestmentCategoryModalOpen} renderButton={false}/>
-        <AddBankAccountDialog areOptionsVisible={areOptionsVisible} isMainButton={false} isOpen={isBankAccountsModalOpen} renderButton={false}/>
+        <AddInvestmentCategoryModal areOptionsVisible={false} isMainButton={false} isOpen={isInvestmentCategoryModalOpen} setIsOpen={(isOpen) => setIsInvestmentCategoryModalOpen(isOpen)} renderButton={false}/>
+        <AddBankAccountDialog areOptionsVisible={areOptionsVisible} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false}/>
       </DialogContent>
     </Dialog>
   )

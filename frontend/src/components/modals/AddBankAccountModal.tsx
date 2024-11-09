@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { IdCard, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -21,47 +21,46 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { redirect } from "react-router-dom";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps } from "@/types";
-import { ColorPicker } from "../ui/color-picker";
 
-const AddInvestmentCategorySchema = z.object({
-    name: z
-      .string()
-      .min(2, { message: "Name must be at least 2 characters long." })
-      .max(30, { message: "Name must be at most 30 characters long." }),
-    color: z
-      .string()
-      .regex(/^#([A-Fa-f0-9]{6})$/, { message: "Color must be a valid hex code like '#ABCDEF'." }),
+const AddBankAccountSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .max(30, { message: "Name must be at most 30 characters long." }),
+  initialAmount: z.coerce
+    .number()
+    .nonnegative({ message: "Initial amount must be zero or positive." })
+    .optional(),
 });
 
-type AddInvestmentCategoryFormValues = z.infer<typeof AddInvestmentCategorySchema>;
+type AddBankAccountFormValues = z.infer<typeof AddBankAccountSchema>;
 
-const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMainButton, variant="ghost", isOpen=false, renderButton = true}) => {
+const AddBankAccountModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMainButton, variant="ghost", isOpen = false, setIsOpen, renderButton =true}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { bankAccounts, setBankAccounts } = useUserData();
 
   useEffect(() => {
     setOpen(isOpen);
   }, [isOpen])
 
-  const { investmentCategories, setInvestmentCategories } = useUserData();
-
-  const form = useForm<AddInvestmentCategoryFormValues>({
-    resolver: zodResolver(AddInvestmentCategorySchema),
+  const form = useForm<AddBankAccountFormValues>({
+    resolver: zodResolver(AddBankAccountSchema),
     defaultValues: {
       name: "",
-      color: '#FF0000',
     },
   });
 
-  const onSubmit = ( data: AddInvestmentCategoryFormValues) => {
+  const onSubmit = (data: AddBankAccountFormValues) => {
     setIsLoading(true);
 
     const token = localStorage.getItem('token');
     axios.post(
-      "/api/v1/investment-categories",
+      "/api/v1/accounts",
       {
-        investmentCategoryName: data.name,
-        color: data.color,
+        name: data.name,
+        initialAmount: data.initialAmount,
       },
       {
         headers: {
@@ -72,13 +71,16 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
         if (response.status === 201) {
           toast({
             variant: "success",
-            title: "Investment Category Created!",
+            title: "Bank Account Created!",
             description: data.name + " has been added successfully.",
           });
-          const newInvestmentCategories = [...investmentCategories];
-          newInvestmentCategories.push(response.data);
-          setInvestmentCategories(newInvestmentCategories);
+          const newBankAccounts = [...bankAccounts];
+          newBankAccounts.push(response.data);
+          setBankAccounts(newBankAccounts);
           setOpen(false);
+          if (setIsOpen) {
+            setIsOpen(false);
+          }
           form.reset();
         }
       })
@@ -96,7 +98,7 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Unable to create investment category. Please try again later.",
+            description: "Unable to create bank account. Please try again later.",
           })
         }
       })
@@ -107,33 +109,36 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
 
   
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}} >
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
-                {isMainButton ?
+                {renderButton &&
+                ( isMainButton ?
                   <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${areOptionsVisible ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
-                    <IdCard width={15} height={15} />
+                    {/* <IdCard width={15} height={15} /> */}
+                    {String.fromCodePoint(0x1F3E6)}
                   </Button>
-                : renderButton &&
+                :
                   <Button variant={variant} className="flex flex-row items-center gap-1 w-full">
                     <Plus width={15} height={15} />
-                    <p>Add a new investment category</p> 
+                    <p>Add a new bank account</p> 
                   </Button>
-                }
+                )
+              }
             </DialogTrigger>
               </TooltipTrigger>
               <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
-                <p>Add an Investment Category</p>
+                <p>Add a Bank Account</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add a new Investment Category</DialogTitle>
+          <DialogTitle>Add a new Bank Account</DialogTitle>
           <DialogDescription>
-            Create a new investment category to be able to organize your investments.
+            Create a new bank account to be able to associate expenses, incomes and investments to it.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -145,7 +150,7 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
                 <FormItem>
                   <FormLabel>Name*</FormLabel>
                   <FormControl>
-                    <Input placeholder="Crypyo" {...field} />
+                    <Input placeholder="My Bank Account" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -153,12 +158,12 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
             />
             <FormField
               control={form.control}
-              name="color"
+              name="initialAmount"
               render={({ field }) => (
-                <FormItem className="flex flex-row gap-2 items-center space-y-0">
-                  <FormLabel>Color*</FormLabel>
+                <FormItem>
+                  <FormLabel>Initial Amount*</FormLabel>
                   <FormControl>
-                    <ColorPicker value={field.value} onChange={field.onChange} />
+                    <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -166,7 +171,7 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Investment Category"}
+                {isLoading ? "Creating..." : "Create account"}
               </Button>
             </DialogFooter>
           </form>
@@ -176,4 +181,4 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
   )
 }
 
-export default AddInvestmentCategoryModal;
+export default AddBankAccountModal;
