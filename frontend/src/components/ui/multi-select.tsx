@@ -74,6 +74,7 @@ interface MultiSelectProps
     icon?: React.ComponentType<{ className?: string }>;
     /** Optional string to paint the background of the option */
     color?: string;
+    emoji?: string;
   }[];
 
   /**
@@ -121,7 +122,9 @@ interface MultiSelectProps
    * Optional, can be used to add custom styles.
    */
   className?: string;
-  children?: React.ReactNode
+  children?: React.ReactNode;
+  onEdit: (optionId: string) => void;
+  onDelete: (optionId: string) => void;
 }
 
 export const MultiSelect = React.forwardRef<
@@ -141,6 +144,8 @@ export const MultiSelect = React.forwardRef<
       asChild = false,
       className,
       children,
+      onEdit,
+      onDelete,
       ...props
     },
     ref
@@ -218,6 +223,10 @@ export const MultiSelect = React.forwardRef<
                   {selectedValues.slice(0, maxCount).map((value) => {
                     const option = options.find((o) => o.value === value);
                     const IconComponent = option?.icon;
+                    let emoji;
+                    if (option?.emoji) {
+                      emoji = parseInt(option?.emoji);
+                    }
                     return (
                       <Badge
                         key={value}
@@ -231,6 +240,11 @@ export const MultiSelect = React.forwardRef<
                       >
                         {IconComponent && (
                           <IconComponent className="h-4 w-4 mr-2" />
+                        )}
+                        {emoji && (
+                          <span className="text-sm pr-1">
+                            {String.fromCodePoint(emoji)}
+                          </span>
                         )}
                         {option?.label}
                         <XCircle
@@ -320,6 +334,10 @@ export const MultiSelect = React.forwardRef<
                 </CommandItem>
                 {options.map((option) => {
                   const isSelected = selectedValues.includes(option.value);
+                  let emoji;
+                  if (option?.emoji) {
+                    emoji = parseInt(option?.emoji);
+                  }
                   return (
                     <CommandItem
                       key={option.value}
@@ -340,11 +358,16 @@ export const MultiSelect = React.forwardRef<
                         {option.icon && (
                           <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                         )}
+                        {emoji && (
+                          <span className="text-sm pr-1">
+                            {String.fromCodePoint(emoji)}
+                          </span>
+                        )}
                         <span>{option.label}</span>
                       </div>
                       <div className="flex flex-row gap-1">
-                        <Button size={"icon"} className="p-0 m-0 w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); console.log("click");}}><Edit /></Button>
-                        <Button size={"icon"} className="p-0 m-0  w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); console.log("click");}}><Trash2 /></Button>
+                        <Button size={"icon"} className="p-0 m-0 w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onEdit(option.value)}}><Edit /></Button>
+                        <Button size={"icon"} className="p-0 m-0  w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onDelete(option.value);}}><Trash2 /></Button>
                       </div>
                     </CommandItem>
                   );

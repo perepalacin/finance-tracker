@@ -21,47 +21,52 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { redirect } from "react-router-dom";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps } from "@/types";
-import { ColorPicker } from "../ui/color-picker";
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
+import { useTheme } from "@/context/ThemeContext";
 
-const AddIncomeSourceSchema = z.object({
-    name: z
+
+const AddExpenseCategorySchema = z.object({
+    categoryName: z
       .string()
       .min(2, { message: "Name must be at least 2 characters long." })
       .max(30, { message: "Name must be at most 30 characters long." }),
-    color: z
+    iconName: z
       .string()
-      .regex(/^#([A-Fa-f0-9]{6})$/, { message: "Color must be a valid hex code like '#ABCDEF'." }),
+      .min(1, { message: "Expense Category Icon is required"})
 });
 
-type AddIncomesourceFormValues = z.infer<typeof AddIncomeSourceSchema>;
+type AddExpenseCategoryFormValues = z.infer<typeof AddExpenseCategorySchema>;
 
-const AddIncomeSourceModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true}) => {
+const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEmojiModalOpen, setIsEmojiModalOpen] = useState(false);
 
   useEffect(() => {
     setOpen(isOpen);
   }, [isOpen]);
 
-  const { incomeSources, setIncomeSources } = useUserData();
+  const { expenseCategories, setExpenseCategories } = useUserData();
+  const { theme }= useTheme();
 
-  const form = useForm<AddIncomesourceFormValues>({
-    resolver: zodResolver(AddIncomeSourceSchema),
+  const form = useForm<AddExpenseCategoryFormValues>({
+    resolver: zodResolver(AddExpenseCategorySchema),
     defaultValues: {
-      name: "",
-      color: '#FF0000',
+      categoryName: "",
+      iconName: "0x1F6EB",
     },
   });
 
-  const onSubmit = ( data: AddIncomesourceFormValues) => {
+  const onSubmit = ( data: AddExpenseCategoryFormValues) => {
     setIsLoading(true);
 
     const token = localStorage.getItem('token');
     axios.post(
-      "/api/v1/sources",
+      "/api/v1/categories",
       {
-        name: data.name,
-        color: data.color,
+        categoryName: data.categoryName,
+        iconName: data.iconName,
       },
       {
         headers: {
@@ -72,12 +77,12 @@ const AddIncomeSourceModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isM
         if (response.status === 201) {
           toast({
             variant: "success",
-            title: "Income source Created!",
-            description: data.name + " has been added successfully.",
+            title: "Expense category Created!",
+            description: data.categoryName + " has been added successfully.",
           });
-          const newIncomeSources = [...incomeSources];
-          newIncomeSources.push(response.data);
-          setIncomeSources(newIncomeSources);
+          const newExpenseCategories = [...expenseCategories];
+          newExpenseCategories.push(response.data);
+          setExpenseCategories(newExpenseCategories);
           setOpen(false);
           form.reset();
         }
@@ -96,7 +101,7 @@ const AddIncomeSourceModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isM
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Unable to create income source. Please try again later.",
+            description: "Unable to create expense category. Please try again later.",
           })
         }
       })
@@ -120,34 +125,34 @@ const AddIncomeSourceModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isM
                 :
                   <Button variant={variant} className="flex flex-row items-center gap-1 w-full">
                     <Plus width={15} height={15} />
-                    <p>Add a new income source</p> 
+                    <p>Add a new expense category</p> 
                   </Button>
                 )
                 }
             </DialogTrigger>
               </TooltipTrigger>
               <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
-                <p>Add an Income Source</p>
+                <p>Add an Expense Category</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add a new Income Source</DialogTitle>
+          <DialogTitle>Add a new Expense Category</DialogTitle>
           <DialogDescription>
-            Create a new income source to be able to organize your incomes.
+            Create a new expense category to be able to track your expenses.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="name"
+              name="categoryName"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name*</FormLabel>
                   <FormControl>
-                    <Input placeholder="Salary" {...field} />
+                    <Input placeholder="Traveling" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,12 +160,22 @@ const AddIncomeSourceModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isM
             />
             <FormField
               control={form.control}
-              name="color"
+              name="iconName"
               render={({ field }) => (
                 <FormItem className="flex flex-row gap-2 items-center space-y-0">
-                  <FormLabel>Color*</FormLabel>
+                  <FormLabel>Icon:*</FormLabel>
                   <FormControl>
-                    <ColorPicker value={field.value} onChange={field.onChange} />
+                    <>
+                        <Button type="button" variant={"outline"} className="text-2xl relative w-12 h-12" onClick={(e) => {e.stopPropagation(); setIsEmojiModalOpen(true)}}>
+                            {String.fromCodePoint(parseInt(field.value, 16))}
+                            {
+                                isEmojiModalOpen &&
+                                <div className="absolute -top-24 left-4">
+                                    <Picker theme={theme} onClickOutside={() => {setIsEmojiModalOpen(false)}} data={data} onEmojiSelect={(data) => {setIsEmojiModalOpen(false); field.onChange('0x' + data.unified)}}/>
+                                </div>
+                            }
+                        </Button>
+                    </>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -168,7 +183,7 @@ const AddIncomeSourceModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isM
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Income Source"}
+                {isLoading ? "Creating..." : "Create Expense Caregory"}
               </Button>
             </DialogFooter>
           </form>
@@ -178,4 +193,4 @@ const AddIncomeSourceModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isM
   )
 }
 
-export default AddIncomeSourceModal;
+export default AddExpenseCategoryModal;

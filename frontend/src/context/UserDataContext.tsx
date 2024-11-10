@@ -1,4 +1,4 @@
-import { BankAccountProps, IncomeSourceProps, InvestmentCategoryProps } from "@/types"
+import { BankAccountProps, ExpenseCategoryProps, IncomeSourceProps, InvestmentCategoryProps } from "@/types"
 import axios from "axios"
 import { createContext, useContext, useEffect, useState } from "react"
 
@@ -14,6 +14,8 @@ type UserDataProviderState = {
   setBankAccounts: (bankAccounts: BankAccountProps[]) => void;
   incomeSources: IncomeSourceProps[],
   setIncomeSources: (incomeSources: IncomeSourceProps[]) => void;
+  expenseCategories: ExpenseCategoryProps[],
+  setExpenseCategories: (categories: ExpenseCategoryProps[]) => void;
 }
 
 const initialState: UserDataProviderState = {
@@ -23,6 +25,8 @@ const initialState: UserDataProviderState = {
   setBankAccounts: () => null,
   incomeSources: [],
   setIncomeSources: () => null,
+  expenseCategories: [],
+  setExpenseCategories: () => null,
 }
 
 const UserDataProviderContext = createContext<UserDataProviderState>(initialState)
@@ -36,6 +40,7 @@ export function UserDataProvider({
     const [investmentCategories, setInvestmentCategories] = useState<InvestmentCategoryProps[]>([]);
     const [bankAccounts, setBankAccounts] = useState<BankAccountProps[]>([]);
     const [incomeSources, setIncomeSources] = useState<IncomeSourceProps[]>([]);
+    const [expenseCategories, setExpenseCategories] = useState<ExpenseCategoryProps[]>([]);
 
 
     const fetchInvestmentCategories = (token: string) => {
@@ -85,6 +90,22 @@ export function UserDataProvider({
             console.error(error);
         });
     }
+
+    const fetchExpenseCategories = (token: string) => {
+        axios.get('/api/v1/categories', {
+            headers: {
+                Authorization: token,
+            },
+        })
+        .then(response => {
+          if (response.status === 200) {
+            setExpenseCategories(response.data);
+          }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
     
       useEffect(() => {
           const token = localStorage.getItem('token');
@@ -92,6 +113,7 @@ export function UserDataProvider({
               fetchInvestmentCategories(token);
               fetchBankAccounts(token);
               fetchIncomeSources(token);
+              fetchExpenseCategories(token);
             } else {
                 //TODO: go back to sign in page
             }
@@ -109,7 +131,11 @@ export function UserDataProvider({
     incomeSources,
     setIncomeSources: (sources: IncomeSourceProps[]) => {
         setIncomeSources(sources);
-    }
+    },
+    expenseCategories,
+    setExpenseCategories: (categories: ExpenseCategoryProps[]) => {
+        setExpenseCategories(categories);
+    } 
   }
 
   return (

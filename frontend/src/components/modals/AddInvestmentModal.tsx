@@ -55,7 +55,7 @@ const AddInvestmentSchema = z.object({
 
 type AddInvestmentFormValues = z.infer<typeof AddInvestmentSchema>;
 
-const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
+const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isInvestmentCategoryModalOpen, setIsInvestmentCategoryModalOpen] = useState(false);
@@ -138,7 +138,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${areOptionsVisible ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
                     {/* <ChartNoAxesCombined width={15} height={15} /> */}
                     {String.fromCodePoint(0x1F4C8)}
                   </Button>
@@ -291,7 +291,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
                 <FormItem>
                   <FormLabel>Investment categories</FormLabel>
                   <MultiSelect
-                    options={investmentCategories.map((item) => ({label: item.investmentCategoryName, value: item.id, color: item.color + '63'}))}
+                    options={investmentCategories.map((item) => ({label: item.investmentCategoryName, value: item.id, color: item.color}))}
                     onValueChange={field.onChange}
                     placeholder="Select a set of investment categories"
                     variant={"secondary"}
@@ -346,8 +346,8 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMain
             </DialogFooter>
           </form>
         </Form>
-        <AddInvestmentCategoryModal areOptionsVisible={false} isMainButton={false} isOpen={isInvestmentCategoryModalOpen} setIsOpen={(isOpen) => setIsInvestmentCategoryModalOpen(isOpen)} renderButton={false}/>
-        <AddBankAccountDialog areOptionsVisible={areOptionsVisible} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false}/>
+        <AddInvestmentCategoryModal isMainLayoutButton={false} isMainButton={false} isOpen={isInvestmentCategoryModalOpen} setIsOpen={(isOpen) => setIsInvestmentCategoryModalOpen(isOpen)} renderButton={false}/>
+        <AddBankAccountDialog isMainLayoutButton={isMainLayoutButton} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false}/>
       </DialogContent>
     </Dialog>
   )

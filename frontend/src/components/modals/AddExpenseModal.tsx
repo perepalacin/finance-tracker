@@ -26,59 +26,59 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useUserData } from "@/context/UserDataContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { AddButtonsProps, BankAccountProps, IncomeSourceProps } from "@/types";
+import { AddButtonsProps, BankAccountProps, ExpenseCategoryProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
-import AddIncomeSourceModal from "./AddIncomeSourceModal";
+import AddExpenseCategoryModal from "./AddExpenseCategoryModal";
+import { MultiSelect } from "../ui/multi-select";
 
-
-const AddIncomeSchema = z.object({
+const AddExpenseSchema = z.object({
     name: z
         .string()
         .min(2, { message: "Name must be at least 2 characters long." })
         .max(30, { message: "Name must be at most 30 characters long." }),
     amount: z.coerce
         .number()
-        .nonnegative({ message: "Income amount must be a positive number." }),
+        .nonnegative({ message: "Expense amount must be a positive number." }),
     annotation: z
         .string()
         .optional(),
-    incomeDate: z.date({required_error: "Start date is required.",}),
-    incomeSourceId: z.string().uuid({message: "Please assign an income source to this income"}),
-    bankAccountId: z.string().uuid({message: "Please assign this investment a Bank Account"})
+    expenseDate: z.date({required_error: "Start date is required.",}),
+    expenseCategories: z.array(z.string()),    
+    bankAccountId: z.string().uuid({message: "Please assign this expense to a Bank Account"})
   });
 
-type AddIncomeFormValues = z.infer<typeof AddIncomeSchema>;
+type AddExpenseFormValues = z.infer<typeof AddExpenseSchema>;
 
-const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
+const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
-  const [isIncomeSourceModalOpen, setIsIncomeSourceModalOpen] = useState(false);
+  const [isExpenseCategoryModalOpen, setIsExpenseCategoryModalOpen] = useState(false);
 
-  const { incomeSources, bankAccounts } = useUserData();
+  const { expenseCategories, setExpenseCategories, bankAccounts } = useUserData();
 
-  const form = useForm<AddIncomeFormValues>({
-    resolver: zodResolver(AddIncomeSchema),
+  const form = useForm<AddExpenseFormValues>({
+    resolver: zodResolver(AddExpenseSchema),
     defaultValues: {
       name: "",
     },
   });
 
-  const onSubmit = (data: AddIncomeFormValues) => {
+  const onSubmit = (data: AddExpenseFormValues) => {
     setIsLoading(true);
 
     const token = localStorage.getItem('token');
 
-    const formattedDate = format(data.incomeDate, 'dd-MM-yyyy');
+    const formattedDate = format(data.expenseDate, 'dd-MM-yyyy');
     axios.post(
-      "/api/v1/incomes",
+      "/api/v1/expenses",
       {
         name: data.name,
         amount: data.amount,
         annotation: data.annotation,
         date: formattedDate,
         bankAccountId: data.bankAccountId,
-        incomeSourceId: data.incomeSourceId
+        expenseCategoryIds: data.expenseCategories
       },
       {
         headers: {
@@ -89,7 +89,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
         if (response.status === 201) {
           toast({
             variant: "success",
-            title: "Investment created!",
+            title: "Expense created!",
             description: data.name + " has been added successfully.",
           });
           setOpen(false);
@@ -113,7 +113,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Unable to create investment. Please try again later.",
+            description: "Unable to create expense. Please try again later.",
           })
         }
       })
@@ -122,6 +122,52 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
       });
   };
   
+  const deleteExpenseCategory = (categoryId: string) => {
+    setIsLoading(true);
+    const token = localStorage.getItem('token');
+    axios.delete(
+      `/api/v1/categories/${categoryId}`,
+      {
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then((response) => {
+        if (response.status === 204) {
+          toast({
+            variant: "success",
+            title: "Category deleted!",
+            description: "The expense category has been added successfully.",
+          });
+          const newExpenseCategories = [...expenseCategories];
+          newExpenseCategories.filter((category: ExpenseCategoryProps) => category.id !== categoryId);
+          setExpenseCategories(newExpenseCategories);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.status === 403) {
+          redirect("/auth/sign-up");
+        } else if (error.status === 400) {
+          toast({
+            variant: "destructive",
+            title: "Bad request",
+            description: error.response.data.errors.join(', '),
+          })
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Unable to create expense. Please try again later.",
+          })
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+
+
   return (
     <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
         <TooltipProvider delayDuration={300}>
@@ -129,27 +175,27 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-2' : 'transition-transform'}`}>
-                    {String.fromCodePoint(0x1F4B0)}
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-1' : 'transition-transform'}`}>
+                    {String.fromCodePoint(0x1F4B8)}
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
                     <ChartNoAxesCombined width={15} height={15} />
-                    <p>Add an Income</p>
+                    <p>Add an Expense</p>
                   </Button>
                 )}
             </DialogTrigger>
               </TooltipTrigger>
               <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
-                <p>Add an Income</p>
+                <p>Add an Expense</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         <DialogContent className="w-1/2">
           <DialogHeader>
-          <DialogTitle className="w-full">Add a new Income</DialogTitle>
+          <DialogTitle className="w-full">Add a new Expense</DialogTitle>
           <DialogDescription>
-            Add a new income to one of your bank accounts
+            Add a new expense to one of your bank accounts
           </DialogDescription>
         </DialogHeader>
         <Form {...form} >
@@ -161,7 +207,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
                 <FormItem>
                   <FormLabel>Name*</FormLabel>
                   <FormControl>
-                    <Input placeholder="Income name" {...field} />
+                    <Input placeholder="Expense name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,7 +220,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
                 <FormItem>
                   <FormLabel>Annotation</FormLabel>
                   <FormControl>
-                    <Input placeholder="June Salary" {...field} />
+                    <Input placeholder="Christmas Gift" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -195,7 +241,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
             />
               <FormField
                   control={form.control}
-                  name="incomeDate"
+                  name="expenseDate"
                   render={({ field }) => (
                       <FormItem className="flex flex-col">
                       <FormLabel>Date*</FormLabel>
@@ -233,33 +279,24 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
               />
               <FormField
               control={form.control}
-              name="incomeSourceId"
+              name="expenseCategories"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Income Source*</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue className="text-start" placeholder="Select an income source to associate with" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {incomeSources.map((source: IncomeSourceProps) => {
-                        const bgColor = `bg-[${source.color}]`;
-                        return (
-                            <SelectItem key= {source.id} value={source.id} className={bgColor}>
-                              <div className={`flex flex-row gap-2 items-center ${bgColor}`}>
-                                <p>{source.name}</p>
-                              </div>
-                            </SelectItem>
-                        )
-                      })}
-                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => {setIsIncomeSourceModalOpen(true)}}>
-                        <Plus />
-                        <p>Add a new income source</p>
-                      </Button>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Expense categories</FormLabel>
+                  <MultiSelect
+                    options={expenseCategories.map((item) => ({label: item.categoryName, value: item.id, emoji: item.iconName}))}
+                    onValueChange={field.onChange}
+                    placeholder="Select a set of expense categories"
+                    variant={"secondary"}
+                    animation={2}
+                    onDelete={deleteExpenseCategory}
+                    onEdit={() =>{}}
+                  >
+                    <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsExpenseCategoryModalOpen(true)}>
+                      <Plus />
+                      <p>Add a new investment category</p>
+                    </Button>
+                  </MultiSelect>
                   <FormMessage />
                 </FormItem>
               )}
@@ -273,7 +310,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue className="text-start" placeholder="Select a bank account associated to the investment" />
+                        <SelectValue className="text-start" placeholder="Select a bank account associated to the expense" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -299,16 +336,16 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Add Investment"}
+                {isLoading ? "Creating..." : "Add Expense"}
               </Button>
             </DialogFooter>
           </form>
         </Form>
-        <AddBankAccountDialog isMainLayoutButton={false} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false}/>
-        <AddIncomeSourceModal isMainLayoutButton={false} isMainButton={false} isOpen={isIncomeSourceModalOpen} setIsOpen={(isOpen) => setIsIncomeSourceModalOpen(isOpen)} renderButton={false} />
+        <AddBankAccountDialog isMainLayoutButton={false} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false} />
+        <AddExpenseCategoryModal isMainLayoutButton={false} isMainButton={false} isOpen={isExpenseCategoryModalOpen} setIsOpen={(isOpen) => setIsExpenseCategoryModalOpen(isOpen)} renderButton={false} />
       </DialogContent>
     </Dialog>
   )
 }
 
-export default AddIncomeModal;
+export default AddExpenseModal;

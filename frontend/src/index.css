@@ -87,19 +87,6 @@
 }
 
 .animate-nested-add-button-1 {
-  animation: move-left 0.3s ease-out forwards;
-}
-
-@keyframes move-left {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-125%);
-  }
-}
-
-.animate-nested-add-button-1 {
   animation: move-left-1 0.3s ease-out forwards;
 }
 

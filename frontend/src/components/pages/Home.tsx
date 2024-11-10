@@ -1,8 +1,7 @@
-import axios from 'axios';
-import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom';
 import TopBar from '../nav/TopBar';
 import AddButton from '../AddButton';
+import IconPicker from '../ui/IconPicker';
 
 const Home = () => {
 

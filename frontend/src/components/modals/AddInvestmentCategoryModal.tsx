@@ -36,7 +36,7 @@ const AddInvestmentCategorySchema = z.object({
 
 type AddInvestmentCategoryFormValues = z.infer<typeof AddInvestmentCategorySchema>;
 
-const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true}) => {
+const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -115,7 +115,7 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({areOptionsVisible
               <DialogTrigger asChild>
                 {renderButton && 
                 ( isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${areOptionsVisible ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
                     <IdCard width={15} height={15} />
                   </Button>
                 :
