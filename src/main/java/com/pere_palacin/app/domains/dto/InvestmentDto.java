@@ -39,10 +39,10 @@ public class InvestmentDto {
     private BankAccountDto bankAccountDto;
 
     @NotNull(message = "Start date is required")
-    @Pattern(regexp = "\\d{1,2}-\\d{1,2}-\\d{4}", message = "Start date must be in the format d-M-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate startDate;
 
     @NotNull(message = "End date is required")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "d-M-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate endDate;
 }

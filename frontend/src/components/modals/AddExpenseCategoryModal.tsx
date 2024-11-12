@@ -12,15 +12,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { IdCard, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { redirect } from "react-router-dom";
 import { useUserData } from "@/context/UserDataContext";
-import { AddButtonsProps } from "@/types";
+import { AddButtonsProps, ExpenseCategoryProps } from "@/types";
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 import { useTheme } from "@/context/ThemeContext";
@@ -38,7 +37,12 @@ const AddExpenseCategorySchema = z.object({
 
 type AddExpenseCategoryFormValues = z.infer<typeof AddExpenseCategorySchema>;
 
-const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true}) => {
+interface AddExpenseCategoryModalProps extends AddButtonsProps {
+    expenseCategoryToEdit?: ExpenseCategoryProps;
+    resetExpenseCategoryToEdit?: () => void;
+}
+
+const AddExpenseCategoryModal: React.FC<AddExpenseCategoryModalProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true, expenseCategoryToEdit, resetExpenseCategoryToEdit}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isEmojiModalOpen, setIsEmojiModalOpen] = useState(false);
@@ -52,67 +56,73 @@ const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, 
 
   const form = useForm<AddExpenseCategoryFormValues>({
     resolver: zodResolver(AddExpenseCategorySchema),
-    defaultValues: {
+    defaultValues: expenseCategoryToEdit ? {
+        categoryName: expenseCategoryToEdit.categoryName,
+        iconName: expenseCategoryToEdit.iconName,
+    } :{
       categoryName: "",
       iconName: "0x1F6EB",
     },
   });
 
-  const onSubmit = ( data: AddExpenseCategoryFormValues) => {
+  const onSubmit = (data: AddExpenseCategoryFormValues) => {
     setIsLoading(true);
-
     const token = localStorage.getItem('token');
-    axios.post(
-      "/api/v1/categories",
-      {
-        categoryName: data.categoryName,
-        iconName: data.iconName,
+    const url = expenseCategoryToEdit ? `/api/v1/categories/${expenseCategoryToEdit.id}` : "/api/v1/categories";
+    const method = expenseCategoryToEdit ? axios.put : axios.post;
+
+    method(url, {
+      categoryName: data.categoryName,
+      iconName: data.iconName,
+    }, {
+      headers: {
+        Authorization: token,
       },
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
+    })
+    .then((response) => {
+      if (response.status === 200 || response.status === 201) {
+        const successMessage = expenseCategoryToEdit ? "Expense category updated!" : "Expense category created!";
+        toast({
+          variant: "success",
+          title: successMessage,
+          description: data.categoryName + " has been added successfully.",
+        });
         if (response.status === 201) {
-          toast({
-            variant: "success",
-            title: "Expense category Created!",
-            description: data.categoryName + " has been added successfully.",
-          });
           const newExpenseCategories = [...expenseCategories];
           newExpenseCategories.push(response.data);
           setExpenseCategories(newExpenseCategories);
-          setOpen(false);
-          form.reset();
+        } else if (response.status === 200 && expenseCategoryToEdit) {
+          const updatedExpenseCategories = expenseCategories.map((category: ExpenseCategoryProps) => {
+            if (category.id === expenseCategoryToEdit.id) {
+              return response.data;
+            } else {
+              return category;
+            }
+          });
+          setExpenseCategories(updatedExpenseCategories);
         }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to create expense category. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
+      }
+      setOpen(false);
+      form.reset();
+    })
+    .catch((error) => {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to process your request. Please try again later.",
       });
+    })
+    .finally(() => {
+      setIsLoading(false);
+      if (resetExpenseCategoryToEdit) {
+        resetExpenseCategoryToEdit();
+      }
+    });
   };
-
   
   return (
-    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
+    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); if (resetExpenseCategoryToEdit) {resetExpenseCategoryToEdit()}}}}>
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -120,7 +130,7 @@ const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, 
                 {renderButton && 
                 ( isMainButton ?
                   <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
-                    <IdCard width={15} height={15} />
+                    {String.fromCodePoint(0x1FAAA)}
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row items-center gap-1 w-full">
@@ -138,9 +148,9 @@ const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, 
           </TooltipProvider>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add a new Expense Category</DialogTitle>
+          <DialogTitle>{expenseCategoryToEdit ? "Update Expense Category" : "Add a new Expense Category" }</DialogTitle>
           <DialogDescription>
-            Create a new expense category to be able to track your expenses.
+            {expenseCategoryToEdit ? "" : "Create a new expense category to be able to track your expenses."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -152,7 +162,7 @@ const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, 
                 <FormItem>
                   <FormLabel>Name*</FormLabel>
                   <FormControl>
-                    <Input placeholder="Traveling" {...field} />
+                    <Input placeholder="Traveling" {...field} value={field.value} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -162,7 +172,7 @@ const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, 
               control={form.control}
               name="iconName"
               render={({ field }) => (
-                <FormItem className="flex flex-row gap-2 items-center space-y-0">
+                <FormItem className="flex flex-wrow gap-2 items-center space-y-0">
                   <FormLabel>Icon:*</FormLabel>
                   <FormControl>
                     <>
@@ -183,7 +193,7 @@ const AddExpenseCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, 
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Expense Caregory"}
+                {isLoading ? expenseCategoryToEdit ? "Updating..." : "Creating..." : expenseCategoryToEdit ? "Edit Expense Category" : "Create Expense Category"}
               </Button>
             </DialogFooter>
           </form>

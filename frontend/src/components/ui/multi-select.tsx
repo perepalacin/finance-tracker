@@ -116,6 +116,7 @@ interface MultiSelectProps
    * Optional, defaults to false.
    */
   asChild?: boolean;
+  
 
   /**
    * Additional class names to apply custom styles to the multi-select component.
@@ -123,8 +124,10 @@ interface MultiSelectProps
    */
   className?: string;
   children?: React.ReactNode;
+  renderBadge?: boolean
   onEdit: (optionId: string) => void;
   onDelete: (optionId: string) => void;
+  isMulti?: boolean;
 }
 
 export const MultiSelect = React.forwardRef<
@@ -144,8 +147,10 @@ export const MultiSelect = React.forwardRef<
       asChild = false,
       className,
       children,
+      renderBadge = false,
       onEdit,
       onDelete,
+      isMulti = true,
       ...props
     },
     ref
@@ -229,14 +234,17 @@ export const MultiSelect = React.forwardRef<
                     }
                     return (
                       <Badge
+                        color={option?.color}
                         key={value}
                         className={cn(
-                          "rounded-md",
+                          "rounded-sm",
                           isAnimating ? "animate-bounce" : "",
                           option && option.color ? option.color : "", 
                           // multiSelectVariants({ variant })
                         )}
-                        style={{ animationDuration: `${animation}s`, backgroundColor: option && option.color ? option.color : "" }}
+                        style={{ animationDuration: `${animation}s`, 
+                        // backgroundColor: option && option.color ? option.color : "" 
+                      }}
                       >
                         {IconComponent && (
                           <IconComponent className="h-4 w-4 mr-2" />
@@ -247,20 +255,20 @@ export const MultiSelect = React.forwardRef<
                           </span>
                         )}
                         {option?.label}
-                        <XCircle
-                          className="ml-2 h-4 w-4 cursor-pointer"
-                          onClick={(event) => {
+                        <button className="ml-2 p-0 border-none bg-transparent cursor-pointer" onClick={(event) => {
                             event.stopPropagation();
                             toggleOption(value);
-                          }}
-                        />
+                          }}>
+                          <XCircle className="ml-2 h-4 w-4" />
+                        </button>
                       </Badge>
                     );
                   })}
                   {selectedValues.length > maxCount && (
                     <Badge
+                    color={'var(bg-primary)'}
                       className={cn(
-                        "bg-transparent text-foreground border-foreground/1 hover:bg-transparent",
+                        "bg-transparent rounded-sm text-foreground border-foreground/1 hover:bg-transparent",
                         isAnimating ? "animate-bounce" : "",
                         multiSelectVariants({ variant })
                       )}
@@ -315,23 +323,26 @@ export const MultiSelect = React.forwardRef<
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>
               <CommandGroup>
+                {
+                  isMulti &&
                 <CommandItem
-                  key="all"
-                  onSelect={toggleAll}
-                  className="cursor-pointer"
+                key="all"
+                onSelect={toggleAll}
+                className="cursor-pointer"
                 >
                   <div
                     className={cn(
                       "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
                       selectedValues.length === options.length
-                        ? "bg-primary text-primary-foreground"
-                        : "opacity-50 [&_svg]:invisible"
+                      ? "bg-primary text-primary-foreground"
+                      : "opacity-50 [&_svg]:invisible"
                     )}
-                  >
+                    >
                     <CheckIcon className="h-4 w-4" />
                   </div>
                   <span>(Select All)</span>
                 </CommandItem>
+                }
                 {options.map((option) => {
                   const isSelected = selectedValues.includes(option.value);
                   let emoji;
@@ -341,9 +352,44 @@ export const MultiSelect = React.forwardRef<
                   return (
                     <CommandItem
                       key={option.value}
-                      onSelect={() => toggleOption(option.value)}
+                      onSelect={() => {
+                        if (isMulti) {
+                          toggleOption(option.value);
+                        } else {
+                          if (selectedValues.length === 0) {
+                            toggleOption(option.value);
+                          } else if (selectedValues.length === 1) {
+                            setSelectedValues([option.value]);
+                          }
+                        }
+                      }}
                       className="cursor-pointer flex flex-row justify-between items-center"
                     >
+                      {renderBadge ? 
+                      <div className="flex flex-row gap-1 items-center ">
+                        <div
+                          className={cn(
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                            isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "opacity-50 [&_svg]:invisible"
+                          )}
+                          >
+                          <CheckIcon className="h-4 w-4" />
+                        </div>
+                        <Badge color={option.color} className="rounded-sm">
+                        {option.icon && (
+                          <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                        )}
+                        {emoji && (
+                          <span className="text-sm pr-1">
+                            {String.fromCodePoint(emoji)}
+                          </span>
+                        )}
+                        <span>{option.label}</span>
+                        </Badge>
+                      </div>
+                      :
                       <div className="flex flex-row gap-1 items-center ">
                         <div
                           className={cn(
@@ -365,6 +411,7 @@ export const MultiSelect = React.forwardRef<
                         )}
                         <span>{option.label}</span>
                       </div>
+                      }
                       <div className="flex flex-row gap-1">
                         <Button size={"icon"} className="p-0 m-0 w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onEdit(option.value)}}><Edit /></Button>
                         <Button size={"icon"} className="p-0 m-0  w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onDelete(option.value);}}><Trash2 /></Button>

@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, IdCard, Plus } from "lucide-react"
+import { CalendarIcon, ChartNoAxesCombined, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react";
 import axios from "axios";
@@ -25,7 +25,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useUserData } from "@/context/UserDataContext";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { AddButtonsProps, BankAccountProps, ExpenseCategoryProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddExpenseCategoryModal from "./AddExpenseCategoryModal";
@@ -54,7 +53,9 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
   const [isLoading, setIsLoading] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
   const [isExpenseCategoryModalOpen, setIsExpenseCategoryModalOpen] = useState(false);
-
+  const [expenseCategoryToEdit, setExpenseCategoryToEdit] = useState<ExpenseCategoryProps>();
+  const [bankAccountToEdit, setBankAccountToEdit] = useState<BankAccountProps>();
+ 
   const { expenseCategories, setExpenseCategories, bankAccounts } = useUserData();
 
   const form = useForm<AddExpenseFormValues>({
@@ -175,7 +176,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-1' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-1' : 'transition-transform'}`}>
                     {String.fromCodePoint(0x1F4B8)}
                   </Button>
                 :
@@ -290,11 +291,11 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
                     variant={"secondary"}
                     animation={2}
                     onDelete={deleteExpenseCategory}
-                    onEdit={() =>{}}
+                    onEdit={(optionId) =>{console.log(optionId); setExpenseCategoryToEdit(expenseCategories.find((item: ExpenseCategoryProps) => item.id === optionId)); setIsExpenseCategoryModalOpen(true)}}
                   >
                     <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsExpenseCategoryModalOpen(true)}>
                       <Plus />
-                      <p>Add a new investment category</p>
+                      <p>Add a new expense category</p>
                     </Button>
                   </MultiSelect>
                   <FormMessage />
@@ -307,29 +308,21 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bank Account*</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue className="text-start" placeholder="Select a bank account associated to the expense" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {bankAccounts.map((account: BankAccountProps) => {
-                        return (
-                            <SelectItem key= {account.id} value={account.id}>
-                              <div className="flex flex-row gap-2 items-center">
-                                <IdCard />
-                                <p>{account.name}</p>
-                              </div>
-                            </SelectItem>
-                        )
-                      })}
-                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => {setIsBankAccountsModalOpen(true)}}>
+                  <MultiSelect
+                      options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
+                      onValueChange={(data) => field.onChange(data[0])}
+                      placeholder="Select a bank account"
+                      variant={"secondary"}
+                      animation={2}
+                      isMulti={false}
+                      onEdit={(optionId) => {setBankAccountToEdit(bankAccounts.find((item) => item.id === optionId)); setIsBankAccountsModalOpen(true)}}
+                      onDelete={() => {}}
+                    >
+                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsBankAccountsModalOpen(true)}>
                         <Plus />
                         <p>Add a new bank account</p>
                       </Button>
-                    </SelectContent>
-                  </Select>
+                    </MultiSelect>
                   <FormMessage />
                 </FormItem>
               )}
@@ -341,8 +334,12 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
             </DialogFooter>
           </form>
         </Form>
-        <AddBankAccountDialog isMainLayoutButton={false} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false} />
-        <AddExpenseCategoryModal isMainLayoutButton={false} isMainButton={false} isOpen={isExpenseCategoryModalOpen} setIsOpen={(isOpen) => setIsExpenseCategoryModalOpen(isOpen)} renderButton={false} />
+        { isBankAccountsModalOpen &&
+          <AddBankAccountDialog isMainLayoutButton={false} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false} bankAccountToEdit={bankAccountToEdit} resetBankAccountToEdit={() => {setBankAccountToEdit(undefined); setIsBankAccountsModalOpen(false)}} />
+        }
+        {isExpenseCategoryModalOpen &&
+          <AddExpenseCategoryModal isMainLayoutButton={false} isMainButton={false} isOpen={isExpenseCategoryModalOpen} setIsOpen={(isOpen) => setIsExpenseCategoryModalOpen(isOpen)} renderButton={false} expenseCategoryToEdit={expenseCategoryToEdit} resetExpenseCategoryToEdit={() => {setExpenseCategoryToEdit(undefined); setIsExpenseCategoryModalOpen(false)}}/>
+        }
       </DialogContent>
     </Dialog>
   )

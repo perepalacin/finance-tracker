@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, IdCard, Plus } from "lucide-react"
+import { CalendarIcon, ChartNoAxesCombined, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react";
 import axios from "axios";
@@ -25,10 +25,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useUserData } from "@/context/UserDataContext";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { AddButtonsProps, BankAccountProps, IncomeSourceProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddIncomeSourceModal from "./AddIncomeSourceModal";
+import { MultiSelect } from "../ui/multi-select";
 
 
 const AddIncomeSchema = z.object({
@@ -54,6 +54,8 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
   const [isLoading, setIsLoading] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
   const [isIncomeSourceModalOpen, setIsIncomeSourceModalOpen] = useState(false);
+  const [incomeSourceToEdit, setIncomeSourceToEdit] = useState<IncomeSourceProps>();
+  const [bankAccountToEdit, setBankAccountToEdit] = useState<BankAccountProps>();
 
   const { incomeSources, bankAccounts } = useUserData();
 
@@ -129,7 +131,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-2' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-2' : 'transition-transform'}`}>
                     {String.fromCodePoint(0x1F4B0)}
                   </Button>
                 :
@@ -147,7 +149,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
           </TooltipProvider>
         <DialogContent className="w-1/2">
           <DialogHeader>
-          <DialogTitle className="w-full">Add a new Income</DialogTitle>
+          <DialogTitle className="w-full"> Add a new Income</DialogTitle>
           <DialogDescription>
             Add a new income to one of your bank accounts
           </DialogDescription>
@@ -237,29 +239,22 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Income Source*</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue className="text-start" placeholder="Select an income source to associate with" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {incomeSources.map((source: IncomeSourceProps) => {
-                        const bgColor = `bg-[${source.color}]`;
-                        return (
-                            <SelectItem key= {source.id} value={source.id} className={bgColor}>
-                              <div className={`flex flex-row gap-2 items-center ${bgColor}`}>
-                                <p>{source.name}</p>
-                              </div>
-                            </SelectItem>
-                        )
-                      })}
-                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => {setIsIncomeSourceModalOpen(true)}}>
+                    <MultiSelect
+                      options={incomeSources.map((item) => ({label: item.name, value: item.id, color: item.color}))}
+                      onValueChange={(data) => field.onChange(data[0])}
+                      placeholder="Select an income source"
+                      variant={"secondary"}
+                      animation={2}
+                      renderBadge={true}
+                      isMulti={false}
+                      onEdit={(optionId) => {setIncomeSourceToEdit(incomeSources.find((item) => item.id === optionId)); setIsIncomeSourceModalOpen(true)}}
+                      onDelete={() => {}}
+                    >
+                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsIncomeSourceModalOpen(true)}>
                         <Plus />
-                        <p>Add a new income source</p>
+                        <p>Add a new investment category</p>
                       </Button>
-                    </SelectContent>
-                  </Select>
+                    </MultiSelect>
                   <FormMessage />
                 </FormItem>
               )}
@@ -270,30 +265,22 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bank Account*</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue className="text-start" placeholder="Select a bank account associated to the investment" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {bankAccounts.map((account: BankAccountProps) => {
-                        return (
-                            <SelectItem key= {account.id} value={account.id}>
-                              <div className="flex flex-row gap-2 items-center">
-                                <IdCard />
-                                <p>{account.name}</p>
-                              </div>
-                            </SelectItem>
-                        )
-                      })}
-                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => {setIsBankAccountsModalOpen(true)}}>
+                  <MultiSelect
+                      options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
+                      onValueChange={(data) => field.onChange(data[0])}
+                      placeholder="Select a bank account"
+                      variant={"secondary"}
+                      animation={2}
+                      isMulti={false}
+                      onEdit={(optionId) => {setBankAccountToEdit(bankAccounts.find((item) => item.id === optionId)); setIsBankAccountsModalOpen(true)}}
+                      onDelete={() => {}}
+                    >
+                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsBankAccountsModalOpen(true)}>
                         <Plus />
                         <p>Add a new bank account</p>
                       </Button>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
+                    </MultiSelect>
+                    <FormMessage />
                 </FormItem>
               )}
             />
@@ -304,8 +291,12 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
             </DialogFooter>
           </form>
         </Form>
-        <AddBankAccountDialog isMainLayoutButton={false} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false}/>
-        <AddIncomeSourceModal isMainLayoutButton={false} isMainButton={false} isOpen={isIncomeSourceModalOpen} setIsOpen={(isOpen) => setIsIncomeSourceModalOpen(isOpen)} renderButton={false} />
+        {isBankAccountsModalOpen &&
+        <AddBankAccountDialog isMainLayoutButton={false} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false} bankAccountToEdit={bankAccountToEdit} resetBankAccountToEdit={() => {setBankAccountToEdit(undefined); setIsBankAccountsModalOpen(false) }}/>
+        }
+        {isIncomeSourceModalOpen &&
+        <AddIncomeSourceModal isMainLayoutButton={false} isMainButton={false} isOpen={isIncomeSourceModalOpen} setIsOpen={(isOpen) => setIsIncomeSourceModalOpen(isOpen)} renderButton={false} incomeSourceToEdit = {incomeSourceToEdit} resetIncomeSourceToEdit={() => {setIncomeSourceToEdit(undefined); setIsIncomeSourceModalOpen(false)}} />
+        }
       </DialogContent>
     </Dialog>
   )

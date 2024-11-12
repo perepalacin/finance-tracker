@@ -12,17 +12,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { IdCard, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { redirect } from "react-router-dom";
 import { useUserData } from "@/context/UserDataContext";
-import { AddButtonsProps } from "@/types";
+import { AddButtonsProps, InvestmentCategoryProps } from "@/types";
 import { ColorPicker } from "../ui/color-picker";
-import { OPACITY_BG_CHANGE } from "@/helpers/Constants";
 
 const AddInvestmentCategorySchema = z.object({
     name: z
@@ -36,7 +34,12 @@ const AddInvestmentCategorySchema = z.object({
 
 type AddInvestmentCategoryFormValues = z.infer<typeof AddInvestmentCategorySchema>;
 
-const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true}) => {
+interface AddInvestmentCategoryModalProps extends AddButtonsProps {
+  investmentCategoryToEdit?: InvestmentCategoryProps;
+  resetInvestmentCategoryToEdit?: () => void;
+}
+
+const AddInvestmentCategoryModal: React.FC<AddInvestmentCategoryModalProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen=false, setIsOpen,  renderButton = true, investmentCategoryToEdit, resetInvestmentCategoryToEdit}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -48,7 +51,10 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButto
 
   const form = useForm<AddInvestmentCategoryFormValues>({
     resolver: zodResolver(AddInvestmentCategorySchema),
-    defaultValues: {
+    defaultValues: investmentCategoryToEdit ? {
+      name: investmentCategoryToEdit.investmentCategoryName,
+      color: investmentCategoryToEdit.color
+    } :{
       name: "",
       color: '#FF0000',
     },
@@ -56,59 +62,63 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButto
 
   const onSubmit = ( data: AddInvestmentCategoryFormValues) => {
     setIsLoading(true);
-
     const token = localStorage.getItem('token');
-    axios.post(
-      "/api/v1/investment-categories",
-      {
-        investmentCategoryName: data.name,
-        color: data.color,
+    const url = investmentCategoryToEdit ? `/api/v1/investment-categories/${investmentCategoryToEdit.id}` : "/api/v1/investment-categories";
+    const method = investmentCategoryToEdit ? axios.put : axios.post;
+
+    method(url, {
+      investmentCategoryName: data.name,
+      color: data.color,
+    }, {
+      headers: {
+        Authorization: token,
       },
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
+    })
+    .then((response) => {
+      if (response.status === 200 || response.status === 201) {
+        const successMessage = investmentCategoryToEdit ? "Investment category updated!" : "Investment category created!";
+        toast({
+          variant: "success",
+          title: successMessage,
+          description: data.name + " has been added successfully.",
+        });
         if (response.status === 201) {
-          toast({
-            variant: "success",
-            title: "Investment Category Created!",
-            description: data.name + " has been added successfully.",
-          });
           const newInvestmentCategories = [...investmentCategories];
           newInvestmentCategories.push(response.data);
           setInvestmentCategories(newInvestmentCategories);
-          setOpen(false);
-          form.reset();
+        } else if (response.status === 200 && investmentCategoryToEdit) {
+          const updatedInvestmentCategories = investmentCategories.map((category: InvestmentCategoryProps) => {
+            if (category.id === investmentCategoryToEdit.id) {
+              return response.data; 
+            } else {
+              return category;
+            }
+          });
+          setInvestmentCategories(updatedInvestmentCategories);
         }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to create investment category. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
+      }
+      setOpen(false);
+      form.reset();
+    })
+    .catch((error) => {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to process your request. Please try again later.",
       });
+    })
+    .finally(() => {
+      setIsLoading(false);
+      if (resetInvestmentCategoryToEdit) {
+        resetInvestmentCategoryToEdit();
+      }
+    });
   };
 
   
   return (
-    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
+    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); if (resetInvestmentCategoryToEdit) {resetInvestmentCategoryToEdit()} }}}>
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -116,7 +126,8 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButto
                 {renderButton && 
                 ( isMainButton ?
                   <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
-                    <IdCard width={15} height={15} />
+                    {/* <IdCard width={15} height={15} /> */}
+                    {String.fromCodePoint(0x1FAAA)}
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row items-center gap-1 w-full">
@@ -134,9 +145,9 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButto
           </TooltipProvider>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add a new Investment Category</DialogTitle>
+          <DialogTitle>{ investmentCategoryToEdit ? "Update Investment Category" : " Add a new Investment Category" }</DialogTitle>
           <DialogDescription>
-            Create a new investment category to be able to organize your investments.
+            {investmentCategoryToEdit ? "" : "Create a new investment category to be able to organize your investments."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -161,7 +172,7 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButto
                 <FormItem className="flex flex-row gap-2 items-center space-y-0">
                   <FormLabel>Color*</FormLabel>
                   <FormControl>
-                    <ColorPicker value={field.value + OPACITY_BG_CHANGE} onChange={field.onChange} />
+                    <ColorPicker value={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,7 +180,7 @@ const AddInvestmentCategoryModal: React.FC<AddButtonsProps> =({isMainLayoutButto
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Investment Category"}
+                {isLoading ? investmentCategoryToEdit ? "Updating..." : "Creating..." : investmentCategoryToEdit ? "Update Investment Category" : "Create Investment Category"}
               </Button>
             </DialogFooter>
           </form>

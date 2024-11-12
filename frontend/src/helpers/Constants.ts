@@ -1,1 +1,0 @@
-export const OPACITY_BG_CHANGE = '63'; //this will add to all colors to make them less opaque

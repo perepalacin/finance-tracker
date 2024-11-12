@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, IdCard, Plus } from "lucide-react"
+import { CalendarIcon, ChartNoAxesCombined, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react";
 import axios from "axios";
@@ -26,8 +26,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { MultiSelect } from "../ui/multi-select";
 import { useUserData } from "@/context/UserDataContext";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { AddButtonsProps, BankAccountProps } from "@/types";
+import { AddButtonsProps, BankAccountProps, InvestmentCategoryProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddInvestmentCategoryModal from "./AddInvestmentCategoryModal";
 
@@ -60,6 +59,8 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
   const [isLoading, setIsLoading] = useState(false);
   const [isInvestmentCategoryModalOpen, setIsInvestmentCategoryModalOpen] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
+  const [bankAccountToEdit, setBankAccountToEdit] = useState<BankAccountProps>();
+  const [investmentCategoryToEdit, setInvestmentCategoryToEdit] = useState<InvestmentCategoryProps>();
 
   const { investmentCategories, bankAccounts } = useUserData();
   // const IdCardIcon = () => <IdCard />;
@@ -138,7 +139,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
                     {/* <ChartNoAxesCombined width={15} height={15} /> */}
                     {String.fromCodePoint(0x1F4C8)}
                   </Button>
@@ -296,6 +297,9 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
                     placeholder="Select a set of investment categories"
                     variant={"secondary"}
                     animation={2}
+                    renderBadge={true}
+                    onEdit={(optionId) => {setInvestmentCategoryToEdit(investmentCategories.find((item) => item.id === optionId)); setIsInvestmentCategoryModalOpen(true)}}
+                    onDelete={() => {}}
                   >
                     <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsInvestmentCategoryModalOpen(true)}>
                       <Plus />
@@ -312,29 +316,21 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bank Account*</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a bank account associated to the investment" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {bankAccounts.map((account: BankAccountProps) => {
-                        return (
-                            <SelectItem key= {account.id} value={account.id}>
-                              <div className="flex flex-row gap-2 items-center">
-                                <IdCard />
-                                <p>{account.name}</p>
-                              </div>
-                            </SelectItem>
-                        )
-                      })}
-                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => {setIsBankAccountsModalOpen(true)}}>
+                  <MultiSelect
+                      options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
+                      onValueChange={(data) => field.onChange(data[0])}
+                      placeholder="Select a bank account"
+                      variant={"secondary"}
+                      animation={2}
+                      isMulti={false}
+                      onEdit={(optionId) => {setBankAccountToEdit(bankAccounts.find((item) => item.id === optionId)); setIsBankAccountsModalOpen(true)}}
+                      onDelete={() => {}}
+                    >
+                      <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsBankAccountsModalOpen(true)}>
                         <Plus />
                         <p>Add a new bank account</p>
                       </Button>
-                    </SelectContent>
-                  </Select>
+                    </MultiSelect>
                   <FormMessage />
                 </FormItem>
               )}
@@ -346,8 +342,12 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
             </DialogFooter>
           </form>
         </Form>
-        <AddInvestmentCategoryModal isMainLayoutButton={false} isMainButton={false} isOpen={isInvestmentCategoryModalOpen} setIsOpen={(isOpen) => setIsInvestmentCategoryModalOpen(isOpen)} renderButton={false}/>
-        <AddBankAccountDialog isMainLayoutButton={isMainLayoutButton} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false}/>
+        {isInvestmentCategoryModalOpen &&
+        <AddInvestmentCategoryModal isMainLayoutButton={false} isMainButton={false} isOpen={isInvestmentCategoryModalOpen} setIsOpen={(isOpen) => setIsInvestmentCategoryModalOpen(isOpen)} renderButton={false} investmentCategoryToEdit={investmentCategoryToEdit} resetInvestmentCategoryToEdit={() => {setInvestmentCategoryToEdit(undefined); setIsInvestmentCategoryModalOpen(false)}}/>
+        }
+        {isBankAccountsModalOpen &&
+        <AddBankAccountDialog isMainLayoutButton={isMainLayoutButton} isMainButton={false} isOpen={isBankAccountsModalOpen} setIsOpen={(isOpen) => setIsBankAccountsModalOpen(isOpen)} renderButton={false} bankAccountToEdit={bankAccountToEdit} resetBankAccountToEdit={() => {setBankAccountToEdit(undefined); setIsBankAccountsModalOpen(false)}}/>
+        }
       </DialogContent>
     </Dialog>
   )

@@ -18,9 +18,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { redirect } from "react-router-dom";
 import { useUserData } from "@/context/UserDataContext";
-import { AddButtonsProps } from "@/types";
+import { AddButtonsProps, BankAccountProps } from "@/types";
 
 const AddBankAccountSchema = z.object({
   name: z
@@ -35,7 +34,12 @@ const AddBankAccountSchema = z.object({
 
 type AddBankAccountFormValues = z.infer<typeof AddBankAccountSchema>;
 
-const AddBankAccountModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen = false, setIsOpen, renderButton =true}) => {
+interface AddBankAccountModalProps extends AddButtonsProps {
+  bankAccountToEdit?: BankAccountProps;
+  resetBankAccountToEdit?: () => void;
+}
+
+const AddBankAccountModal: React.FC<AddBankAccountModalProps> =({isMainLayoutButton, isMainButton, variant="ghost", isOpen = false, setIsOpen, renderButton =true, bankAccountToEdit, resetBankAccountToEdit}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,76 +51,81 @@ const AddBankAccountModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMa
 
   const form = useForm<AddBankAccountFormValues>({
     resolver: zodResolver(AddBankAccountSchema),
-    defaultValues: {
+    defaultValues: bankAccountToEdit ?
+     {
+      name: bankAccountToEdit.name,
+      initialAmount: bankAccountToEdit.initialAmount
+     } :{
       name: "",
     },
   });
 
   const onSubmit = (data: AddBankAccountFormValues) => {
     setIsLoading(true);
-
     const token = localStorage.getItem('token');
-    axios.post(
-      "/api/v1/accounts",
-      {
-        name: data.name,
-        initialAmount: data.initialAmount,
+    const url = bankAccountToEdit ? `/api/v1/accounts/${bankAccountToEdit.id}` : "/api/v1/accounts";
+    const method = bankAccountToEdit ? axios.put : axios.post;
+
+    method(url, {
+      name: data.name,
+      initialAmount: data.initialAmount,
+    }, {
+      headers: {
+        Authorization: token,
       },
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
+    })
+    .then((response) => {
+      if (response.status === 200 || response.status === 201) {
+        const successMessage = bankAccountToEdit ? "Bank account updated!" : "Bank account created!";
+        toast({
+          variant: "success",
+          title: successMessage,
+          description: data.name + " has been added successfully.",
+        });
         if (response.status === 201) {
-          toast({
-            variant: "success",
-            title: "Bank Account Created!",
-            description: data.name + " has been added successfully.",
-          });
           const newBankAccounts = [...bankAccounts];
           newBankAccounts.push(response.data);
           setBankAccounts(newBankAccounts);
-          setOpen(false);
-          if (setIsOpen) {
-            setIsOpen(false);
-          }
-          form.reset();
+        } else if (response.status === 200 && bankAccountToEdit) {
+          const updatedBankAccounts = bankAccounts.map((account: BankAccountProps) => {
+            if (account.id === bankAccountToEdit.id) {
+              return response.data; 
+            } else {
+              return account; 
+            }
+          });
+          setBankAccounts(updatedBankAccounts);
         }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to create bank account. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
+      }
+      setOpen(false);
+      form.reset();
+    })
+    .catch((error) => {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to process your request. Please try again later.",
       });
+    })
+    .finally(() => {
+      setIsLoading(false);
+      if (resetBankAccountToEdit) {
+        resetBankAccountToEdit();
+      }
+    });
   };
 
   
   return (
-    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}} >
+    <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); if (resetBankAccountToEdit) {resetBankAccountToEdit()} }}} >
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 {renderButton &&
                 ( isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
                     {/* <IdCard width={15} height={15} /> */}
                     {String.fromCodePoint(0x1F3E6)}
                   </Button>
@@ -136,9 +145,10 @@ const AddBankAccountModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMa
           </TooltipProvider>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add a new Bank Account</DialogTitle>
+          <DialogTitle>{bankAccountToEdit ? "Update Bank Account" : "Add a new Bank Account"}</DialogTitle>
           <DialogDescription>
-            Create a new bank account to be able to associate expenses, incomes and investments to it.
+            { bankAccountToEdit ? 
+            "" : "Create a new bank account to be able to associate expenses, incomes and investments to it."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -171,7 +181,7 @@ const AddBankAccountModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMa
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create account"}
+                {isLoading ? bankAccountToEdit ? "Updating" : "Creating..." : bankAccountToEdit ? "Update account" : "Create account"}
               </Button>
             </DialogFooter>
           </form>
