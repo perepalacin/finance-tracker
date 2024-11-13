@@ -33,13 +33,6 @@ public class BankAccountDao {
     private BigDecimal totalTransferIn;
     private BigDecimal totalInvested;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreatedDate
-    private Instant created_at;
-
-    @LastModifiedDate
-    private Instant updated_at;
-
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserDao user;

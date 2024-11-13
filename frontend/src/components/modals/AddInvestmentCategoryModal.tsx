@@ -138,7 +138,7 @@ const AddInvestmentCategoryModal: React.FC<AddInvestmentCategoryModalProps> =({i
                 }
             </DialogTrigger>
               </TooltipTrigger>
-              <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
+              <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Investment Category</p>
               </TooltipContent>
             </Tooltip>

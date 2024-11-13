@@ -1,13 +1,10 @@
 package com.pere_palacin.app.controllers;
 
 import com.pere_palacin.app.domains.BankAccountDao;
-import com.pere_palacin.app.domains.CategoryDao;
 import com.pere_palacin.app.domains.dto.BankAccountDto;
-import com.pere_palacin.app.domains.dto.CategoryDto;
+import com.pere_palacin.app.domains.sortBys.BankAccountSortBy;
 import com.pere_palacin.app.mappers.impl.BankAccountMapper;
-import com.pere_palacin.app.mappers.impl.CategoryMapper;
 import com.pere_palacin.app.services.BankAccountService;
-import com.pere_palacin.app.services.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,8 +25,12 @@ public class BankAccountController {
     private final BankAccountMapper bankAccountMapper;
 
     @GetMapping("")
-    public List<BankAccountDto> listBankAccounts() {
-        List<BankAccountDao> accounts = bankAccountService.findAll();
+    public List<BankAccountDto> listBankAccounts(
+            @RequestParam(defaultValue = "name") BankAccountSortBy orderBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(defaultValue = "true") boolean ascending) {
+        List<BankAccountDao> accounts = bankAccountService.findAll(orderBy, page, pageSize, ascending);
         return accounts.stream().map(bankAccountMapper::mapTo).collect(Collectors.toList());
     }
 

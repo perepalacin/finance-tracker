@@ -320,134 +320,136 @@ export const MultiSelect = React.forwardRef<
               placeholder="Search..."
               onKeyDown={handleInputKeyDown}
             />
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup>
-                {
-                  isMulti &&
-                <CommandItem
-                key="all"
-                onSelect={toggleAll}
-                className="cursor-pointer"
-                >
-                  <div
-                    className={cn(
-                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                      selectedValues.length === options.length
-                      ? "bg-primary text-primary-foreground"
-                      : "opacity-50 [&_svg]:invisible"
-                    )}
-                    >
-                    <CheckIcon className="h-4 w-4" />
-                  </div>
-                  <span>(Select All)</span>
-                </CommandItem>
-                }
-                {options.map((option) => {
-                  const isSelected = selectedValues.includes(option.value);
-                  let emoji;
-                  if (option?.emoji) {
-                    emoji = parseInt(option?.emoji);
-                  }
-                  return (
-                    <CommandItem
-                      key={option.value}
-                      onSelect={() => {
-                        if (isMulti) {
-                          toggleOption(option.value);
-                        } else {
-                          if (selectedValues.length === 0) {
-                            toggleOption(option.value);
-                          } else if (selectedValues.length === 1) {
-                            setSelectedValues([option.value]);
-                          }
-                        }
-                      }}
-                      className="cursor-pointer flex flex-row justify-between items-center"
-                    >
-                      {renderBadge ? 
-                      <div className="flex flex-row gap-1 items-center ">
-                        <div
-                          className={cn(
-                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                            isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "opacity-50 [&_svg]:invisible"
-                          )}
-                          >
-                          <CheckIcon className="h-4 w-4" />
-                        </div>
-                        <Badge color={option.color} className="rounded-sm">
-                        {option.icon && (
-                          <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                        )}
-                        {emoji && (
-                          <span className="text-sm pr-1">
-                            {String.fromCodePoint(emoji)}
-                          </span>
-                        )}
-                        <span>{option.label}</span>
-                        </Badge>
-                      </div>
-                      :
-                      <div className="flex flex-row gap-1 items-center ">
-                        <div
-                          className={cn(
-                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                            isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "opacity-50 [&_svg]:invisible"
-                          )}
-                          >
-                          <CheckIcon className="h-4 w-4" />
-                        </div>
-                        {option.icon && (
-                          <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                        )}
-                        {emoji && (
-                          <span className="text-sm pr-1">
-                            {String.fromCodePoint(emoji)}
-                          </span>
-                        )}
-                        <span>{option.label}</span>
-                      </div>
-                      }
-                      <div className="flex flex-row gap-1">
-                        <Button size={"icon"} className="p-0 m-0 w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onEdit(option.value)}}><Edit /></Button>
-                        <Button size={"icon"} className="p-0 m-0  w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onDelete(option.value);}}><Trash2 /></Button>
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-                {children}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup>
-                <div className="flex items-center justify-between">
-                  {selectedValues.length > 0 && (
-                    <>
-                      <CommandItem
-                        onSelect={handleClear}
-                        className="flex-1 justify-center cursor-pointer"
-                      >
-                        Clear
-                      </CommandItem>
-                      <Separator
-                        orientation="vertical"
-                        className="flex min-h-6 h-full"
-                      />
-                    </>
-                  )}
-
+            <ScrollArea>
+              <CommandList>
+                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandGroup>
+                  {
+                    isMulti &&
                   <CommandItem
-                    onSelect={() => setIsPopoverOpen(false)}
-                    className="flex-1 justify-center cursor-pointer max-w-full"
+                  key="all"
+                  onSelect={toggleAll}
+                  className="cursor-pointer"
                   >
-                    Close
+                    <div
+                      className={cn(
+                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                        selectedValues.length === options.length
+                        ? "bg-primary text-primary-foreground"
+                        : "opacity-50 [&_svg]:invisible"
+                      )}
+                      >
+                      <CheckIcon className="h-4 w-4" />
+                    </div>
+                    <span>(Select All)</span>
                   </CommandItem>
-                </div>
-              </CommandGroup>
-            </CommandList>
+                  }
+                  {options.map((option) => {
+                    const isSelected = selectedValues.includes(option.value);
+                    let emoji;
+                    if (option?.emoji) {
+                      emoji = parseInt(option?.emoji);
+                    }
+                    return (
+                      <CommandItem
+                        key={option.value}
+                        onSelect={() => {
+                          if (isMulti) {
+                            toggleOption(option.value);
+                          } else {
+                            if (selectedValues.length === 0) {
+                              toggleOption(option.value);
+                            } else if (selectedValues.length === 1) {
+                              setSelectedValues([option.value]);
+                            }
+                          }
+                        }}
+                        className="cursor-pointer flex flex-row justify-between items-center"
+                      >
+                        {renderBadge ? 
+                        <div className="flex flex-row gap-1 items-center ">
+                          <div
+                            className={cn(
+                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                              isSelected
+                              ? "bg-primary text-primary-foreground"
+                              : "opacity-50 [&_svg]:invisible"
+                            )}
+                            >
+                            <CheckIcon className="h-4 w-4" />
+                          </div>
+                          <Badge color={option.color} className="rounded-sm">
+                          {option.icon && (
+                            <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                          )}
+                          {emoji && (
+                            <span className="text-sm pr-1">
+                              {String.fromCodePoint(emoji)}
+                            </span>
+                          )}
+                          <span>{option.label}</span>
+                          </Badge>
+                        </div>
+                        :
+                        <div className="flex flex-row gap-1 items-center ">
+                          <div
+                            className={cn(
+                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                              isSelected
+                              ? "bg-primary text-primary-foreground"
+                              : "opacity-50 [&_svg]:invisible"
+                            )}
+                            >
+                            <CheckIcon className="h-4 w-4" />
+                          </div>
+                          {option.icon && (
+                            <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                          )}
+                          {emoji && (
+                            <span className="text-sm pr-1">
+                              {String.fromCodePoint(emoji)}
+                            </span>
+                          )}
+                          <span>{option.label}</span>
+                        </div>
+                        }
+                        <div className="flex flex-row gap-1">
+                          <Button size={"icon"} className="p-0 m-0 w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onEdit(option.value)}}><Edit /></Button>
+                          <Button size={"icon"} className="p-0 m-0  w-6 h-6" variant={"outline"} onClick={(e) => {e.stopPropagation(); onDelete(option.value);}}><Trash2 /></Button>
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                  {children}
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup>
+                  <div className="flex items-center justify-between">
+                    {selectedValues.length > 0 && (
+                      <>
+                        <CommandItem
+                          onSelect={handleClear}
+                          className="flex-1 justify-center cursor-pointer"
+                        >
+                          Clear
+                        </CommandItem>
+                        <Separator
+                          orientation="vertical"
+                          className="flex min-h-6 h-full"
+                        />
+                      </>
+                    )}
+
+                    <CommandItem
+                      onSelect={() => setIsPopoverOpen(false)}
+                      className="flex-1 justify-center cursor-pointer max-w-full"
+                    >
+                      Close
+                    </CommandItem>
+                  </div>
+                </CommandGroup>
+              </CommandList>
+            </ScrollArea>
           </Command>
         </PopoverContent>
       </Popover>

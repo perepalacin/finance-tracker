@@ -2,6 +2,7 @@ package com.pere_palacin.app.services.impl;
 
 import com.pere_palacin.app.domains.BankAccountDao;
 import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.domains.sortBys.BankAccountSortBy;
 import com.pere_palacin.app.exceptions.BankAcountNotFoundException;
 import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
 import com.pere_palacin.app.repositories.BankAccountRepository;
@@ -10,6 +11,9 @@ import com.pere_palacin.app.services.AuthService;
 import com.pere_palacin.app.services.BankAccountService;
 import com.pere_palacin.app.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -42,9 +46,11 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public List<BankAccountDao> findAll() {
+    public List<BankAccountDao> findAll(BankAccountSortBy orderBy, int page, int pageSize, boolean ascending) {
         UUID userId = userDetailsService.getRequestingUserId();
-        return bankAccountRepository.findByUserId(userId);
+        Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+        return bankAccountRepository.findAllByUserId(userId, pageable).getContent();
     }
 
     @Override

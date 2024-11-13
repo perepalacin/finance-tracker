@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Plus } from "lucide-react"
+import { Edit, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -20,6 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, BankAccountProps } from "@/types";
+import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants";
 
 const AddBankAccountSchema = z.object({
   name: z
@@ -59,6 +60,20 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> =({isMainLayoutBut
       name: "",
     },
   });
+
+  useEffect(() => {
+    if (bankAccountToEdit) {
+      form.reset({
+        name: bankAccountToEdit.name,
+        initialAmount: bankAccountToEdit.initialAmount,
+      });
+    } else {
+      form.reset({
+        name: "",
+        initialAmount: undefined,
+      });
+    }
+  }, [bankAccountToEdit, form]);
 
   const onSubmit = (data: AddBankAccountFormValues) => {
     setIsLoading(true);
@@ -125,22 +140,32 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> =({isMainLayoutBut
               <DialogTrigger asChild>
                 {renderButton &&
                 ( isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
-                    {/* <IdCard width={15} height={15} /> */}
-                    {String.fromCodePoint(0x1F3E6)}
+                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-5' : 'transition-transform'}`}>
+                    {BANK_ACCOUNTS_EMOJI}
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row items-center gap-1 w-full">
-                    <Plus width={15} height={15} />
-                    <p>Add a new bank account</p> 
+                    {bankAccountToEdit ?
+                      <>
+                        <Edit width={15} height={15} />
+                        <p>Edit bank account</p> 
+                      </>
+                    :
+                    <>
+                      <Plus width={15} height={15} />
+                      <p>Add bank account</p> 
+                    </>
+                    }
                   </Button>
                 )
               }
             </DialogTrigger>
               </TooltipTrigger>
-              <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
+              { isMainLayoutButton &&
+              <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add a Bank Account</p>
               </TooltipContent>
+              }
             </Tooltip>
           </TooltipProvider>
       <DialogContent className="sm:max-w-[425px]">

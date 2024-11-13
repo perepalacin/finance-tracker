@@ -56,6 +56,16 @@ export interface ExpenseProps {
     date: string;
 }
 
+export interface TransferProps {
+    id: string;
+    name: string;
+    amount: number;
+    annotation: string;
+    receivingBankAccount: BankAccountProps;
+    sendingBankAccount: BankAccountProps;
+    date: string;
+}
+
 export interface AddButtonsProps {
     isMainLayoutButton: boolean; // prop that controls the sliding animation of the buttons in the main page
     isMainButton: boolean; // prop that controls if they are renfered as a button on the main layout or they are nested inside another component

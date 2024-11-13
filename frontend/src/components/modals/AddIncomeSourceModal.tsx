@@ -140,7 +140,7 @@ const AddIncomeSourceModal: React.FC<AddIncomeSourceModalProps> =({isMainLayoutB
                 }
             </DialogTrigger>
               </TooltipTrigger>
-              <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
+              <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Income Source</p>
               </TooltipContent>
             </Tooltip>

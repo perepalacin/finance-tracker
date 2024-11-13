@@ -141,7 +141,7 @@ const AddExpenseCategoryModal: React.FC<AddExpenseCategoryModalProps> =({isMainL
                 }
             </DialogTrigger>
               </TooltipTrigger>
-              <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
+              <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Expense Category</p>
               </TooltipContent>
             </Tooltip>

@@ -29,6 +29,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, BankAccountProps, InvestmentCategoryProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddInvestmentCategoryModal from "./AddInvestmentCategoryModal";
+import { INVESTMENTS_EMOJI } from "@/helpers/Constants";
 
 
 const AddInvestmentSchema = z.object({
@@ -141,7 +142,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
                 { renderButton && (isMainButton ?
                   <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-3' : 'transition-transform'}`}>
                     {/* <ChartNoAxesCombined width={15} height={15} /> */}
-                    {String.fromCodePoint(0x1F4C8)}
+                    {INVESTMENTS_EMOJI}
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
@@ -151,7 +152,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
                 )}
             </DialogTrigger>
               </TooltipTrigger>
-              <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
+              <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Investment</p>
               </TooltipContent>
             </Tooltip>

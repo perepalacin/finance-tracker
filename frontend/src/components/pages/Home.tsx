@@ -1,15 +1,23 @@
 import { Outlet } from 'react-router-dom';
-import TopBar from '../nav/TopBar';
 import AddButton from '../AddButton';
-import IconPicker from '../ui/IconPicker';
+import { SidebarProvider } from '../ui/sidebar';
+import { AppSidebar } from '../nav/AppSidebar';
+import PageHeader from './PageHeader';
 
 const Home = () => {
 
   return (
     <div className='w-full h-screen relative'>
-        <TopBar />
+      <SidebarProvider defaultOpen={false}>
+      <AppSidebar />
+      <main className='w-full'>
         <AddButton />
-        <Outlet />
+        <div className='p-8'>
+          <PageHeader />
+          <Outlet />
+        </div>
+      </main>
+    </SidebarProvider>
     </div>
   )
 }

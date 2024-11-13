@@ -32,6 +32,14 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -61,6 +69,14 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -91,6 +107,7 @@
 }
 
 .animate-nested-add-button-1 {
+  z-index: 50;
   animation: move-left-1 0.3s ease-out forwards;
 }
 
@@ -104,6 +121,7 @@
 }
 
 .animate-nested-add-button-2 {
+  z-index: 50;
   animation: move-left-2 0.3s ease-out forwards;
 }
 
@@ -117,6 +135,7 @@
 }
 
 .animate-nested-add-button-3 {
+  z-index: 50;
   animation: move-left-3 0.3s ease-out forwards;
 }
 
@@ -129,7 +148,8 @@
   }
 }
 
-.animate-nested-add-button-4 {
+.animate-nested-add-button-4 {  
+  z-index: 50;
   animation: move-left-4 0.3s ease-out forwards;
 }
 
@@ -141,4 +161,19 @@
     transform: translateX(-500%);
   }
 }
+
+.animate-nested-add-button-5 {
+  z-index: 50;
+  animation: move-left-5 0.3s ease-out forwards;
+}
+
+@keyframes move-left-5 {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-625%);
+  }
+}
+
 

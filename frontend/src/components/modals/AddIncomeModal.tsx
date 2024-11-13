@@ -29,6 +29,7 @@ import { AddButtonsProps, BankAccountProps, IncomeSourceProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddIncomeSourceModal from "./AddIncomeSourceModal";
 import { MultiSelect } from "../ui/multi-select";
+import { INCOMES_EMOJI } from "@/helpers/Constants";
 
 
 const AddIncomeSchema = z.object({
@@ -132,7 +133,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
                   <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-2' : 'transition-transform'}`}>
-                    {String.fromCodePoint(0x1F4B0)}
+                    {INCOMES_EMOJI}
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
@@ -142,7 +143,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
                 )}
             </DialogTrigger>
               </TooltipTrigger>
-              <TooltipContent className="bg-card px-2 py-1 rounded-md mb-2">
+              <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Income</p>
               </TooltipContent>
             </Tooltip>
