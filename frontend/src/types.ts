@@ -12,6 +12,17 @@ export interface InvestmentCategoryProps {
     color: string;
 }
 
+export interface InvestmentProps {
+    id: string;
+    name: string;
+    amountInvested: number;
+    annotation: string;
+    investmentCategoryDtos: InvestmentCategoryProps[];
+    bankAccountDto: BankAccountProps;
+    startDate: string;
+    endDate: string;
+}
+
 export interface BankAccountProps {
     id: string;
     name: string;
@@ -35,8 +46,8 @@ export interface IncomeProps {
     name: string;
     amount: number;
     annotation: string;
-    incomeSource: IncomeSourceProps;
-    bankAccount: BankAccountProps;
+    incomeSourceDto: IncomeSourceProps;
+    bankAccountDto: BankAccountProps;
     date: string;
 }
 
@@ -51,8 +62,8 @@ export interface ExpenseProps {
     name: string;
     amount: number;
     annotation: string;
-    expenseCategories: ExpenseCategoryProps[];
-    bankaccount: BankAccountProps;
+    expenseCategoryDtos: ExpenseCategoryProps[];
+    bankAccountDto: BankAccountProps;
     date: string;
 }
 
@@ -61,8 +72,10 @@ export interface TransferProps {
     name: string;
     amount: number;
     annotation: string;
-    receivingBankAccount: BankAccountProps;
-    sendingBankAccount: BankAccountProps;
+    receivingBankAccountId: string;
+    receivingBankAccountDto: BankAccountProps;
+    sendingBankAccountId: string;
+    sendingBankAccountDto: BankAccountProps;
     date: string;
 }
 

@@ -255,12 +255,12 @@ export const MultiSelect = React.forwardRef<
                           </span>
                         )}
                         {option?.label}
-                        <button className="ml-2 p-0 border-none bg-transparent cursor-pointer" onClick={(event) => {
+                        <div className="ml-2 p-0 border-none bg-transparent cursor-pointer" onClick={(event) => {
                             event.stopPropagation();
                             toggleOption(value);
                           }}>
                           <XCircle className="ml-2 h-4 w-4" />
-                        </button>
+                        </div>
                       </Badge>
                     );
                   })}
@@ -361,6 +361,8 @@ export const MultiSelect = React.forwardRef<
                               toggleOption(option.value);
                             } else if (selectedValues.length === 1) {
                               setSelectedValues([option.value]);
+                              onValueChange([option.value]);
+
                             }
                           }
                         }}

@@ -103,7 +103,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         if (error.status === 403) {
           redirect("/auth/sign-up");
         } else if (error.status === 400) {
@@ -253,7 +253,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
                     >
                       <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsIncomeSourceModalOpen(true)}>
                         <Plus />
-                        <p>Add a new investment category</p>
+                        <p>Add a new income source</p>
                       </Button>
                     </MultiSelect>
                   <FormMessage />
@@ -287,7 +287,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Add Investment"}
+                {isLoading ? "Creating..." : "Add Income"}
               </Button>
             </DialogFooter>
           </form>

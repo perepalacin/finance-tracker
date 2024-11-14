@@ -241,8 +241,6 @@ const BankAccountsPage = () => {
     },
   });
 
-  console.log(table.getSelectedRowModel().rows.length > 0 ? table.getSelectedRowModel().rows[0].original : "nothing");
-
   return (
     <div className="w-[95%]">
       <div className="flex items-center justify-between px-1 py-4">
@@ -254,7 +252,7 @@ const BankAccountsPage = () => {
             }
             className="max-w-sm"
           />
-        <div className="flex flex-row gap-1">
+        <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
           <Button variant={"secondary"}>
             <Trash2 />
@@ -305,9 +303,9 @@ const BankAccountsPage = () => {
               <TableRow>
                 <TableCell
                   colSpan={bankAccountColumns.length}
-                  className="h-24 text-center"
+                  className="h-12 text-center"
                 >
-                  No results.
+                  No results...
                 </TableCell>
               </TableRow>
             )}

@@ -43,8 +43,6 @@ const AddIncomeSourceModal: React.FC<AddIncomeSourceModalProps> =({isMainLayoutB
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log(incomeSourceToEdit);
-
   useEffect(() => {
     setOpen(isOpen);
   }, [isOpen]);

@@ -14,18 +14,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, Plus } from "lucide-react"
+import { CalendarIcon, Edit, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { redirect } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { useUserData } from "@/context/UserDataContext";
-import { AddButtonsProps, BankAccountProps } from "@/types";
+import { AddButtonsProps, BankAccountProps, TransferProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import { MultiSelect } from "../ui/multi-select";
 import { TRANSFERS_EMOJI } from "@/helpers/Constants";
@@ -37,7 +37,7 @@ const AddTransferSchema = z.object({
         .max(30, { message: "Name must be at most 30 characters long." }),
     amount: z.coerce
         .number()
-        .nonnegative({ message: "Expense amount must be a positive number." }),
+        .nonnegative({ message: "Transfer amount must be a positive number." }),
     annotation: z
         .string()
         .optional(),
@@ -48,13 +48,17 @@ const AddTransferSchema = z.object({
 
 type AddTransferFormValues = z.infer<typeof AddTransferSchema>;
 
-const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
+interface AddTransferButtonProps extends AddButtonsProps {
+  transferToEdit?: TransferProps;
+  resetTransferToEdit?: () => void;
+}
+
+const AddTransferModal: React.FC<AddTransferButtonProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true, transferToEdit, resetTransferToEdit}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
   const [sendingBankAccountToEdit, setSendingBankAccountToEdit] = useState<BankAccountProps>();
   const [receivingankAccountToEdit, setReceivingBankAccountToEdit] = useState<BankAccountProps>();
-
  
   const { bankAccounts } = useUserData();
 
@@ -65,19 +69,36 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
     },
   });
 
+  useEffect(() => {
+    if (transferToEdit) {
+      form.reset({
+        name: transferToEdit.name,
+        amount: transferToEdit.amount,
+        annotation: transferToEdit.annotation ? transferToEdit.annotation : undefined,
+        date: parse(transferToEdit.date, 'dd-MM-yyyy', new Date()),
+        sendingBankAccountId: transferToEdit.sendingBankAccountId,
+        receivingBankAccountId: transferToEdit.receivingBankAccountId
+      });
+    } else {
+      form.reset({
+        name: "",
+      });
+    }
+  }, [transferToEdit, form]);
+
   const onSubmit = (data: AddTransferFormValues) => {
     setIsLoading(true);
-
     const token = localStorage.getItem('token');
+    const url = transferToEdit ? `/api/v1/transfers/${transferToEdit.id}` : "/api/v1/transfers";
+    const method = transferToEdit ? axios.put : axios.post;
 
-    const formattedDate = format(data.date, 'dd-MM-yyyy');
-    axios.post(
-      "/api/v1/transfers",
+    method(
+      url,
       {
         name: data.name,
         amount: data.amount,
         annotation: data.annotation,
-        date: formattedDate,
+        date: format(data.date, 'dd-MM-yyyy'),
         sendingBankAccountId: data.sendingBankAccountId,
         receivingBankAccountId: data.receivingBankAccountId
       },
@@ -87,21 +108,23 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
         },
       })
       .then((response) => {
-        if (response.status === 201) {
+        if (response.status === 200 || response.status === 201) {
+          const successMessage = transferToEdit ? "Transfer updated!" : "Transfer created!";
           toast({
             variant: "success",
-            title: "Transfer created!",
+            title: successMessage,
             description: data.name + " has been added successfully.",
           });
-          setOpen(false);
-          if (setIsOpen) {
-            setIsOpen(false);
+          if (response.status === 201) {
+            //Create
+          } else if (response.status === 200 && transferToEdit) {
+            // Update
           }
-          form.reset();
         }
+        setOpen(false);
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         if (error.status === 403) {
           redirect("/auth/sign-up");
         } else if (error.status === 400) {
@@ -114,14 +137,18 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Unable to create expense. Please try again later.",
+            description: "Unable to create the transfer. Please try again later.",
           })
         }
       })
       .finally(() => {
         setIsLoading(false);
+        if (resetTransferToEdit) {
+          resetTransferToEdit();
+        }
       });
   };
+
   
   return (
     <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
@@ -135,8 +162,17 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
-                    <ChartNoAxesCombined width={15} height={15} />
-                    <p>Add a Transfer</p>
+                    {transferToEdit ?
+                      <>
+                        <Edit width={15} height={15} />
+                        <p className="hidden md:block">Edit Transfer</p>  
+                      </>
+                      :
+                      <>
+                        <Plus width={15} height={15} />
+                        <p className="hidden md:block">Add a Transfer</p>  
+                      </>
+                    }
                   </Button>
                 )}
             </DialogTrigger>
@@ -162,7 +198,7 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
                 <FormItem>
                   <FormLabel>Name*</FormLabel>
                   <FormControl>
-                    <Input placeholder="Expense name" {...field} />
+                    <Input placeholder="Transfer concept" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,7 +211,7 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
                 <FormItem>
                   <FormLabel>Annotation</FormLabel>
                   <FormControl>
-                    <Input placeholder="Christmas Gift" {...field} />
+                    <Input placeholder="Changing currencies..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -235,12 +271,15 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
             <FormField
               control={form.control}
               name="sendingBankAccountId"
-              render={({ field }) => (
+              render={({ field }) => {
+                console.log("field", field);
+                return (
                 <FormItem>
                   <FormLabel>Sending Bank Account*</FormLabel>
                   <MultiSelect
+                      defaultValue={field.value ? [field.value] : []}
                       options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
-                      onValueChange={(data) => field.onChange(data[0])}
+                      onValueChange={(data) => {field.onChange(data[0])}}
                       placeholder="Select a bank account"
                       variant={"secondary"}
                       animation={2}
@@ -255,7 +294,7 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
                     </MultiSelect>
                   <FormMessage />
                 </FormItem>
-              )}
+              )}}
             />
             <FormField
               control={form.control}
@@ -264,6 +303,7 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
                 <FormItem>
                   <FormLabel>Receiving Bank Account*</FormLabel>
                   <MultiSelect
+                      defaultValue={field.value ? [field.value] : []}
                       options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
                       onValueChange={(data) => field.onChange(data[0])}
                       placeholder="Select a bank account"
@@ -284,7 +324,7 @@ const AddTransferModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainB
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create transfer"}
+                {isLoading ? transferToEdit ? "Updating..." : "Creating..." : transferToEdit ? "Update transfer" : "Create transfer"}
               </Button>
             </DialogFooter>
           </form>

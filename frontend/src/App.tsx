@@ -4,6 +4,9 @@ import Home from './components/pages/Home';
 import ErrorPage from './components/pages/error-page';
 import BankAccountsPage from './components/pages/BankAccountsPage';
 import TransfersPage from './components/pages/TransfersPage';
+import InvestmentsPage from './components/pages/InvestmentsPage';
+import IncomesPage from './components/pages/IncomesPage';
+import ExpensesPage from './components/pages/ExpensesPage';
 
 function App() {
 
@@ -20,6 +23,18 @@ function App() {
         {
           path: "/transfers",
           element: <TransfersPage />
+        },
+        {
+          path: "/investments",
+          element: <InvestmentsPage />
+        },
+        {
+          path: "/incomes",
+          element: <IncomesPage />
+        },
+        {
+          path: "/expenses",
+          element: <ExpensesPage />
         }
       ]
     },

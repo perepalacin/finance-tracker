@@ -11,10 +11,11 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { BANK_ACCOUNTS_EMOJI, EXPENSES_EMOJI, INCOMES_EMOJI, INVESTMENTS_EMOJI, TRANSFERS_EMOJI } from "@/helpers/Constants";
+import { BANK_ACCOUNTS_EMOJI, EXPENSES_EMOJI, INCOMES_EMOJI, INVESTMENTS_EMOJI, OPERATIONS_EMOJI, TRANSFERS_EMOJI } from "@/helpers/Constants";
 import { ThemeToggler } from "./ThemeToggler";
 import { Button } from "../ui/button";
 import { PanelLeft } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 // Menu items.
 export const navItems = [
@@ -47,6 +48,11 @@ export const navItems = [
     title: "Expenses",
     url: "/expenses",
     emoji: EXPENSES_EMOJI
+  },
+  {
+    title: "Operations",
+    url: "/operations",
+    emoji: OPERATIONS_EMOJI
   }
 ]
 
@@ -70,21 +76,30 @@ export function AppSidebar() {
             <SidebarMenu>
               <div className="w-full flex flex-row items-center">
                 <Button variant="ghost" className="h-8 w-6" onClick={() => {setOpen(!open)}}>
-                  <PanelLeft className="h-[0.8rem] w-[0.8rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                  <PanelLeft className="h-[0.8rem] w-[0.8rem] rotate-0 scale-100 transition-all" />
                 <span className="sr-only">Toggle Sidebar</span>
                 </Button>
                 {open && <span className="text-nowrap font-semibold text-xl">Finance Tracker</span>}
               </div>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                    <span className="text-xl">
-                        {item.emoji}
-                    </span>
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <a href={item.url}>
+                          <span className="text-xl">
+                              {item.emoji}
+                          </span>
+                            <span>{item.title}</span>
+                          </a>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="px-2 py-1 rounded-md mb-2">
+                        <p>{item.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

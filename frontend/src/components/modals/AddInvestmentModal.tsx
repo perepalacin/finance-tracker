@@ -111,7 +111,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         if (error.status === 403) {
           redirect("/auth/sign-up");
         } else if (error.status === 400) {

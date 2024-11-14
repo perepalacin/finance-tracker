@@ -102,7 +102,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         if (error.status === 403) {
           redirect("/auth/sign-up");
         } else if (error.status === 400) {
@@ -147,7 +147,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         if (error.status === 403) {
           redirect("/auth/sign-up");
         } else if (error.status === 400) {
@@ -182,7 +182,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
-                    <ChartNoAxesCombined width={15} height={15} />
+                    <Plus width={15} height={15} />
                     <p>Add an Expense</p>
                   </Button>
                 )}
@@ -292,7 +292,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
                     variant={"secondary"}
                     animation={2}
                     onDelete={deleteExpenseCategory}
-                    onEdit={(optionId) =>{console.log(optionId); setExpenseCategoryToEdit(expenseCategories.find((item: ExpenseCategoryProps) => item.id === optionId)); setIsExpenseCategoryModalOpen(true)}}
+                    onEdit={(optionId) =>{setExpenseCategoryToEdit(expenseCategories.find((item: ExpenseCategoryProps) => item.id === optionId)); setIsExpenseCategoryModalOpen(true)}}
                   >
                     <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsExpenseCategoryModalOpen(true)}>
                       <Plus />
