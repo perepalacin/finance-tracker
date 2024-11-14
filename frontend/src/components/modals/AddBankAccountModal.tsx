@@ -15,12 +15,11 @@ import { Input } from "@/components/ui/input"
 import { Edit, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, BankAccountProps } from "@/types";
 import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants";
+import { AdminApi } from "@/helpers/Api";
 
 const AddBankAccountSchema = z.object({
   name: z
@@ -77,58 +76,43 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> =({isMainLayoutBut
 
   const onSubmit = (data: AddBankAccountFormValues) => {
     setIsLoading(true);
-    const token = localStorage.getItem('token');
-    const url = bankAccountToEdit ? `/api/v1/accounts/${bankAccountToEdit.id}` : "/api/v1/accounts";
-    const method = bankAccountToEdit ? axios.put : axios.post;
-
-    method(url, {
+    const api = new AdminApi();
+    const body = {
       name: data.name,
       initialAmount: data.initialAmount,
-    }, {
-      headers: {
-        Authorization: token,
-      },
-    })
-    .then((response) => {
-      if (response.status === 200 || response.status === 201) {
-        const successMessage = bankAccountToEdit ? "Bank account updated!" : "Bank account created!";
-        toast({
-          variant: "success",
-          title: successMessage,
-          description: data.name + " has been added successfully.",
+    };
+    const handleSuccessApiCall = (data: BankAccountProps) => {
+      if (bankAccountToEdit) {  
+        const updatedBankAccounts = bankAccounts.map((account: BankAccountProps) => {
+          if (account.id === bankAccountToEdit.id) {
+            return data; 
+          } else {
+            return account; 
+          }
         });
-        if (response.status === 201) {
-          const newBankAccounts = [...bankAccounts];
-          newBankAccounts.push(response.data);
-          setBankAccounts(newBankAccounts);
-        } else if (response.status === 200 && bankAccountToEdit) {
-          const updatedBankAccounts = bankAccounts.map((account: BankAccountProps) => {
-            if (account.id === bankAccountToEdit.id) {
-              return response.data; 
-            } else {
-              return account; 
-            }
-          });
-          setBankAccounts(updatedBankAccounts);
-        }
+        setBankAccounts(updatedBankAccounts);
+      } else {
+        const newBankAccounts = [...bankAccounts];
+        newBankAccounts.push(data);
+        newBankAccounts.sort((a, b) => b.currentBalance - a.currentBalance); 
+        setBankAccounts(newBankAccounts);
       }
       setOpen(false);
       form.reset();
-    })
-    .catch((error) => {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Unable to process your request. Please try again later.",
-      });
-    })
-    .finally(() => {
+    }
+
+    const handleFinishApiCall = () => {
       setIsLoading(false);
       if (resetBankAccountToEdit) {
         resetBankAccountToEdit();
       }
-    });
+    }
+
+    if (bankAccountToEdit) {
+      api.sendRequest("PUT", "/api/v1/accounts/" + bankAccountToEdit.id, { body: body, showToast: true, successToastMessage: bankAccountToEdit.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    } else {
+      api.sendRequest("POST", "/api/v1/accounts", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    }
   };
 
   

@@ -21,6 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, InvestmentCategoryProps } from "@/types";
 import { ColorPicker } from "../ui/color-picker";
+import { AdminApi } from "@/helpers/Api";
 
 const AddInvestmentCategorySchema = z.object({
     name: z
@@ -62,58 +63,43 @@ const AddInvestmentCategoryModal: React.FC<AddInvestmentCategoryModalProps> =({i
 
   const onSubmit = ( data: AddInvestmentCategoryFormValues) => {
     setIsLoading(true);
-    const token = localStorage.getItem('token');
-    const url = investmentCategoryToEdit ? `/api/v1/investment-categories/${investmentCategoryToEdit.id}` : "/api/v1/investment-categories";
-    const method = investmentCategoryToEdit ? axios.put : axios.post;
-
-    method(url, {
-      investmentCategoryName: data.name,
-      color: data.color,
-    }, {
-      headers: {
-        Authorization: token,
-      },
-    })
-    .then((response) => {
-      if (response.status === 200 || response.status === 201) {
-        const successMessage = investmentCategoryToEdit ? "Investment category updated!" : "Investment category created!";
-        toast({
-          variant: "success",
-          title: successMessage,
-          description: data.name + " has been added successfully.",
-        });
-        if (response.status === 201) {
-          const newInvestmentCategories = [...investmentCategories];
-          newInvestmentCategories.push(response.data);
-          setInvestmentCategories(newInvestmentCategories);
-        } else if (response.status === 200 && investmentCategoryToEdit) {
-          const updatedInvestmentCategories = investmentCategories.map((category: InvestmentCategoryProps) => {
-            if (category.id === investmentCategoryToEdit.id) {
-              return response.data; 
-            } else {
-              return category;
-            }
+    const api = new AdminApi();
+    const body = {
+      investmentCategories: data.name,
+      color: data.color
+    }
+    const handleSuccessApiCall = (data: InvestmentCategoryProps) => {
+      if (investmentCategoryToEdit) {  
+        const updatedCategories = investmentCategories.map((source: InvestmentCategoryProps) => {
+        if (source.id === investmentCategoryToEdit.id) {
+          return data; 
+          } else {
+            return source; 
+          }
           });
-          setInvestmentCategories(updatedInvestmentCategories);
+          setInvestmentCategories(updatedCategories);
+        } else {
+          const newCategories = [...investmentCategories];
+          newCategories.push(data);
+          newCategories.sort((a: InvestmentCategoryProps, b) => a.investmentCategoryName.localeCompare(b.investmentCategoryName)); 
+          setInvestmentCategories(newCategories);
+        }
+        setOpen(false);
+        form.reset();
+        if (resetInvestmentCategoryToEdit) {
+          resetInvestmentCategoryToEdit();
         }
       }
-      setOpen(false);
-      form.reset();
-    })
-    .catch((error) => {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Unable to process your request. Please try again later.",
-      });
-    })
-    .finally(() => {
-      setIsLoading(false);
-      if (resetInvestmentCategoryToEdit) {
-        resetInvestmentCategoryToEdit();
+  
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
       }
-    });
+  
+      if (investmentCategoryToEdit) {
+        api.sendRequest("PUT", "/api/v1/investment-categories/" + investmentCategoryToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+      } else {
+      api.sendRequest("POST", "/api/v1/investment-categories", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+      }
   };
 
   

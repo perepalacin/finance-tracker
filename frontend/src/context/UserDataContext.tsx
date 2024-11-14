@@ -1,3 +1,4 @@
+import { AdminApi } from "@/helpers/Api"
 import { BankAccountProps, ExpenseCategoryProps, IncomeSourceProps, InvestmentCategoryProps } from "@/types"
 import axios from "axios"
 import { createContext, useContext, useEffect, useState } from "react"
@@ -41,83 +42,14 @@ export function UserDataProvider({
     const [bankAccounts, setBankAccounts] = useState<BankAccountProps[]>([]);
     const [incomeSources, setIncomeSources] = useState<IncomeSourceProps[]>([]);
     const [expenseCategories, setExpenseCategories] = useState<ExpenseCategoryProps[]>([]);
-
-
-    const fetchInvestmentCategories = (token: string) => {
-        axios.get('/api/v1/investment-categories', {
-            headers: {
-                Authorization: token,
-            },
-        })
-        .then(response => {
-          if (response.status === 200) {
-            setInvestmentCategories(response.data);
-          }
-        })
-        .catch(error => {
-            console.error(error);
-        });
-    }
-
-    const fetchBankAccounts = (token: string) => {
-        axios.get('/api/v1/accounts', {
-            headers: {
-                Authorization: token,
-            },
-        })
-        .then(response => {
-          if (response.status === 200) {
-            setBankAccounts(response.data);
-          }
-        })
-        .catch(error => {
-            console.error(error);
-        });
-    }
-
-    const fetchIncomeSources = (token: string) => {
-        axios.get('/api/v1/sources', {
-            headers: {
-                Authorization: token,
-            },
-        })
-        .then(response => {
-          if (response.status === 200) {
-            setIncomeSources(response.data);
-          }
-        })
-        .catch(error => {
-            console.error(error);
-        });
-    }
-
-    const fetchExpenseCategories = (token: string) => {
-        axios.get('/api/v1/categories', {
-            headers: {
-                Authorization: token,
-            },
-        })
-        .then(response => {
-          if (response.status === 200) {
-            setExpenseCategories(response.data);
-          }
-        })
-        .catch(error => {
-            console.error(error);
-        });
-    }
     
-      useEffect(() => {
-          const token = localStorage.getItem('token');
-            if (token) {
-              fetchInvestmentCategories(token);
-              fetchBankAccounts(token);
-              fetchIncomeSources(token);
-              fetchExpenseCategories(token);
-            } else {
-                //TODO: go back to sign in page
-            }
-      }, []);
+    useEffect(() => {
+      const api = new AdminApi();
+      api.sendRequest("GET", "/api/v1/accounts", {showToast : false, onSuccessFunction: (responseDate) =>setBankAccounts(responseDate)});
+      api.sendRequest("GET", "/api/v1/categories", {showToast : false, onSuccessFunction: (responseDate) =>setExpenseCategories(responseDate)});
+      api.sendRequest("GET", "/api/v1/sources", {showToast : false, onSuccessFunction: (responseDate) =>setIncomeSources(responseDate)});
+      api.sendRequest("GET", "/api/v1/investment-categories", {showToast : false, onSuccessFunction: (responseDate) =>setInvestmentCategories(responseDate)});
+    }, []);
 
   const value = {
     investmentCategories,

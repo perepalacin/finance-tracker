@@ -15,12 +15,11 @@ import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, IncomeSourceProps } from "@/types";
 import { ColorPicker } from "../ui/color-picker";
+import { AdminApi } from "@/helpers/Api";
 
 const AddIncomeSourceSchema = z.object({
     name: z
@@ -62,58 +61,45 @@ const AddIncomeSourceModal: React.FC<AddIncomeSourceModalProps> =({isMainLayoutB
 
   const onSubmit = ( data: AddIncomesourceFormValues) => {
     setIsLoading(true);
-    const token = localStorage.getItem('token');
-    const url = incomeSourceToEdit ? `/api/v1/sources/${incomeSourceToEdit.id}` : "/api/v1/sources";
-    const method = incomeSourceToEdit ? axios.put : axios.post;
+    const api = new AdminApi();
 
-    method(url, {
+    const body = {
       name: data.name,
       color: data.color,
-    }, {
-      headers: {
-        Authorization: token,
-      },
-    })
-    .then((response) => {
-        if (response.status === 200) {
-            const successMessage = incomeSourceToEdit ? "Income source updated!" : "Income source created!";
-            toast({
-                variant: "success",
-                title: successMessage,
-                description: data.name + " has been added successfully.",
-            });
-            if (!incomeSourceToEdit) {
-                const newIncomeSources = [...incomeSources];
-                newIncomeSources.push(response.data);
-                setIncomeSources(newIncomeSources);
-            } else {
-                const updatedIncomeSources = incomeSources.map((source: IncomeSourceProps) => {
-                    if (source.id === incomeSourceToEdit.id) {
-                      return response.data; // Return the updated data for the matching id
-                    } else {
-                      return source; // Return the original data for non-matching ids
-                    }
-                });
-                setIncomeSources(updatedIncomeSources);
-            }
-        }
+    };
+
+    const handleSuccessApiCall = (data: IncomeSourceProps) => {
+      if (incomeSourceToEdit) {  
+        const updatedSources = incomeSources.map((source: IncomeSourceProps) => {
+          if (source.id === incomeSourceToEdit.id) {
+            return data; 
+          } else {
+            return source; 
+          }
+        });
+        setIncomeSources(updatedSources);
+      } else {
+        const newSources = [...incomeSources];
+        newSources.push(data);
+        newSources.sort((a, b) => a.name.localeCompare(b.name)); 
+        setIncomeSources(newSources);
+      }
       setOpen(false);
       form.reset();
-    })
-    .catch((error) => {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Unable to process your request. Please try again later.",
-      });
-    })
-    .finally(() => {
-      setIsLoading(false);
       if (resetIncomeSourceToEdit) {
         resetIncomeSourceToEdit();
       }
-    });
+    }
+
+    const handleFinishApiCall = () => {
+      setIsLoading(false);
+    }
+
+    if (incomeSourceToEdit) {
+      api.sendRequest("PUT", "/api/v1/sources/" + incomeSourceToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    } else {
+    api.sendRequest("POST", "/api/v1/sources", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    }
   };
 
   

@@ -14,22 +14,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, Plus } from "lucide-react"
+import { CalendarIcon, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react";
-import axios from "axios";
-import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { redirect } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useUserData } from "@/context/UserDataContext";
-import { AddButtonsProps, BankAccountProps, ExpenseCategoryProps } from "@/types";
+import { AddButtonsProps, BankAccountProps, ExpenseCategoryProps, ExpenseProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddExpenseCategoryModal from "./AddExpenseCategoryModal";
 import { MultiSelect } from "../ui/multi-select";
 import { EXPENSES_EMOJI } from "@/helpers/Constants";
+import { AdminApi } from "@/helpers/Api";
 
 const AddExpenseSchema = z.object({
     name: z
@@ -68,107 +66,44 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
 
   const onSubmit = (data: AddExpenseFormValues) => {
     setIsLoading(true);
+    const api = new AdminApi();
 
-    const token = localStorage.getItem('token');
+    const body = {
+      name: data.name,
+      amount: data.amount,
+      annotation: data.annotation,
+      date: format(data.expenseDate, 'dd-MM-yyyy'),
+      bankAccountId: data.bankAccountId,
+      expenseCategoryIds: data.expenseCategories
+    };
 
-    const formattedDate = format(data.expenseDate, 'dd-MM-yyyy');
-    axios.post(
-      "/api/v1/expenses",
-      {
-        name: data.name,
-        amount: data.amount,
-        annotation: data.annotation,
-        date: formattedDate,
-        bankAccountId: data.bankAccountId,
-        expenseCategoryIds: data.expenseCategories
-      },
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
-        if (response.status === 201) {
-          toast({
-            variant: "success",
-            title: "Expense created!",
-            description: data.name + " has been added successfully.",
-          });
-          setOpen(false);
-          if (setIsOpen) {
-            setIsOpen(false);
-          }
-          form.reset();
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to create expense. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    const handleSuccessApiCall = (data: ExpenseProps) => {
+      setOpen(false);
+      if (setIsOpen) {
+        setIsOpen(false);
+      }
+      form.reset();
+      setExpenseCategoryToEdit(undefined);
+    }
+
+    const handleFinishApiCall = () => {
+      setIsLoading(false);
+    }
+
+    // // TODO: 
+    // if (expenseToEdit) {
+    //   api.sendRequest("PUT", "/api/v1/expenses/" + expenseCategoryToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    // } else {
+    api.sendRequest("POST", "/api/v1/expenses", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    // }
   };
   
   const deleteExpenseCategory = (categoryId: string) => {
     setIsLoading(true);
-    const token = localStorage.getItem('token');
-    axios.delete(
-      `/api/v1/categories/${categoryId}`,
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
-        if (response.status === 204) {
-          toast({
-            variant: "success",
-            title: "Category deleted!",
-            description: "The expense category has been added successfully.",
-          });
-          const newExpenseCategories = [...expenseCategories];
-          newExpenseCategories.filter((category: ExpenseCategoryProps) => category.id !== categoryId);
-          setExpenseCategories(newExpenseCategories);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to create expense. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }
-
+    const api = new AdminApi();
+    api.sendRequest("DELETE", "/api/v1/categories" + categoryId, {showToast: true, successToastTitle: "Success", successToastMessage: "Expense category deleted succesfully", onSuccessFunction: () => setExpenseCategories([...expenseCategories].filter((category) => category.id === categoryId))});
+    setIsLoading(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
@@ -317,7 +252,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
                       animation={2}
                       isMulti={false}
                       onEdit={(optionId) => {setBankAccountToEdit(bankAccounts.find((item) => item.id === optionId)); setIsBankAccountsModalOpen(true)}}
-                      onDelete={() => {}}
+                      onDelete={(optionId) => {deleteExpenseCategory(optionId)}}
                     >
                       <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsBankAccountsModalOpen(true)}>
                         <Plus />

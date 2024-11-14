@@ -1,6 +1,6 @@
+import { AdminApi } from '@/helpers/Api';
 import ExpensesTable from '@/tables/ExpensesTable';
 import { ExpenseProps } from '@/types';
-import axios from 'axios';
 import { useEffect, useState } from 'react'
 
 const ExpensesPage = () => {
@@ -8,23 +8,8 @@ const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseProps[]>([]);
 
     useEffect(() => {
-        const fetchIncomes = () => {
-            const token = localStorage.getItem('token');
-            axios.get('/api/v1/expenses', {
-                headers: {
-                    Authorization: token,
-                },
-            })
-            .then(response => {
-              if (response.status === 200) {
-                setExpenses(response.data);
-              }
-            })
-            .catch(error => {
-                console.error(error);
-            });
-        }
-        fetchIncomes();
+        const api = new AdminApi();
+        api.sendRequest("GET", "/api/v1/expenses", {showToast : false, onSuccessFunction: (responseDate) =>setExpenses(responseDate)});
     }, []);
 
   return (

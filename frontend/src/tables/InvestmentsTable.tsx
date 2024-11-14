@@ -30,6 +30,7 @@ import { toast } from "@/hooks/use-toast"
 import { redirect } from "react-router-dom"
 import AddInvestmentModal from "@/components/modals/AddInvestmentModal"
 import { Badge } from "@/components/ui/badge"
+import { AdminApi } from "@/helpers/Api"
 
 const investmentColumns: ColumnDef<InvestmentProps>[] = [
   {
@@ -57,7 +58,7 @@ const investmentColumns: ColumnDef<InvestmentProps>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "investmentCategoryName",
+    accessorKey: "name",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -70,7 +71,7 @@ const investmentColumns: ColumnDef<InvestmentProps>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="text-left">{row.getValue("investmentCategoryName")}</div>
+      <div className="text-left">{row.getValue("name")}</div>
     ),
   },
   {
@@ -109,7 +110,7 @@ const investmentColumns: ColumnDef<InvestmentProps>[] = [
     cell: ({ row }) => (
       <div className="flex flex-row gap-1 justify-center">
         {row.original.investmentCategoryDtos.map((category: InvestmentCategoryProps) => 
-            <Badge color={category.color}>
+            <Badge key={category.id} color={category.color}>
                 {category.investmentCategoryName}
             </Badge>
         )}
@@ -202,47 +203,10 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data}) => {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const deleteInvestment = (investmentId: string) => {
-
     setIsLoading(true);
-    const token = localStorage.getItem('token');
-
-    axios.delete(
-      `/api/v1/investments/${investmentId}`,
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
-        if (response.status === 204) {
-          toast({
-            variant: "success",
-            title: "Investment deleted",
-            description: "The investment has been deleted successfully.",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to delete the investment. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    const api = new AdminApi();
+    api.sendRequest("DELETE", "/api/v1/investments/" + investmentId, {showToast: true, successToastMessage: "Deleted investment", successToastTitle: "Success!", onSuccessFunction: (data) => console.log("DELETED WITH DATA", data)});
+    setIsLoading(false);
   }
 
   const [rowSelection, setRowSelection] = React.useState({})

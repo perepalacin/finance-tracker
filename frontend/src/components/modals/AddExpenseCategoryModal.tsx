@@ -15,14 +15,13 @@ import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, ExpenseCategoryProps } from "@/types";
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 import { useTheme } from "@/context/ThemeContext";
+import { AdminApi } from "@/helpers/Api";
 
 
 const AddExpenseCategorySchema = z.object({
@@ -67,60 +66,45 @@ const AddExpenseCategoryModal: React.FC<AddExpenseCategoryModalProps> =({isMainL
 
   const onSubmit = (data: AddExpenseCategoryFormValues) => {
     setIsLoading(true);
-    const token = localStorage.getItem('token');
-    const url = expenseCategoryToEdit ? `/api/v1/categories/${expenseCategoryToEdit.id}` : "/api/v1/categories";
-    const method = expenseCategoryToEdit ? axios.put : axios.post;
-
-    method(url, {
+    const api = new AdminApi();
+    const body = {
       categoryName: data.categoryName,
       iconName: data.iconName,
-    }, {
-      headers: {
-        Authorization: token,
-      },
-    })
-    .then((response) => {
-      if (response.status === 200 || response.status === 201) {
-        const successMessage = expenseCategoryToEdit ? "Expense category updated!" : "Expense category created!";
-        toast({
-          variant: "success",
-          title: successMessage,
-          description: data.categoryName + " has been added successfully.",
+    };
+    const handleSuccessApiCall = (data: ExpenseCategoryProps) => {
+      if (expenseCategoryToEdit) {  
+        const updatedCategories = expenseCategories.map((category: ExpenseCategoryProps) => {
+          if (category.id === expenseCategoryToEdit.id) {
+            return data; 
+          } else {
+            return category; 
+          }
         });
-        if (response.status === 201) {
-          const newExpenseCategories = [...expenseCategories];
-          newExpenseCategories.push(response.data);
-          setExpenseCategories(newExpenseCategories);
-        } else if (response.status === 200 && expenseCategoryToEdit) {
-          const updatedExpenseCategories = expenseCategories.map((category: ExpenseCategoryProps) => {
-            if (category.id === expenseCategoryToEdit.id) {
-              return response.data;
-            } else {
-              return category;
-            }
-          });
-          setExpenseCategories(updatedExpenseCategories);
-        }
+        setExpenseCategories(updatedCategories);
+      } else {
+        const newCategories = [...expenseCategories];
+        newCategories.push(data);
+        newCategories.sort((a, b) => a.categoryName.localeCompare(b.categoryName)); 
+        setExpenseCategories(newCategories);
       }
       setOpen(false);
       form.reset();
-    })
-    .catch((error) => {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Unable to process your request. Please try again later.",
-      });
-    })
-    .finally(() => {
+    }
+
+    const handleFinishApiCall = () => {
       setIsLoading(false);
       if (resetExpenseCategoryToEdit) {
         resetExpenseCategoryToEdit();
       }
-    });
+    }
+
+    if (expenseCategoryToEdit) {
+      api.sendRequest("PUT", "/api/v1/categories/" + expenseCategoryToEdit.id, { body: body, showToast: true, successToastMessage: data.categoryName + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    } else {
+      api.sendRequest("POST", "/api/v1/categories", { body: body, showToast: true, successToastMessage: data.categoryName + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); if (resetExpenseCategoryToEdit) {resetExpenseCategoryToEdit()}}}}>
         <TooltipProvider delayDuration={300}>
