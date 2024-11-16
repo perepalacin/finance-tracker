@@ -28,10 +28,10 @@ public class ExpenseController {
 
     @GetMapping("")
     public List<ExpenseDto> listExpenses(
-            @RequestParam(defaultValue = "name") ExpenseSortBy orderBy,
+            @RequestParam(defaultValue = "date") ExpenseSortBy orderBy,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "true") boolean ascending
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(defaultValue = "false") boolean ascending
     ) {
         List<ExpenseDao> expenses = expenseService.findAll(orderBy, page, pageSize, ascending);
         return expenses.stream().map(expenseMapper::mapTo).toList();

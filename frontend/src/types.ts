@@ -87,3 +87,13 @@ export interface AddButtonsProps {
     setIsOpen?: (isOpen: boolean) => void; // Function that sets the isOpen prop
     renderButton?: boolean; // Option to disable rendering a button to trigger the modal. Very useful if you want to trigger the modal programatically.
 }
+
+export interface QueryParamsProps {
+    page: number;
+    pageSize: number;
+    orderBy: string;
+    ascending: boolean;
+    dateRange?: {from: Date, to: Date};
+    searchInput: string;
+    searchField: string;
+  }

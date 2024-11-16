@@ -45,10 +45,10 @@ export function UserDataProvider({
     
     useEffect(() => {
       const api = new AdminApi();
-      api.sendRequest("GET", "/api/v1/accounts", {showToast : false, onSuccessFunction: (responseDate) =>setBankAccounts(responseDate)});
-      api.sendRequest("GET", "/api/v1/categories", {showToast : false, onSuccessFunction: (responseDate) =>setExpenseCategories(responseDate)});
-      api.sendRequest("GET", "/api/v1/sources", {showToast : false, onSuccessFunction: (responseDate) =>setIncomeSources(responseDate)});
-      api.sendRequest("GET", "/api/v1/investment-categories", {showToast : false, onSuccessFunction: (responseDate) =>setInvestmentCategories(responseDate)});
+      api.sendRequest("GET", "/api/v1/accounts", {showToast : false, onSuccessFunction: (responseData) =>setBankAccounts(responseData)});
+      api.sendRequest("GET", "/api/v1/categories", {showToast : false, onSuccessFunction: (responseData) =>setExpenseCategories(responseData)});
+      api.sendRequest("GET", "/api/v1/sources", {showToast : false, onSuccessFunction: (responseData) =>setIncomeSources(responseData)});
+      api.sendRequest("GET", "/api/v1/investment-categories", {showToast : false, onSuccessFunction: (responseData) =>setInvestmentCategories(responseData)});
     }, []);
 
   const value = {

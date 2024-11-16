@@ -161,9 +161,11 @@ const expenseColumns: ColumnDef<ExpenseProps>[] = [
 
 interface ExpensesTableProps {
   data: ExpenseProps[];
+  requestNextPage: () => void;
+  hasNextPage: boolean;
 }
 
-const ExpensesTable: React.FC<ExpensesTableProps> = ({ data }) => {
+const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, hasNextPage }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -231,7 +233,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data }) => {
       rowSelection,
       pagination: {
         pageIndex: 0,
-        pageSize: 20,
+        pageSize: data.length,
       },
     },
   });
@@ -241,7 +243,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data }) => {
       <div className="flex items-center justify-between px-1 py-4">
         <Input
           disabled={isLoading}
-          placeholder="Search by name..."
+          placeholder="Filter by name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
@@ -294,11 +296,12 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data }) => {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              <>
+              {table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                >
+                  >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell className="text-nowrap" key={cell.id}>
                       {flexRender(
@@ -308,8 +311,19 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data }) => {
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
-            ) : (
+              ))}
+              {hasNextPage &&
+              <TableRow>
+                <TableCell colSpan={expenseColumns.length} className="text-center p-0">
+                  <Button variant="ghost" className="w-full" onClick={requestNextPage}>
+                    Load more rows
+                  </Button>
+                </TableCell>
+              </TableRow>
+              }
+              </>
+            ) 
+            : (
               <TableRow>
                 <TableCell colSpan={expenseColumns.length} className="h-12 text-center">
                   No results...
