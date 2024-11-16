@@ -1,5 +1,17 @@
 package com.pere_palacin.app.services.impl;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.pere_palacin.app.domains.BankAccountDao;
 import com.pere_palacin.app.domains.CategoryDao;
 import com.pere_palacin.app.domains.ExpenseDao;
@@ -7,21 +19,17 @@ import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.domains.sortBys.ExpenseSortBy;
 import com.pere_palacin.app.exceptions.ExpenseNotFoundException;
 import com.pere_palacin.app.repositories.ExpenseRepository;
-import com.pere_palacin.app.services.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.pere_palacin.app.services.AuthService;
+import com.pere_palacin.app.services.BankAccountService;
+import com.pere_palacin.app.services.CategoryService;
+import com.pere_palacin.app.services.ExpenseService;
+import com.pere_palacin.app.services.UserDetailsServiceImpl;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
-
     private final ExpenseRepository expenseRepository;
     private final CategoryService categoryService;
     private final BankAccountService bankAccountService;
@@ -30,11 +38,22 @@ public class ExpenseServiceImpl implements ExpenseService {
 
 
     @Override
-    public List<ExpenseDao> findAll(ExpenseSortBy orderBy, int page, int pageSize, boolean ascending) {
+    public List<ExpenseDao> findAll(ExpenseSortBy orderBy, int page, int pageSize, boolean ascending, String fromDate, String toDate, String searchInput) {
         UUID userId = userDetailsService.getRequestingUserId();
         Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
         Pageable pageable = PageRequest.of(page, pageSize, sort);
-        return expenseRepository.findAllByUserId(userId, pageable).getContent();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate from = (fromDate != null) ? LocalDate.parse(fromDate, formatter) : null;
+        LocalDate to = (toDate != null) ? LocalDate.parse(toDate, formatter) : null;
+        if (fromDate == null && toDate == null && searchInput == null) {
+            return expenseRepository.findAllByUserId(userId, pageable).getContent();
+        } else if (fromDate == null && toDate == null) {
+            return expenseRepository.findAllByUserIdAndAnnotationContainingIgnoreCaseOrNameContainingIgnoreCase(userId, searchInput, searchInput, pageable).getContent();
+        } else if (searchInput == null) {
+            return expenseRepository.findAllByUserIdAndDateAfterAndDateBefore(userId, from, to, pageable).getContent();
+        } else {
+            return expenseRepository.findAllByUserIdAndAnnotationContainingIgnoreCaseOrNameContainingIgnoreCaseAndDateAfterAndDateBefore(userId, searchInput, searchInput, from, to, pageable).getContent();
+        }
     }
 
     @Override

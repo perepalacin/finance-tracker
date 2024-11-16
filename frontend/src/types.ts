@@ -95,5 +95,4 @@ export interface QueryParamsProps {
     ascending: boolean;
     dateRange?: {from: Date, to: Date};
     searchInput: string;
-    searchField: string;
   }

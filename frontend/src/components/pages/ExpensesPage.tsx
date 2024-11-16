@@ -1,8 +1,9 @@
 import { AdminApi } from '@/helpers/Api';
-import { ExpenseSearchFieldOptions, ExpenseSortByFields } from '@/helpers/Constants';
+import { ExpenseSortByFields } from '@/helpers/Constants';
 import ExpensesTable from '@/tables/ExpensesTable';
 import ExpensesTableQueryBuilder from '@/tables/ExpensesTableQueryBuilder';
 import { ExpenseProps, QueryParamsProps,  } from '@/types';
+import { format } from 'date-fns';
 import { useEffect, useState } from 'react'
 
 const ExpensesPage = () => {
@@ -15,7 +16,6 @@ const ExpensesPage = () => {
       orderBy: ExpenseSortByFields.DATE,
       ascending: false,
       searchInput: "",
-      searchField: ExpenseSearchFieldOptions.NAME,
     });
 
     const requestNextPage = () => {
@@ -23,7 +23,6 @@ const ExpensesPage = () => {
     }
 
     const updateQueryParams = (newQueryParams: QueryParamsProps): void => {
-      console.log("We are here!")
       newQueryParams.page = 0;
       setQueryParams(newQueryParams);
     }
@@ -41,12 +40,11 @@ const ExpensesPage = () => {
         }
       }
       const api = new AdminApi();
-      api.sendRequest("GET", "/api/v1/expenses?orderBy=" + queryParams.orderBy +" &pageSize=" + queryParams.pageSize + "&page=" + queryParams.page + "&ascending=" + queryParams.ascending, {showToast : false, onSuccessFunction: (responseData) =>onSuccessFetchExpenses(responseData)});
-    }, [queryParams]);
+      api.sendRequest("GET", "/api/v1/expenses?orderBy=" + queryParams.orderBy + "&pageSize=" + queryParams.pageSize + "&page=" + queryParams.page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchExpenses(responseData)});    }, [queryParams]);
 
   return (
     <>
-      <ExpensesTableQueryBuilder dataLabel='expense' queryParams={queryParams} searchFieldOptions={Object.values(ExpenseSearchFieldOptions)} sortByOptions={Object.values(ExpenseSortByFields)} updateQueryParams={updateQueryParams}/>
+      <ExpensesTableQueryBuilder dataLabel='expense' queryParams={queryParams} sortByOptions={Object.values(ExpenseSortByFields)} updateQueryParams={updateQueryParams}/>
       <ExpensesTable data={expenses} requestNextPage={requestNextPage} hasNextPage={hasNextPage} />
     </>
   )

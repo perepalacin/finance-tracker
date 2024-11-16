@@ -7,37 +7,47 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ArrowDown, ArrowUp, CalendarIcon } from 'lucide-react'
-import { useState } from 'react';
-import { assert } from 'console';
+import { useRef, useState } from 'react';
+import CalendarWrapper from '@/components/ui/CalendarWrapper';
 
 interface QueryBuilderProps {
     dataLabel: string;
     queryParams: QueryParamsProps;
-    searchFieldOptions: string[];
     sortByOptions: string[];
     updateQueryParams: (newQueryParams: QueryParamsProps) => void;
 };
 
-const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams, searchFieldOptions, sortByOptions, updateQueryParams}) => {
+const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams, sortByOptions, updateQueryParams}) => {
 
     const [queryParamsState, setQueryParamsState] = useState<QueryParamsProps>(queryParams);
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const dateRangeOutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const handleChangeQueryParams = (field: "searchField" | "searchInput" | "dateRange" | "sortByField" | "ascending", data: any) => {
+    const handleChangeQueryParams = (field: "searchInput" | "dateRange" | "sortByField" | "ascending", data: any) => {
         const newQueryParamsState= {...queryParams};
         switch (field) {
-            case "searchField": 
-                newQueryParamsState.searchField = data; 
-                setQueryParamsState(newQueryParamsState);
-                break;
-            
             case "searchInput": 
                 newQueryParamsState.searchInput = data;
-                setQueryParamsState(newQueryParamsState); 
-                updateQueryParams(newQueryParamsState);
+                setQueryParamsState(newQueryParamsState);
+                if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                }
+                typingTimeoutRef.current = setTimeout(() => {
+                    updateQueryParams(newQueryParamsState);
+                }, 300);
                 break;
             case "dateRange": 
                 newQueryParamsState.dateRange = data;
                 setQueryParamsState(newQueryParamsState);
+                if (data.toDate) {
+                    if (dateRangeOutRef.current) {
+                        clearTimeout(dateRangeOutRef.current);
+                    }
+                    dateRangeOutRef.current = setTimeout(() => {
+                        updateQueryParams(newQueryParamsState);
+                    }, 1000);
+                }
                 updateQueryParams(newQueryParamsState);
                 break;
             case "sortByField": 
@@ -53,30 +63,19 @@ const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams,
         }
         return;
     }
+    console.log(isDatePickerOpen);
 
     return (
     <div className='flex flex-row w-[95%] items-center justify-between gap-2'>
         <div className='flex flex-row items-center justify-start w-1/3 gap-2'>
-        <Select defaultValue={searchFieldOptions[0]} value={queryParamsState.searchField} onValueChange={(value) => handleChangeQueryParams("searchField", value)}>
-            <SelectTrigger className="w-44">
-                <SelectValue placeholder="Search By" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectGroup>
-                    {searchFieldOptions.map((option) => 
-                        <SelectItem value={option} key={option}>{option.charAt(0).toUpperCase() + option.slice(1).toLowerCase()}</SelectItem>
-                    )}
-                </SelectGroup>
-            </SelectContent>
-        </Select>
         <Input
             value={queryParamsState.searchInput}
-            onChange={(e) => handleChangeQueryParams("searchInput", e.target.value)}
-            placeholder={'Search for ' + dataLabel + ' ' + queryParamsState.searchField} 
+            onChange={(e) => handleChangeQueryParams("searchInput", e.target.value)} 
+            placeholder={'Search for ' + dataLabel + ' name or annotation'} 
         />
         </div>
         <div className='flex flex-row items-center justify-end w-1/2 gap-2'>
-        <Popover>
+        <Popover onOpenChange={(open) => {setIsDatePickerOpen(open)}}>
             <PopoverTrigger asChild>
             <Button
                 id="date"
@@ -102,14 +101,7 @@ const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams,
             </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={queryParamsState.dateRange?.from}
-                selected={queryParamsState.dateRange}
-                onSelect={(newDateRange) => handleChangeQueryParams("dateRange", newDateRange) }
-                numberOfMonths={2}
-            />
+            <CalendarWrapper selectedDateRange={queryParams.dateRange} setSelectedDateRange={(newDateRange) => {handleChangeQueryParams("dateRange", newDateRange)}} deleteDateRange={() => {handleChangeQueryParams("dateRange", undefined)}}/>
             </PopoverContent>
         </Popover>
         <p className='text-nowrap'>Sort by: </p>
