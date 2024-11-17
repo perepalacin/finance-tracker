@@ -40,9 +40,12 @@ public class TransferController {
             @RequestParam(defaultValue = "name") TransferSortBy orderBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "true") boolean ascending
+            @RequestParam(defaultValue = "true") boolean ascending,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String searchInput
     ) {
-        List<TransferDao> transfers = transferService.findAll(orderBy, page, pageSize, ascending);
+        List<TransferDao> transfers = transferService.findAll(orderBy, page, pageSize, ascending, fromDate, toDate, searchInput);
         return transfers.stream().map(transferMapper::mapTo).toList();
     }
 

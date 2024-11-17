@@ -23,11 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { InvestmentCategoryProps, InvestmentProps } from "@/types"
-import { Input } from "@/components/ui/input"
 import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants"
-import axios from "axios"
-import { toast } from "@/hooks/use-toast"
-import { redirect } from "react-router-dom"
 import AddInvestmentModal from "@/components/modals/AddInvestmentModal"
 import { Badge } from "@/components/ui/badge"
 import { AdminApi } from "@/helpers/Api"
@@ -192,10 +188,12 @@ const investmentColumns: ColumnDef<InvestmentProps>[] = [
 ];
 
 interface InvestmentTableProps {
-  data: InvestmentProps[]
+  data: InvestmentProps[];
+  hasNextPage: boolean;
+  requestNextPage: () => void;
 }
 
-const InvestmentsTable:React.FC<InvestmentTableProps> = ({data}) => {
+const InvestmentsTable:React.FC<InvestmentTableProps> = ({data, hasNextPage, requestNextPage}) => {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -236,15 +234,6 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data}) => {
   return (
     <div className="w-[95%]">
       <div className="flex items-center justify-between px-1 py-4">
-          <Input
-            disabled = {isLoading}
-            placeholder="Search by name..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
           <Button disabled = {isLoading} variant={"secondary"} onClick={() => {deleteInvestment(table.getSelectedRowModel().rows[0].original.id)}}>
@@ -279,11 +268,12 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data}) => {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              <>
+              {table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                >
+                  >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell className="text-nowrap" key={cell.id}>
                       {flexRender(
@@ -293,7 +283,17 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data}) => {
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
+              ))}
+              {hasNextPage &&
+              <TableRow>
+                <TableCell colSpan={investmentColumns.length} className="text-center p-0">
+                  <Button variant="ghost" className="w-full" onClick={requestNextPage}>
+                    Load more rows
+                  </Button>
+                </TableCell>
+              </TableRow>
+              }
+              </>
             ) : (
               <TableRow>
                 <TableCell

@@ -1,13 +1,12 @@
 import { QueryParamsProps } from '@/types';
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ArrowDown, ArrowUp, CalendarIcon } from 'lucide-react'
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CalendarWrapper from '@/components/ui/CalendarWrapper';
 
 interface QueryBuilderProps {
@@ -20,7 +19,6 @@ interface QueryBuilderProps {
 const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams, sortByOptions, updateQueryParams}) => {
 
     const [queryParamsState, setQueryParamsState] = useState<QueryParamsProps>(queryParams);
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const dateRangeOutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -40,7 +38,14 @@ const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams,
             case "dateRange": 
                 newQueryParamsState.dateRange = data;
                 setQueryParamsState(newQueryParamsState);
-                if (data.toDate) {
+                if (data === undefined) {
+                    if (dateRangeOutRef.current) {
+                        clearTimeout(dateRangeOutRef.current);
+                    }
+                    dateRangeOutRef.current = setTimeout(() => {
+                        updateQueryParams(newQueryParamsState);
+                    }, 1000);
+                } else if (data.toDate) {
                     if (dateRangeOutRef.current) {
                         clearTimeout(dateRangeOutRef.current);
                     }
@@ -63,7 +68,6 @@ const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams,
         }
         return;
     }
-    console.log(isDatePickerOpen);
 
     return (
     <div className='flex flex-row w-[95%] items-center justify-between gap-2'>
@@ -75,7 +79,7 @@ const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams,
         />
         </div>
         <div className='flex flex-row items-center justify-end w-1/2 gap-2'>
-        <Popover onOpenChange={(open) => {setIsDatePickerOpen(open)}}>
+        <Popover>
             <PopoverTrigger asChild>
             <Button
                 id="date"
@@ -101,7 +105,7 @@ const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams,
             </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-            <CalendarWrapper selectedDateRange={queryParams.dateRange} setSelectedDateRange={(newDateRange) => {handleChangeQueryParams("dateRange", newDateRange)}} deleteDateRange={() => {handleChangeQueryParams("dateRange", undefined)}}/>
+            <CalendarWrapper selectedDateRange={queryParamsState.dateRange} setSelectedDateRange={(newDateRange) => {handleChangeQueryParams("dateRange", newDateRange)}} deleteDateRange={() => {handleChangeQueryParams("dateRange", undefined)}}/>
             </PopoverContent>
         </Popover>
         <p className='text-nowrap'>Sort by: </p>

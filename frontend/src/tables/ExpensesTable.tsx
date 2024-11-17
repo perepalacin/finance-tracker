@@ -10,7 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,7 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExpenseCategoryProps, ExpenseProps } from "@/types";
-import { Input } from "@/components/ui/input";
 import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
@@ -58,29 +57,15 @@ const expenseColumns: ColumnDef<ExpenseProps>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Name
-        <ArrowUpDown />
-      </Button>
+    header: () => (
+      <p>Name</p>
     ),
     cell: ({ row }) => <div className="text-left">{row.getValue("name")}</div>,
   },
   {
     accessorKey: "amount",
-    header: ({ column }) => (
-      <div className="flex flex-row justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Amount
-          <ArrowUpDown />
-        </Button>
-      </div>
+    header: () => (
+      <p className="text-center">Amount</p>
     ),
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
@@ -88,7 +73,7 @@ const expenseColumns: ColumnDef<ExpenseProps>[] = [
         style: "currency",
         currency: "EUR",
       }).format(amount);
-      return <div className="text-center font-medium">{formatted}</div>;
+      return <p className="text-center font-medium">{formatted}</p>;
     },
   },
   {
@@ -115,36 +100,20 @@ const expenseColumns: ColumnDef<ExpenseProps>[] = [
   },
   {
     accessorKey: "bankAccountDto.name",
-    header: ({ column }) => (
-      <div className="flex flex-row justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Account
-          <ArrowUpDown />
-        </Button>
-      </div>
+    header: () => (
+      <p className="text-center">Account</p>
     ),
     cell: ({ row }) => (
-      <div className="text-center">
+      <p className="text-center">
         <span className="mr-2">{BANK_ACCOUNTS_EMOJI}</span>
         {row.original.bankAccountDto.name}
-      </div>
+      </p>
     ),
   },
   {
     accessorKey: "date",
-    header: ({ column }) => (
-      <div className="flex flex-row justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Date
-          <ArrowUpDown />
-        </Button>
-      </div>
+    header: () => (
+      <p className="text-center">Date</p>
     ),
     cell: ({ row }) => {
       return <div className="text-center">{row.getValue("date")}</div>;
@@ -241,15 +210,6 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, ha
   return (
     <div className="w-[95%]">
       <div className="flex items-center justify-between px-1 py-4">
-        <Input
-          disabled={isLoading}
-          placeholder="Filter by name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 && (
             <Button

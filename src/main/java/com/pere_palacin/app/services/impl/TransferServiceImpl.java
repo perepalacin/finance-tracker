@@ -20,6 +20,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -35,11 +37,22 @@ public class TransferServiceImpl implements TransferService {
     private final UserDetailsServiceImpl userDetailsService;
 
     @Override
-    public List<TransferDao> findAll(TransferSortBy orderBy, int page, int pageSize, boolean ascending) {
+    public List<TransferDao> findAll(TransferSortBy orderBy, int page, int pageSize, boolean ascending, String fromDate, String toDate, String searchInput) {
         UUID userId = userDetailsService.getRequestingUserId();
         Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
         Pageable pageable = PageRequest.of(page, pageSize, sort);
-        return transferRepository.findAllByUserIdOrderByName(userId, pageable).getContent();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate from = (fromDate != null) ? LocalDate.parse(fromDate, formatter) : null;
+        LocalDate to = (toDate != null) ? LocalDate.parse(toDate, formatter) : null;
+        if (fromDate == null && toDate == null && searchInput == null) {
+            return transferRepository.findAllByUserId(userId, pageable).getContent();
+        } else if (fromDate == null && toDate == null) {
+            return transferRepository.findAllByUserIdAndAnnotationContainingIgnoreCaseOrNameContainingIgnoreCase(userId, searchInput, searchInput, pageable).getContent();
+        } else if (searchInput == null) {
+            return transferRepository.findAllByUserIdAndDateAfterAndDateBefore(userId, from, to, pageable).getContent();
+        } else {
+            return transferRepository.findAllByUserIdAndAnnotationContainingIgnoreCaseOrNameContainingIgnoreCaseAndDateAfterAndDateBefore(userId, searchInput, searchInput, from, to, pageable).getContent();
+        }
     }
 
     @Override

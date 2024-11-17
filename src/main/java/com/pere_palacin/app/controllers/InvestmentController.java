@@ -30,9 +30,12 @@ public class InvestmentController {
             @RequestParam(defaultValue = "name") InvestmentSortBy orderBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "true") boolean ascending
+            @RequestParam(defaultValue = "true") boolean ascending,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String searchInput
     ) {
-        List<InvestmentDao> investmentsDao = investmentService.findAll(orderBy, page, pageSize, ascending);
+        List<InvestmentDao> investmentsDao = investmentService.findAll(orderBy, page, pageSize, ascending, fromDate, toDate, searchInput);
         return investmentsDao.stream().map(investmentMapper::mapTo).toList();
     }
 

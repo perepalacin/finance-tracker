@@ -28,9 +28,12 @@ public class IncomeController {
             @RequestParam(defaultValue = "name") IncomeSortBy orderBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "true") boolean ascending
+            @RequestParam(defaultValue = "true") boolean ascending,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String searchInput
     ) {
-        List<IncomeDao> incomes = incomeService.findAllUserIncomes(orderBy, page, pageSize,ascending);
+        List<IncomeDao> incomes = incomeService.findAllUserIncomes(orderBy, page, pageSize, ascending, fromDate, toDate, searchInput);
         return incomes.stream().map(incomeMapper::mapTo).toList();
     }
 

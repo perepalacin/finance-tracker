@@ -71,12 +71,20 @@ export class AdminApi {
         })
         .catch((error) => {
           console.error(error);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description:
+          if (error.status === 400) {
+            toast({
+              variant: "destructive",
+              title: "Bad request",
+              description: error.response.data.errors.join(", ")
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description:
               "Unable to process your request. Please try again later.",
-          });
+            });
+          }
         })
         .finally(() => {
           if (onFinishFunction) {

@@ -1,6 +1,7 @@
 package com.pere_palacin.app.services.impl;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,21 +37,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InvestmentServiceImpl implements InvestmentService {
 
-    private final UserRepository userRepository;
     private final InvestmentRepository investmentRepository;
     private final InvestmentCategoryService investmentCategoryService;
     private final BankAccountService bankAccountService;
     private final AuthService authService;
     private final UserDetailsServiceImpl userDetailsService;
 
-
-
     @Override
-    public List<InvestmentDao> findAll(InvestmentSortBy orderBy, int page, int pageSize, boolean ascending) {
+    public List<InvestmentDao> findAll(InvestmentSortBy orderBy, int page, int pageSize, boolean ascending, String fromDate, String toDate, String searchInput) {
         UUID userId = userDetailsService.getRequestingUserId();
         Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
         Pageable pageable = PageRequest.of(page, pageSize, sort);
-        return investmentRepository.findAllByUserId(userId, pageable).getContent();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate from = (fromDate != null) ? LocalDate.parse(fromDate, formatter) : null;
+        LocalDate to = (toDate != null) ? LocalDate.parse(toDate, formatter) : null;
+        if (fromDate == null && toDate == null && searchInput == null) {
+            return investmentRepository.findAllByUserId(userId, pageable).getContent();
+        } else if (fromDate == null && toDate == null) {
+            return investmentRepository.findAllByUserIdAndAnnotationContainingIgnoreCaseOrNameContainingIgnoreCase(userId, searchInput, searchInput, pageable).getContent();
+        } else if (searchInput == null) {
+            return investmentRepository.findAllByUserIdAndStartDateBetweenOrEndDateBetween(userId, from, to, from, to, pageable).getContent();
+        } else {
+            return investmentRepository.findInvestmentsWithSearchInputBetweenTwoDates(userId, searchInput, from, to, pageable).getContent();
+        }
     }
 
     @Override

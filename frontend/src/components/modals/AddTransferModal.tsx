@@ -272,7 +272,6 @@ const AddTransferModal: React.FC<AddTransferButtonProps> =({isMainLayoutButton, 
               control={form.control}
               name="sendingBankAccountId"
               render={({ field }) => {
-                console.log("field", field);
                 return (
                 <FormItem>
                   <FormLabel>Sending Bank Account*</FormLabel>

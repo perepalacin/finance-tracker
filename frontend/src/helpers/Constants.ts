@@ -10,3 +10,22 @@ export enum ExpenseSortByFields {
     AMOUNT = "amount",
     DATE = "date"
 };
+
+export enum IncomeSortByFields {
+    NAME = "name",
+    AMOUNT = "amount",
+    DATE = "date"
+};
+
+export enum TransferSortByFields {
+    NAME = "name",
+    AMOUNT = "amount",
+    DATE = "date"
+};
+
+export enum InvestmentSortByFields {
+    NAME = "name",
+    AMOUNT = "amount",
+    START_DATE = "startDate",
+    END_DATE = "endDate"
+};

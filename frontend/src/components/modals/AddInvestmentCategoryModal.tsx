@@ -65,7 +65,7 @@ const AddInvestmentCategoryModal: React.FC<AddInvestmentCategoryModalProps> =({i
     setIsLoading(true);
     const api = new AdminApi();
     const body = {
-      investmentCategories: data.name,
+      investmentCategoryName: data.name,
       color: data.color
     }
     const handleSuccessApiCall = (data: InvestmentCategoryProps) => {

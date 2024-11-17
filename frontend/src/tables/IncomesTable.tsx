@@ -10,7 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Trash2 } from "lucide-react"
+import { Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -23,7 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { IncomeProps } from "@/types"
-import { Input } from "@/components/ui/input"
 import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants"
 import axios from "axios"
 import { toast } from "@/hooks/use-toast"
@@ -58,16 +57,8 @@ const incomeColumns: ColumnDef<IncomeProps>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() =>
-          column.toggleSorting(column.getIsSorted() === "asc")
-        }
-      >
-        Name
-        <ArrowUpDown />
-      </Button>
+    header: () => (
+      <p className="text-center">Name</p>
     ),
     cell: ({ row }) => (
       <div className="text-left">{row.getValue("name")}</div>
@@ -75,18 +66,8 @@ const incomeColumns: ColumnDef<IncomeProps>[] = [
   },
   {
     accessorKey: "amount",
-    header: ({ column }) => (
-      <div className="flex flex-row justify-center">
-        <Button
-          variant="ghost"
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }
-          >
-          Amount
-          <ArrowUpDown />
-        </Button>
-      </div>
+    header: () => (
+      <p className="text-center">Amount</p>
     ),
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
@@ -101,18 +82,8 @@ const incomeColumns: ColumnDef<IncomeProps>[] = [
   },
   {
     accessorKey: "incomeSourceDto",
-    header: ({column}) => (
-      <div className="flex flex-row justify-center">
-        <Button
-          variant="ghost"
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }
-          >
-          Income Source
-          <ArrowUpDown />
-        </Button>
-      </div>
+    header: () => (
+      <p className="text-center">Income source</p>
     ),
     cell: ({ row }) => (
       <div className="flex flex-row gap-1 justify-center">
@@ -124,40 +95,20 @@ const incomeColumns: ColumnDef<IncomeProps>[] = [
   },
   {
     accessorKey: "bankAccountDto.name",
-    header: ({ column }) => (
-      <div className="flex flex-row justify-center">
-        <Button
-          variant="ghost"
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }
-          >
-          Account
-          <ArrowUpDown />
-        </Button>
-      </div>
+    header: () => (
+      <p className="text-center">Account</p>
     ),
     cell: ({ row }) => (
-      <div className="text-center">
+      <p className="text-center">
         <span className="mr-2">{BANK_ACCOUNTS_EMOJI}</span>
         {row.original.bankAccountDto.name}
-      </div>
+      </p>
     ),
   },
   {
     accessorKey: "date",
-    header: ({ column }) => (
-      <div className="flex flex-row justify-center">
-        <Button
-          variant="ghost"
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }
-          >
-            Date
-          <ArrowUpDown />
-        </Button>
-      </div>
+    header: () => (
+      <p className="text-center">Date</p>
     ),
     cell: ({ row }) => {
       return <div className="text-center">{row.getValue("date")}</div>;
@@ -177,10 +128,12 @@ const incomeColumns: ColumnDef<IncomeProps>[] = [
 ];
 
 interface IncomeTableProps {
-  data: IncomeProps[]
+  data: IncomeProps[];
+  hasNextPage: boolean;
+  requestNextPage: () => void;
 }
 
-const IncomesTable:React.FC<IncomeTableProps> = ({data}) => {
+const IncomesTable:React.FC<IncomeTableProps> = ({data, requestNextPage, hasNextPage}) => {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -258,15 +211,6 @@ const IncomesTable:React.FC<IncomeTableProps> = ({data}) => {
   return (
     <div className="w-[95%]">
       <div className="flex items-center justify-between px-1 py-4">
-          <Input
-            disabled = {isLoading}
-            placeholder="Search by name..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
           <Button disabled = {isLoading} variant={"secondary"} onClick={() => {deleteIncome(table.getSelectedRowModel().rows[0].original.id)}}>
@@ -299,11 +243,12 @@ const IncomesTable:React.FC<IncomeTableProps> = ({data}) => {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              <>
+              {table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                >
+                  >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell className="text-nowrap" key={cell.id}>
                       {flexRender(
@@ -313,7 +258,17 @@ const IncomesTable:React.FC<IncomeTableProps> = ({data}) => {
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
+              ))}
+              {hasNextPage &&
+              <TableRow>
+                <TableCell colSpan={incomeColumns.length} className="text-center p-0">
+                  <Button variant="ghost" className="w-full" onClick={requestNextPage}>
+                    Load more rows
+                  </Button>
+                </TableCell>
+              </TableRow>
+              }
+              </>
             ) : (
               <TableRow>
                 <TableCell

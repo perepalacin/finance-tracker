@@ -7,7 +7,6 @@ public enum TransferSortBy {
     date("date"),
     category("investmentCategories.investmentCategoryName");
 
-    //TODO: Add more fields!
     private final String fieldName;
 
     TransferSortBy(String fieldName) {

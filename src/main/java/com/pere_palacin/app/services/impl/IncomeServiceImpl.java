@@ -1,5 +1,7 @@
 package com.pere_palacin.app.services.impl;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -36,11 +38,22 @@ public class IncomeServiceImpl implements IncomeService {
 
 
     @Override
-    public List<IncomeDao> findAllUserIncomes(IncomeSortBy orderBy, int page, int pageSize, boolean ascending) {
+    public List<IncomeDao> findAllUserIncomes(IncomeSortBy orderBy, int page, int pageSize, boolean ascending, String fromDate, String toDate, String searchInput) {
         UUID userId = userDetailsService.getRequestingUserId();
         Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, orderBy.getFieldName());
         Pageable pageable = PageRequest.of(page, pageSize, sort);
-        return incomeRepository.findAllByUserId(userId, pageable).getContent();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate from = (fromDate != null) ? LocalDate.parse(fromDate, formatter) : null;
+        LocalDate to = (toDate != null) ? LocalDate.parse(toDate, formatter) : null;
+        if (fromDate == null && toDate == null && searchInput == null) {
+            return incomeRepository.findAllByUserId(userId, pageable).getContent();
+        } else if (fromDate == null && toDate == null) {
+            return incomeRepository.findAllByUserIdAndAnnotationContainingIgnoreCaseOrNameContainingIgnoreCase(userId, searchInput, searchInput, pageable).getContent();
+        } else if (searchInput == null) {
+            return incomeRepository.findAllByUserIdAndDateAfterAndDateBefore(userId, from, to, pageable).getContent();
+        } else {
+            return incomeRepository.findAllByUserIdAndAnnotationContainingIgnoreCaseOrNameContainingIgnoreCaseAndDateAfterAndDateBefore(userId, searchInput, searchInput, from, to, pageable).getContent();
+        }
     }
 
     @Override

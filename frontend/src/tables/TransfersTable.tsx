@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/table"
 import { useUserData } from "@/context/UserDataContext"
 import { TransferProps } from "@/types"
-import { Input } from "@/components/ui/input"
 import AddTransferModal from "@/components/modals/AddTransferModal"
 import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants"
 import axios from "axios"
@@ -176,10 +175,12 @@ const transferColumns: ColumnDef<TransferProps>[] = [
 ];
 
 interface TransferTableProps {
-  data: TransferProps[]
+  data: TransferProps[];
+  hasNextPage: boolean;
+  requestNextPage: () => void;
 }
 
-const TransferTable:React.FC<TransferTableProps> = ({data}) => {
+const TransferTable:React.FC<TransferTableProps> = ({data, requestNextPage, hasNextPage}) => {
   const {bankAccounts} = useUserData();
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -258,15 +259,6 @@ const TransferTable:React.FC<TransferTableProps> = ({data}) => {
   return (
     <div className="w-[95%]">
       <div className="flex items-center justify-between px-1 py-4">
-          <Input
-            disabled = {isLoading}
-            placeholder="Search by name..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
           <Button disabled = {isLoading} variant={"secondary"} onClick={() => {deleteTransfer(table.getSelectedRowModel().rows[0].original.id)}}>
@@ -299,11 +291,12 @@ const TransferTable:React.FC<TransferTableProps> = ({data}) => {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              <>
+              {table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                >
+                  >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell className="text-nowrap" key={cell.id}>
                       {flexRender(
@@ -313,13 +306,23 @@ const TransferTable:React.FC<TransferTableProps> = ({data}) => {
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
+              ))}
+              {hasNextPage &&
+              <TableRow>
+                <TableCell colSpan={transferColumns.length} className="text-center p-0">
+                  <Button variant="ghost" className="w-full" onClick={requestNextPage}>
+                    Load more rows
+                  </Button>
+                </TableCell>
+              </TableRow>
+              }
+              </>
             ) : (
               <TableRow>
                 <TableCell
                   colSpan={transferColumns.length}
                   className="h-12 text-center"
-                >
+                  >
                   No results...
                 </TableCell>
               </TableRow>

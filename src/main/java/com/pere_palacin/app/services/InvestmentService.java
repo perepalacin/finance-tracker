@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface InvestmentService {
-    List<InvestmentDao> findAll(InvestmentSortBy orderBy, int page, int pageSize, boolean ascending);
+    List<InvestmentDao> findAll(InvestmentSortBy orderBy, int page, int pageSize, boolean ascending, String fromDate, String toDate, String searchInput);
     InvestmentDao findById(UUID id);
     InvestmentDao createInvestment(InvestmentDao investmentDao, UUID bankAccountId);
     InvestmentDao updateInvestment(UUID id, InvestmentDao investmentDao, UUID bankAccountId);
