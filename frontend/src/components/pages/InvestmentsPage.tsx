@@ -1,5 +1,5 @@
 import { AdminApi } from '@/helpers/Api';
-import { InvestmentSortByFields } from '@/helpers/Constants';
+import { InvestmentSortByFields, WindowEvents } from '@/helpers/Constants';
 import InvestmentsTable from '@/tables/InvestmentsTable';
 import TableQueryBuilder from '@/tables/TableQueryBuilder';
 import { InvestmentProps, QueryParamsProps } from '@/types';
@@ -43,6 +43,43 @@ const InvestmentsPage = () => {
     const api = new AdminApi();
     api.sendRequest("GET", "/api/v1/investments?orderBy=" + queryParams.orderBy + "&pageSize=" + queryParams.pageSize + "&page=" + queryParams.page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchInvestments(responseData)});
   }, [queryParams]);
+
+  useEffect(() => {
+    const handleEditFetchedInvestments = (event: CustomEvent) => {
+      if (event.type === WindowEvents.EDIT_BANK_ACCOUNT) {
+        const updatedInvestments = investments.map((investment: InvestmentProps) => {
+          if (investment.bankAccountDto.id === event.detail.data.id) {
+            investment.bankAccountDto = event.detail.data;
+            return investment;
+          } else {
+            return investment;
+          }
+        });
+        setInvestments(updatedInvestments);
+      } else if (event.type === WindowEvents.EDIT_INVESTMENT_CATEGORY) {
+        const updatedInvestments = investments.map((investment: InvestmentProps) => {
+          investment.investmentCategoryDtos = investment.investmentCategoryDtos.map((category) => {
+            if (category.id === event.detail.data.id) {
+              return event.detail.data;
+            } else {
+              return category;
+            }
+          });
+          return investment;
+        });
+        setInvestments(updatedInvestments);
+      }
+    } 
+    
+    const handleEvent = (event: Event) => handleEditFetchedInvestments(event as CustomEvent);
+    addEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
+    addEventListener(WindowEvents.EDIT_INVESTMENT_CATEGORY, handleEvent);
+    return () => {
+      removeEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
+      removeEventListener(WindowEvents.EDIT_INVESTMENT_CATEGORY, handleEvent);
+    }
+  }, [investments]);
+
 
   return (
     <>

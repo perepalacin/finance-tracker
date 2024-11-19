@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, BankAccountProps } from "@/types";
-import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants";
+import { BANK_ACCOUNTS_EMOJI, WindowEvents } from "@/helpers/Constants";
 import { AdminApi } from "@/helpers/Api";
 
 const AddBankAccountSchema = z.object({
@@ -82,6 +82,7 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> =({isMainLayoutBut
       initialAmount: data.initialAmount,
     };
     const handleSuccessApiCall = (data: BankAccountProps) => {
+      let eventType = "";
       if (bankAccountToEdit) {  
         const updatedBankAccounts = bankAccounts.map((account: BankAccountProps) => {
           if (account.id === bankAccountToEdit.id) {
@@ -91,12 +92,16 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> =({isMainLayoutBut
           }
         });
         setBankAccounts(updatedBankAccounts);
+        eventType = WindowEvents.EDIT_BANK_ACCOUNT;
       } else {
         const newBankAccounts = [...bankAccounts];
         newBankAccounts.push(data);
         newBankAccounts.sort((a, b) => b.currentBalance - a.currentBalance); 
         setBankAccounts(newBankAccounts);
+        eventType = WindowEvents.ADD_BANK_ACCOUNT;
       }
+      const event = new CustomEvent(eventType, { detail: { data: data } });
+      window.dispatchEvent(event);
       setOpen(false);
       form.reset();
     }

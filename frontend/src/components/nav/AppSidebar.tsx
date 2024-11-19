@@ -48,11 +48,6 @@ export const navItems = [
     title: "Expenses",
     url: "/expenses",
     emoji: EXPENSES_EMOJI
-  },
-  {
-    title: "Operations",
-    url: "/operations",
-    emoji: OPERATIONS_EMOJI
   }
 ]
 
@@ -60,16 +55,6 @@ export function AppSidebar() {
     const {open, setOpen} = useSidebar();
   return (
     <Sidebar collapsible="icon">
-    {/* <SidebarHeader >
-        <Link to="/" className='flex flex-row gap-2 items-center'>
-            <span className='text-3xl'>
-            {String.fromCodePoint(0x1F3E6)}            
-            </span>
-            {isSideBarOpen &&
-            <p className='font-semibold text-1xl whitespace-nowrap'>Finance tracker</p>
-            }
-        </Link>
-    </SidebarHeader> */}
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>

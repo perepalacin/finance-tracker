@@ -1,5 +1,5 @@
 import { AdminApi } from '@/helpers/Api';
-import { IncomeSortByFields } from '@/helpers/Constants';
+import { IncomeSortByFields, WindowEvents } from '@/helpers/Constants';
 import IncomesTable from '@/tables/IncomesTable';
 import TableQueryBuilder from '@/tables/TableQueryBuilder';
 import { IncomeProps, QueryParamsProps } from '@/types';
@@ -43,6 +43,40 @@ const IncomesPage = () => {
     const api = new AdminApi();
     api.sendRequest("GET", "/api/v1/incomes?orderBy=" + queryParams.orderBy + "&pageSize=" + queryParams.pageSize + "&page=" + queryParams.page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchIncomes(responseData)});
   }, [queryParams]);
+
+  useEffect(() => {
+    const handleEditFetchedIncomes = (event: CustomEvent) => {
+      if (event.type === WindowEvents.EDIT_BANK_ACCOUNT) {
+        const updatedIncomes = incomes.map((income: IncomeProps) => {
+          if (income.bankAccountDto.id === event.detail.data.id) {
+            income.bankAccountDto = event.detail.data;
+            return income;
+          } else {
+            return income;
+          }
+        });
+        setIncomes(updatedIncomes);
+      } else if (event.type === WindowEvents.EDIT_INCOME_SOURCE) {
+        const updatedIncomes = incomes.map((income: IncomeProps) => { 
+          if (income.incomeSourceDto.id === event.detail.data.id) {
+            income.incomeSourceDto = event.detail.data;
+            return income;
+          } else {
+            return income;
+          }
+        })
+        setIncomes(updatedIncomes);
+      }
+    } 
+    
+    const handleEvent = (event: Event) => handleEditFetchedIncomes(event as CustomEvent);
+    addEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
+    addEventListener(WindowEvents.EDIT_INCOME_SOURCE, handleEvent);
+    return () => {
+      removeEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
+      removeEventListener(WindowEvents.EDIT_INCOME_SOURCE, handleEvent);
+    }
+  }, [incomes]);
 
   return (
     <>

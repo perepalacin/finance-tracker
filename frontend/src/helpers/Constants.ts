@@ -29,3 +29,14 @@ export enum InvestmentSortByFields {
     START_DATE = "startDate",
     END_DATE = "endDate"
 };
+
+export enum WindowEvents {
+    ADD_BANK_ACCOUNT = "addBankAccount",
+    EDIT_BANK_ACCOUNT = "editBankAccount",
+    ADD_EXPENSE_CATEGORY = "addExpenseCategory",
+    EDIT_EXPENSE_CATEGORY = "editExpenseCategory",
+    ADD_INCOME_SOURCE = "addIncomeSource",
+    EDIT_INCOME_SOURCE = "editIncomeSource",
+    ADD_INVESTMENT_CATEGORY = "addInvestmentCategory",
+    EDIT_INVESTMENT_CATEGORY = "editInvestmentCategory"
+}

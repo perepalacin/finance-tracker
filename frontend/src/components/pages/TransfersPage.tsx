@@ -1,5 +1,5 @@
 import { AdminApi } from '@/helpers/Api';
-import { TransferSortByFields } from '@/helpers/Constants';
+import { TransferSortByFields, WindowEvents } from '@/helpers/Constants';
 import TableQueryBuilder from '@/tables/TableQueryBuilder';
 import TransferTable from '@/tables/TransfersTable';
 import { QueryParamsProps, TransferProps } from '@/types';
@@ -43,6 +43,27 @@ const TransfersPage = () => {
     const api = new AdminApi();
     api.sendRequest("GET", "/api/v1/transfers?orderBy=" + queryParams.orderBy + "&pageSize=" + queryParams.pageSize + "&page=" + queryParams.page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchTransfers(responseData)});
   }, [queryParams]);
+
+
+  useEffect(() => {
+    const handleEditFetchedTransfers = (event: CustomEvent) => {
+      const updatedTransfers = transfers.map((transfer: TransferProps) => {
+        if (transfer.sendingBankAccountDto.id === event.detail.data.id) {
+          transfer.sendingBankAccountDto = event.detail.data;
+        } else if (transfer.receivingBankAccountDto.id === event.detail.data.id) {
+          transfer.receivingBankAccountDto = event.detail.data;
+        }
+        return transfer;
+      });
+      setTransfers(updatedTransfers);
+    } 
+    
+    const handleEvent = (event: Event) => handleEditFetchedTransfers(event as CustomEvent);
+    addEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
+    return () => {
+      removeEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
+    }
+  }, [transfers]);
 
 
   return (

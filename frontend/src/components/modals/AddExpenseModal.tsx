@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { CalendarIcon, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
@@ -104,6 +104,27 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
     api.sendRequest("DELETE", "/api/v1/categories" + categoryId, {showToast: true, successToastTitle: "Success", successToastMessage: "Expense category deleted succesfully", onSuccessFunction: () => setExpenseCategories([...expenseCategories].filter((category) => category.id === categoryId))});
     setIsLoading(false);
   };
+
+
+  useEffect(() => {
+    const handleAddBankAccount = (event: Event) => {
+      const customEvent = event as CustomEvent<{ data: any }>;
+      const {data: newBankAccount} = customEvent.detail;
+      console.log(newBankAccount);
+      form.setValue('bankAccountId', newBankAccount.id);
+      form.reset({
+        bankAccountId: newBankAccount.id
+      });
+    }
+    
+    window.addEventListener('createBankAccount', handleAddBankAccount);
+    return () => {
+        window.removeEventListener('createBankAccount', handleAddBankAccount);
+        // This is how we will do the same for expense categories!
+        // setBankAccounts((prevBankAccounts) => [...prevBankAccounts, newBankAccount]);
+    };
+  }, []);
+
 
   return (
     <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>

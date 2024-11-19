@@ -20,6 +20,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, IncomeSourceProps } from "@/types";
 import { ColorPicker } from "../ui/color-picker";
 import { AdminApi } from "@/helpers/Api";
+import { WindowEvents } from "@/helpers/Constants";
 
 const AddIncomeSourceSchema = z.object({
     name: z
@@ -69,6 +70,7 @@ const AddIncomeSourceModal: React.FC<AddIncomeSourceModalProps> =({isMainLayoutB
     };
 
     const handleSuccessApiCall = (data: IncomeSourceProps) => {
+      let eventType = "";
       if (incomeSourceToEdit) {  
         const updatedSources = incomeSources.map((source: IncomeSourceProps) => {
           if (source.id === incomeSourceToEdit.id) {
@@ -78,12 +80,16 @@ const AddIncomeSourceModal: React.FC<AddIncomeSourceModalProps> =({isMainLayoutB
           }
         });
         setIncomeSources(updatedSources);
+        eventType = WindowEvents.EDIT_INCOME_SOURCE;
       } else {
         const newSources = [...incomeSources];
         newSources.push(data);
         newSources.sort((a, b) => a.name.localeCompare(b.name)); 
         setIncomeSources(newSources);
+        eventType = WindowEvents.ADD_INCOME_SOURCE
       }
+      const event = new CustomEvent(eventType, { detail: { data: data } });
+      window.dispatchEvent(event);
       setOpen(false);
       form.reset();
       if (resetIncomeSourceToEdit) {

@@ -66,6 +66,7 @@ const AddExpenseCategoryModal: React.FC<AddExpenseCategoryModalProps> =({isMainL
 
   const onSubmit = (data: AddExpenseCategoryFormValues) => {
     setIsLoading(true);
+    let eventType = "";
     const api = new AdminApi();
     const body = {
       categoryName: data.categoryName,
@@ -81,12 +82,16 @@ const AddExpenseCategoryModal: React.FC<AddExpenseCategoryModalProps> =({isMainL
           }
         });
         setExpenseCategories(updatedCategories);
+        eventType = "editExpenseCategory";
       } else {
         const newCategories = [...expenseCategories];
         newCategories.push(data);
         newCategories.sort((a, b) => a.categoryName.localeCompare(b.categoryName)); 
         setExpenseCategories(newCategories);
+        eventType = "addExpenseCategory";
       }
+      const event = new CustomEvent(eventType, { detail: { data: data } });
+      window.dispatchEvent(event);
       setOpen(false);
       form.reset();
     }

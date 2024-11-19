@@ -22,6 +22,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, InvestmentCategoryProps } from "@/types";
 import { ColorPicker } from "../ui/color-picker";
 import { AdminApi } from "@/helpers/Api";
+import { WindowEvents } from "@/helpers/Constants";
 
 const AddInvestmentCategorySchema = z.object({
     name: z
@@ -69,6 +70,7 @@ const AddInvestmentCategoryModal: React.FC<AddInvestmentCategoryModalProps> =({i
       color: data.color
     }
     const handleSuccessApiCall = (data: InvestmentCategoryProps) => {
+      let eventType = "";
       if (investmentCategoryToEdit) {  
         const updatedCategories = investmentCategories.map((source: InvestmentCategoryProps) => {
         if (source.id === investmentCategoryToEdit.id) {
@@ -78,14 +80,18 @@ const AddInvestmentCategoryModal: React.FC<AddInvestmentCategoryModalProps> =({i
           }
           });
           setInvestmentCategories(updatedCategories);
+          eventType = WindowEvents.EDIT_INVESTMENT_CATEGORY;
         } else {
           const newCategories = [...investmentCategories];
           newCategories.push(data);
           newCategories.sort((a: InvestmentCategoryProps, b) => a.investmentCategoryName.localeCompare(b.investmentCategoryName)); 
           setInvestmentCategories(newCategories);
+          eventType = WindowEvents.ADD_INVESTMENT_CATEGORY;
         }
         setOpen(false);
         form.reset();
+        const event = new CustomEvent(eventType, { detail: { data: data } });
+        window.dispatchEvent(event);
         if (resetInvestmentCategoryToEdit) {
           resetInvestmentCategoryToEdit();
         }
