@@ -14,19 +14,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, Plus } from "lucide-react"
+import { CalendarIcon, Edit, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, BankAccountProps, IncomeProps, IncomeSourceProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddIncomeSourceModal from "./AddIncomeSourceModal";
 import { MultiSelect } from "../ui/multi-select";
-import { INCOMES_EMOJI } from "@/helpers/Constants";
+import { INCOMES_EMOJI, WindowEvents } from "@/helpers/Constants";
 import { AdminApi } from "@/helpers/Api";
 
 
@@ -48,7 +48,12 @@ const AddIncomeSchema = z.object({
 
 type AddIncomeFormValues = z.infer<typeof AddIncomeSchema>;
 
-const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
+interface AddIncomeButtonProps extends AddButtonsProps{
+  incomeToEdit?: IncomeProps;
+  resetIncomeToEdit?: () => void;
+}
+
+const AddIncomeModal: React.FC<AddIncomeButtonProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true, incomeToEdit, resetIncomeToEdit}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
@@ -61,9 +66,36 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
   const form = useForm<AddIncomeFormValues>({
     resolver: zodResolver(AddIncomeSchema),
     defaultValues: {
-      name: "",
+      name: undefined,
+      amount: undefined,
+      annotation: undefined,
+      incomeDate: undefined,
+      bankAccountId: undefined,
+      incomeSourceId: undefined,
     },
   });
+
+  useEffect(() => {
+    if (incomeToEdit) {
+      form.reset({
+        name: incomeToEdit.name,
+        amount: incomeToEdit.amount,
+        annotation: incomeToEdit.annotation ? incomeToEdit.annotation : undefined,
+        incomeDate: parse(incomeToEdit.date, 'dd-MM-yyyy', new Date()),
+        bankAccountId: incomeToEdit.bankAccountDto.id,
+        incomeSourceId: incomeToEdit.incomeSourceDto.id,
+      });
+    } else {
+      form.reset({
+        name: undefined,
+        amount: undefined,
+        annotation: undefined,
+        incomeDate: undefined,
+        bankAccountId: undefined,
+        incomeSourceId: undefined,
+      });
+    }
+  }, [incomeToEdit, form]);
 
   const onSubmit = (data: AddIncomeFormValues) => {
     setIsLoading(true);
@@ -85,18 +117,28 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
       }
       form.reset();
       setIncomeSourceToEdit(undefined);
+      let eventType = "";
+      if (incomeToEdit) {
+        eventType = WindowEvents.EDIT_INCOME;
+      } else {
+        eventType = WindowEvents.ADD_INCOME;
+      }
+      if (resetIncomeToEdit) {
+        resetIncomeToEdit();
+      }
+      const event = new CustomEvent(eventType, { detail: { data: data } });
+      window.dispatchEvent(event);
     }
 
     const handleFinishApiCall = () => {
       setIsLoading(false);
     }
 
-    // // TODO: 
-    // if (expenseToEdit) {
-    //   api.sendRequest("PUT", "/api/v1/incomes/" + expenseCategoryToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
-    // } else {
+    if (incomeToEdit) {
+      api.sendRequest("PUT", "/api/v1/incomes/" + incomeToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been updated!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    } else {
     api.sendRequest("POST", "/api/v1/incomes", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
-    // }
+    }
   };
 
   const deleteIncomeSource = (sourceId: string) => {
@@ -118,10 +160,16 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
                     {INCOMES_EMOJI}
                   </Button>
                 :
+                incomeToEdit ?
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
-                    <ChartNoAxesCombined width={15} height={15} />
-                    <p>Add an Income</p>
+                    <Edit width={15} height={15} />
+                    <p>Edit Income</p>
                   </Button>
+                  :
+                  <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
+                    <Plus width={15} height={15} />
+                    <p>Add an Income</p>
+                </Button>
                 )}
             </DialogTrigger>
               </TooltipTrigger>
@@ -221,10 +269,12 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
               name="incomeSourceId"
               render={({ field }) => (
                 <FormItem>
+                  <p>{field.value}</p>
                   <FormLabel>Income Source*</FormLabel>
                     <MultiSelect
+                      defaultValue={field.value ? [field.value] : []}
                       options={incomeSources.map((item) => ({label: item.name, value: item.id, color: item.color}))}
-                      onValueChange={(data) => field.onChange(data[0])}
+                      onValueChange={(data) => {field.onChange(data[0])}}
                       placeholder="Select an income source"
                       variant={"secondary"}
                       animation={2}
@@ -249,8 +299,9 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
                 <FormItem>
                   <FormLabel>Bank Account*</FormLabel>
                   <MultiSelect
+                      defaultValue={field.value ? [field.value] : []}
                       options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
-                      onValueChange={(data) => field.onChange(data[0])}
+                      onValueChange={(data) => {field.onChange(data[0])}}
                       placeholder="Select a bank account"
                       variant={"secondary"}
                       animation={2}
@@ -269,7 +320,7 @@ const AddIncomeModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBut
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Add Income"}
+                {isLoading ? incomeToEdit ? "Updating..." : "Creating..." : incomeToEdit ? "Edit Income" : "Add Income"}
               </Button>
             </DialogFooter>
           </form>

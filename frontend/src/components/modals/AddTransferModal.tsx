@@ -28,7 +28,8 @@ import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, BankAccountProps, TransferProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import { MultiSelect } from "../ui/multi-select";
-import { TRANSFERS_EMOJI } from "@/helpers/Constants";
+import { TRANSFERS_EMOJI, WindowEvents } from "@/helpers/Constants";
+import { AdminApi } from "@/helpers/Api";
 
 const AddTransferSchema = z.object({
     name: z
@@ -86,70 +87,46 @@ const AddTransferModal: React.FC<AddTransferButtonProps> =({isMainLayoutButton, 
     }
   }, [transferToEdit, form]);
 
-  const onSubmit = (data: AddTransferFormValues) => {
+  const onSubmit = ( data: AddTransferFormValues) => {
     setIsLoading(true);
-    const token = localStorage.getItem('token');
-    const url = transferToEdit ? `/api/v1/transfers/${transferToEdit.id}` : "/api/v1/transfers";
-    const method = transferToEdit ? axios.put : axios.post;
+    const api = new AdminApi();
+    const body = {  
+      name: data.name,
+      amount: data.amount,
+      annotation: data.annotation,
+      date: format(data.date, 'dd-MM-yyyy'),
+      sendingBankAccountId: data.sendingBankAccountId,
+      receivingBankAccountId: data.receivingBankAccountId
+    };
 
-    method(
-      url,
-      {
-        name: data.name,
-        amount: data.amount,
-        annotation: data.annotation,
-        date: format(data.date, 'dd-MM-yyyy'),
-        sendingBankAccountId: data.sendingBankAccountId,
-        receivingBankAccountId: data.receivingBankAccountId
-      },
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
-        if (response.status === 200 || response.status === 201) {
-          const successMessage = transferToEdit ? "Transfer updated!" : "Transfer created!";
-          toast({
-            variant: "success",
-            title: successMessage,
-            description: data.name + " has been added successfully.",
-          });
-          if (response.status === 201) {
-            //Create
-          } else if (response.status === 200 && transferToEdit) {
-            // Update
-          }
-        }
-        setOpen(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to create the transfer. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
+    const handleSuccessApiCall = (data: TransferProps) => {
+      let eventType = "";
+      if (transferToEdit) {  
+        eventType = WindowEvents.EDIT_TRANSFER;
+      } else {
+        eventType = WindowEvents.ADD_TRANSFER;
+      };
+      setOpen(false);
+      form.reset();
+      
+      const event = new CustomEvent(eventType, { detail: { data: data } });
+      window.dispatchEvent(event);
         if (resetTransferToEdit) {
           resetTransferToEdit();
         }
-      });
+      }
+  
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+  
+      if (transferToEdit) {
+        api.sendRequest("PUT", "/api/v1/transfers/" + transferToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been updated!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+      } else {
+      api.sendRequest("POST", "/api/v1/transfers", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+      }
   };
 
-  
   return (
     <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
         <TooltipProvider delayDuration={300}>

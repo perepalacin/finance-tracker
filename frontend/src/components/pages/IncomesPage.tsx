@@ -3,7 +3,7 @@ import { IncomeSortByFields, WindowEvents } from '@/helpers/Constants';
 import IncomesTable from '@/tables/IncomesTable';
 import TableQueryBuilder from '@/tables/TableQueryBuilder';
 import { IncomeProps, QueryParamsProps } from '@/types';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { useEffect, useState } from 'react'
 
 const IncomesPage = () => {
@@ -46,35 +46,62 @@ const IncomesPage = () => {
 
   useEffect(() => {
     const handleEditFetchedIncomes = (event: CustomEvent) => {
-      if (event.type === WindowEvents.EDIT_BANK_ACCOUNT) {
-        const updatedIncomes = incomes.map((income: IncomeProps) => {
-          if (income.bankAccountDto.id === event.detail.data.id) {
-            income.bankAccountDto = event.detail.data;
-            return income;
-          } else {
-            return income;
-          }
-        });
-        setIncomes(updatedIncomes);
-      } else if (event.type === WindowEvents.EDIT_INCOME_SOURCE) {
-        const updatedIncomes = incomes.map((income: IncomeProps) => { 
-          if (income.incomeSourceDto.id === event.detail.data.id) {
-            income.incomeSourceDto = event.detail.data;
-            return income;
-          } else {
-            return income;
-          }
-        })
-        setIncomes(updatedIncomes);
+      switch (event.type) {
+        case WindowEvents.EDIT_BANK_ACCOUNT: {
+          const updatedIncomes = incomes.map((income: IncomeProps) => {
+            if (income.bankAccountDto.id === event.detail.data.id) {
+              income.bankAccountDto = event.detail.data;
+              return income;
+            } else {
+              return income;
+            }
+          });
+          setIncomes(updatedIncomes);
+          break;
+        }
+        case WindowEvents.EDIT_INCOME_SOURCE: {
+          const updatedIncomes = incomes.map((income: IncomeProps) => { 
+            if (income.incomeSourceDto.id === event.detail.data.id) {
+              income.incomeSourceDto = event.detail.data;
+              return income;
+            } else {
+              return income;
+            }
+          })
+          setIncomes(updatedIncomes);
+          break;
+        }
+      case WindowEvents.ADD_INCOME: {
+        if (incomes.length % 20 !== 0) {
+          setIncomes(handleSortingNewIncome(queryParams, [...incomes, event.detail.data]));
+        }
+        break;
       }
-    } 
+      case WindowEvents.EDIT_INCOME: {
+        setIncomes(handleSortingNewIncome(queryParams, [...incomes.filter((income: IncomeProps) => income.id !== event.detail.data.id), event.detail.data]));
+        break;
+      }
+      case WindowEvents.DELETE_INCOME: {
+        const updatedIncomes = incomes.filter((income) => income.id !== event.detail.data);
+        setIncomes(updatedIncomes);
+        break;
+      }
+    }
+    }
     
     const handleEvent = (event: Event) => handleEditFetchedIncomes(event as CustomEvent);
     addEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
     addEventListener(WindowEvents.EDIT_INCOME_SOURCE, handleEvent);
+    addEventListener(WindowEvents.ADD_INCOME, handleEvent);
+    addEventListener(WindowEvents.EDIT_INCOME, handleEvent);
+    addEventListener(WindowEvents.DELETE_INCOME, handleEvent);
+
     return () => {
       removeEventListener(WindowEvents.EDIT_BANK_ACCOUNT, handleEvent);
       removeEventListener(WindowEvents.EDIT_INCOME_SOURCE, handleEvent);
+      removeEventListener(WindowEvents.ADD_INCOME, handleEvent);
+      removeEventListener(WindowEvents.EDIT_INCOME, handleEvent);
+      removeEventListener(WindowEvents.DELETE_INCOME, handleEvent);
     }
   }, [incomes]);
 
@@ -87,3 +114,24 @@ const IncomesPage = () => {
 }
 
 export default IncomesPage
+
+const handleSortingNewIncome = (queryParams: QueryParamsProps, transfersArray: IncomeProps[]): IncomeProps[] => {
+  if (queryParams.orderBy === IncomeSortByFields.AMOUNT) {
+    return transfersArray.sort((a, b) =>
+      queryParams.ascending ? a.amount - b.amount : b.amount - a.amount
+    );
+  } else if (queryParams.orderBy === IncomeSortByFields.DATE) {
+    return transfersArray.sort((a, b) => {
+      const dateA = parse(a.date, 'dd-MM-yyyy', new Date()).getTime();
+      const dateB = parse(b.date, 'dd-MM-yyyy', new Date()).getTime();
+      return queryParams.ascending ? dateA - dateB : dateB - dateA;
+    });
+  } else if (queryParams.orderBy === IncomeSortByFields.NAME) {
+    return transfersArray.sort((a, b) =>
+      queryParams.ascending
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name)
+    );
+  }
+  return [];
+}

@@ -38,5 +38,11 @@ export enum WindowEvents {
     ADD_INCOME_SOURCE = "addIncomeSource",
     EDIT_INCOME_SOURCE = "editIncomeSource",
     ADD_INVESTMENT_CATEGORY = "addInvestmentCategory",
-    EDIT_INVESTMENT_CATEGORY = "editInvestmentCategory"
+    EDIT_INVESTMENT_CATEGORY = "editInvestmentCategory",
+    ADD_TRANSFER = "addTransfer",
+    EDIT_TRANSFER = "editTransfer",
+    DELETE_TANSFER = "deleteTransfer",
+    ADD_INCOME = "addIncome",
+    EDIT_INCOME = "editIncome",
+    DELETE_INCOME = "deleteIncome"
 }

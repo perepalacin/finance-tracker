@@ -116,7 +116,7 @@ const TableQueryBuilder: React.FC<QueryBuilderProps> = ({dataLabel, queryParams,
             <SelectContent>
                 <SelectGroup>
                     {sortByOptions.map((option) => 
-                        <SelectItem value={option} key={option}>{option.charAt(0).toUpperCase() + option.slice(1).toLowerCase()}</SelectItem>
+                    <SelectItem value={option} key={option}>{option.charAt(0).toUpperCase() + option.replace(/([A-Z])/g, ' $1').trim().slice(1)}</SelectItem>
                     )}
                 </SelectGroup>
             </SelectContent>

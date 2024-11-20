@@ -94,6 +94,7 @@ public class IncomeServiceImpl implements IncomeService {
             bankAccountService.editAssociatedIncome(bankAccountDao, incomeToEdit.getAmount(), incomeDao.getAmount());
         }
         incomeToEdit.setDate(incomeDao.getDate());
+        incomeToEdit.setIncomeSourceDao(incomeSourceDao);
         incomeToEdit.setBankAccount(bankAccountDao);
         incomeToEdit.setAmount(incomeDao.getAmount());
         incomeToEdit.setName(incomeDao.getName());
