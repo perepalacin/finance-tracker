@@ -23,12 +23,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExpenseCategoryProps, ExpenseProps } from "@/types";
-import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants";
-import axios from "axios";
-import { toast } from "@/hooks/use-toast";
-import { redirect } from "react-router-dom";
+import { BANK_ACCOUNTS_EMOJI, WindowEvents } from "@/helpers/Constants";
 import { Badge } from "@/components/ui/badge";
 import AddExpenseModal from "@/components/modals/AddExpenseModal";
+import { AdminApi } from "@/helpers/Api";
 
 const expenseColumns: ColumnDef<ExpenseProps>[] = [
   {
@@ -143,45 +141,17 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, ha
 
   const deleteExpense = (expenseId: string) => {
     setIsLoading(true);
-    const token = localStorage.getItem("token");
-    axios
-      .delete(`/api/v1/expenses/${expenseId}`, {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
-        if (response.status === 204) {
-          toast({
-            variant: "success",
-            title: "Expense deleted",
-            description: "The expense has been deleted successfully.",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(", "),
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description:
-              "Unable to delete the expense. Please try again later.",
-          });
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  };
+    const api = new AdminApi();
+    const handleSuccessApiCall = () => {
+      table.resetRowSelection();
+      const event = new CustomEvent(WindowEvents.DELETE_EXPENSE, { detail: { data: expenseId } });
+      window.dispatchEvent(event);
+    }
+    const handleFinishApiCall = () => {
+      setIsLoading(false);
+    }
+    api.sendRequest("DELETE", "/api/v1/expenses/" + expenseId, { showToast: true, successToastMessage: "Expense has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
+  }
 
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -228,6 +198,8 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, ha
             variant="default"
             isMainButton={false}
             isMainLayoutButton={false}
+            expenseToEdit={table.getSelectedRowModel().rows.length === 1 ? table.getSelectedRowModel().rows[0].original : undefined}
+            resetExpenseToEdit={() => table.resetRowSelection()}
           />
         </div>
       </div>

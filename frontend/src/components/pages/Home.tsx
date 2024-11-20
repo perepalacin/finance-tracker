@@ -25,7 +25,7 @@ const Home = () => {
       <AppSidebar />
       <main className='w-full'>
         <AddButton />
-        <div className='p-8'>
+        <div className='p-8 h-screen'>
           <PageHeader />
           <Outlet />
         </div>

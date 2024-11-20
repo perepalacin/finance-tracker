@@ -28,20 +28,30 @@ const TransfersPage = () => {
     setQueryParams(newQueryParams);
   }
 
-  useEffect(() => {
+  const fetchTransfers = (isRowUpdate = false, page?: number, pageSize?: number) => {
+    if (pageSize === undefined) {
+      pageSize = queryParams.pageSize;
+    }
+    if (page === undefined) {
+      page = queryParams.page;
+    }
     const onSuccessFetchTransfers = (data: TransferProps[]) => {
-      if (transfers.length === 0 || queryParams.page === 0) {
+      if (transfers.length === 0 || page === 0 || isRowUpdate) {
         setTransfers(data);
       } else {
-        const updatedIncomes= [...transfers, ...data];
-        setTransfers(updatedIncomes);
+        const updatedTransfers = [...transfers, ...data];
+        setTransfers(updatedTransfers);
       }
-      if (data.length !== queryParams.pageSize) {
+      if (data.length % 20 !== 0) {
         setHasNextPage(false);
       }
     }
     const api = new AdminApi();
-    api.sendRequest("GET", "/api/v1/transfers?orderBy=" + queryParams.orderBy + "&pageSize=" + queryParams.pageSize + "&page=" + queryParams.page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchTransfers(responseData)});
+    api.sendRequest("GET", "/api/v1/transfers?orderBy=" + queryParams.orderBy + "&pageSize=" + pageSize + "&page=" + page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchTransfers(responseData)});
+  }
+
+  useEffect(() => {
+    fetchTransfers();
   }, [queryParams]);
 
   useEffect(() => {
@@ -59,23 +69,12 @@ const TransfersPage = () => {
           setTransfers(updatedTransfers);
           break;
         }
-        case WindowEvents.ADD_TRANSFER: {
-          if (transfers.length % 20 !== 0) {
-            setTransfers(handleSortingNewTransfer(queryParams, [...transfers, event.detail.data]));
-          }
+        case WindowEvents.ADD_TRANSFER:
+        case WindowEvents.EDIT_TRANSFER:
+        case WindowEvents.DELETE_TANSFER:
+          fetchTransfers(true, 0, (queryParams.page+1)*queryParams.pageSize);
           break;
-        }
-        case WindowEvents.EDIT_TRANSFER: {
-          setTransfers(handleSortingNewTransfer(queryParams, [...transfers.filter((transfer: TransferProps) => transfer.id !== event.detail.data.id), event.detail.data]));
-          break;
-        }
-        case WindowEvents.DELETE_TANSFER: {
-          const updatedTransfers = transfers.filter((transfer) => transfer.id !== event.detail.data);
-          setTransfers(updatedTransfers);
-          break;
-        }
       }
-      
     } 
     
     const handleEvent = (event: Event) => handleEditFetchedTransfers(event as CustomEvent);
@@ -103,24 +102,3 @@ const TransfersPage = () => {
 }
 
 export default TransfersPage
-
-const handleSortingNewTransfer = (queryParams: QueryParamsProps, transfersArray: TransferProps[]): TransferProps[] => {
-  if (queryParams.orderBy === TransferSortByFields.AMOUNT) {
-    return transfersArray.sort((a, b) =>
-      queryParams.ascending ? a.amount - b.amount : b.amount - a.amount
-    );
-  } else if (queryParams.orderBy === TransferSortByFields.DATE) {
-    return transfersArray.sort((a, b) => {
-      const dateA = parse(a.date, 'dd-MM-yyyy', new Date()).getTime();
-      const dateB = parse(b.date, 'dd-MM-yyyy', new Date()).getTime();
-      return queryParams.ascending ? dateA - dateB : dateB - dateA;
-    });
-  } else if (queryParams.orderBy === TransferSortByFields.NAME) {
-    return transfersArray.sort((a, b) =>
-      queryParams.ascending
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name)
-    );
-  }
-  return [];
-}

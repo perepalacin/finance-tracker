@@ -269,7 +269,6 @@ const AddIncomeModal: React.FC<AddIncomeButtonProps> =({isMainLayoutButton, isMa
               name="incomeSourceId"
               render={({ field }) => (
                 <FormItem>
-                  <p>{field.value}</p>
                   <FormLabel>Income Source*</FormLabel>
                     <MultiSelect
                       defaultValue={field.value ? [field.value] : []}

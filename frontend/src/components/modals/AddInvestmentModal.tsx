@@ -14,22 +14,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, ChartNoAxesCombined, Plus } from "lucide-react"
+import { CalendarIcon, Edit, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
-import { useState } from "react";
-import axios from "axios";
-import { toast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { redirect } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { MultiSelect } from "../ui/multi-select";
 import { useUserData } from "@/context/UserDataContext";
-import { AddButtonsProps, BankAccountProps, InvestmentCategoryProps } from "@/types";
+import { AddButtonsProps, BankAccountProps, InvestmentCategoryProps, InvestmentProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddInvestmentCategoryModal from "./AddInvestmentCategoryModal";
-import { INVESTMENTS_EMOJI } from "@/helpers/Constants";
+import { INVESTMENTS_EMOJI, WindowEvents } from "@/helpers/Constants";
+import { AdminApi } from "@/helpers/Api";
 
 
 const AddInvestmentSchema = z.object({
@@ -55,7 +53,12 @@ const AddInvestmentSchema = z.object({
 
 type AddInvestmentFormValues = z.infer<typeof AddInvestmentSchema>;
 
-const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
+interface AddInvestmentModalProps extends AddButtonsProps {
+  investmentToEdit?: InvestmentProps;
+  resetInvestmentToEdit?: () => void;
+}
+
+const AddInvestmentModal: React.FC<AddInvestmentModalProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true, investmentToEdit, resetInvestmentToEdit}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isInvestmentCategoryModalOpen, setIsInvestmentCategoryModalOpen] = useState(false);
@@ -73,64 +76,73 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
     },
   });
 
+
+  useEffect(() => {
+    if (investmentToEdit) {
+      form.reset({
+        name: investmentToEdit.name,
+        amountInvested: investmentToEdit.amountInvested,
+        annotation: investmentToEdit.annotation ? investmentToEdit.annotation : undefined,
+        startDate: parse(investmentToEdit.startDate, 'dd-MM-yyyy', new Date()),
+        endDate: parse(investmentToEdit.endDate, 'dd-MM-yyyy', new Date()),
+        bankAccountId: investmentToEdit.bankAccountDto.id,
+        investmentCategoriesId: investmentToEdit.investmentCategoryDtos.map((category) => category.id)
+      });
+    } else {
+      form.reset({
+        name: undefined,
+        amountInvested: undefined,
+        annotation: undefined,
+        startDate: undefined,
+        endDate: undefined,
+        bankAccountId: undefined,
+        investmentCategoriesId: undefined
+      });
+    }
+  }, [investmentToEdit, form]);
+
   const onSubmit = (data: AddInvestmentFormValues) => {
     setIsLoading(true);
+    const api = new AdminApi();
+    const body = {
+      name: data.name,
+      amountInvested: data.amountInvested,
+      annotation: data.annotation,
+      startDate: format(data.startDate, 'dd-MM-yyyy'),
+      endDate: format(data.endDate, 'dd-MM-yyyy'),
+      bankAccountId: data.bankAccountId,
+      investmentCategoriesId: data.investmentCategoriesId
+    };
 
-    const token = localStorage.getItem('token');
+    const handleSuccessApiCall = (data: InvestmentProps) => {
+      setOpen(false);
+      if (setIsOpen) {
+        setIsOpen(false);
+      }
+      form.reset();
+      setInvestmentCategoryToEdit(undefined);
+      let eventType = "";
+      if (investmentToEdit) {
+        eventType = WindowEvents.EDIT_INVESTMENT;
+      } else {
+        eventType = WindowEvents.ADD_INVESTMENT;
+      }
+      if (resetInvestmentToEdit) {
+        resetInvestmentToEdit();
+      }
+      const event = new CustomEvent(eventType, { detail: { data: data } });
+      window.dispatchEvent(event);
+    }
 
-    const formattedStartDate = format(data.startDate, 'dd-MM-yyyy');
-    const formattedEndDate = format(data.endDate, 'dd-MM-yyyy');
-    axios.post(
-      "/api/v1/investments",
-      {
-        name: data.name,
-        amountInvested: data.amountInvested,
-        annotation: data.annotation,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        bankAccountId: data.bankAccountId,
-        investmentCategoriesId: data.investmentCategoriesId
-      },
-      {
-        headers: {
-          Authorization: token,
-        },
-      })
-      .then((response) => {
-        if (response.status === 201) {
-          toast({
-            variant: "success",
-            title: "Investment created!",
-            description: data.name + " has been added successfully.",
-          });
-          setOpen(false);
-          if (setIsOpen) {
-            setIsOpen(false);
-          }
-          form.reset();
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.status === 403) {
-          redirect("/auth/sign-up");
-        } else if (error.status === 400) {
-          toast({
-            variant: "destructive",
-            title: "Bad request",
-            description: error.response.data.errors.join(', '),
-          })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Unable to create investment. Please try again later.",
-          })
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    const handleFinishApiCall = () => {
+      setIsLoading(false);
+    }
+
+    if (investmentToEdit) {
+      api.sendRequest("PUT", "/api/v1/investments/" + investmentToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been updated!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    } else {
+    api.sendRequest("POST", "/api/v1/investments", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    }
   };
   
   return (
@@ -145,8 +157,14 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
                     {INVESTMENTS_EMOJI}
                   </Button>
                 :
+                investmentToEdit ?
+                <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
+                  <Edit width={15} height={15} />
+                  <p>Edit investment</p>
+                </Button>
+                :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
-                    <ChartNoAxesCombined width={15} height={15} />
+                    <Plus width={15} height={15} />
                     <p>Add an investment</p>
                   </Button>
                 )}
@@ -293,6 +311,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
                 <FormItem>
                   <FormLabel>Investment categories</FormLabel>
                   <MultiSelect
+                    defaultValue={field.value ? field.value : []}
                     options={investmentCategories.map((item) => ({label: item.investmentCategoryName, value: item.id, color: item.color}))}
                     onValueChange={field.onChange}
                     placeholder="Select a set of investment categories"
@@ -318,6 +337,7 @@ const AddInvestmentModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMai
                 <FormItem>
                   <FormLabel>Bank Account*</FormLabel>
                   <MultiSelect
+                      defaultValue={field.value ? [field.value] : []}
                       options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
                       onValueChange={(data) => field.onChange(data[0])}
                       placeholder="Select a bank account"

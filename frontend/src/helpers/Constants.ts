@@ -44,5 +44,11 @@ export enum WindowEvents {
     DELETE_TANSFER = "deleteTransfer",
     ADD_INCOME = "addIncome",
     EDIT_INCOME = "editIncome",
-    DELETE_INCOME = "deleteIncome"
+    DELETE_INCOME = "deleteIncome",
+    ADD_EXPENSE = "addExpense",
+    EDIT_EXPENSE = "editExpense",
+    DELETE_EXPENSE = "deleteExpense",
+    ADD_INVESTMENT = "addInvestment",
+    EDIT_INVESTMENT = "editInvestment",
+    DELETE_INVESTMENT = "deleteInvestment"
 }

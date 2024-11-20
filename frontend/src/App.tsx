@@ -8,6 +8,7 @@ import InvestmentsPage from './components/pages/InvestmentsPage';
 import IncomesPage from './components/pages/IncomesPage';
 import ExpensesPage from './components/pages/ExpensesPage';
 import { useEffect } from 'react';
+import Dashboard from './components/pages/Dashboard';
 
 function App() {
 
@@ -36,6 +37,10 @@ function App() {
         {
           path: "/expenses",
           element: <ExpensesPage />
+        },
+        {
+          path: "/",
+          element: <Dashboard />
         }
       ]
     },

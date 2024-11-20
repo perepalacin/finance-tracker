@@ -242,7 +242,7 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data, hasNextPage, req
           </Button>
           }
           <AddInvestmentModal variant="default" isMainButton={false} isMainLayoutButton={false} 
-        //   resetInvestmentToEdit={() => table.resetRowSelection()} transferToEdit={table.getSelectedRowModel().rows.length === 1 ? table.getSelectedRowModel().rows[0].original : undefined}
+          resetInvestmentToEdit={() => table.resetRowSelection()} investmentToEdit={table.getSelectedRowModel().rows.length === 1 ? table.getSelectedRowModel().rows[0].original : undefined}
           />
         </div>
       </div>

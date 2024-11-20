@@ -14,19 +14,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { CalendarIcon, Plus } from "lucide-react"
+import { CalendarIcon, Edit, Plus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useEffect, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { useUserData } from "@/context/UserDataContext";
 import { AddButtonsProps, BankAccountProps, ExpenseCategoryProps, ExpenseProps } from "@/types";
 import AddBankAccountDialog from "./AddBankAccountModal";
 import AddExpenseCategoryModal from "./AddExpenseCategoryModal";
 import { MultiSelect } from "../ui/multi-select";
-import { EXPENSES_EMOJI } from "@/helpers/Constants";
+import { EXPENSES_EMOJI, WindowEvents } from "@/helpers/Constants";
 import { AdminApi } from "@/helpers/Api";
 
 const AddExpenseSchema = z.object({
@@ -47,7 +47,12 @@ const AddExpenseSchema = z.object({
 
 type AddExpenseFormValues = z.infer<typeof AddExpenseSchema>;
 
-const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true}) => {
+interface AddExpenseButtonProps extends AddButtonsProps {
+  expenseToEdit?: ExpenseProps;
+  resetExpenseToEdit?: () => void;
+}
+
+const AddExpenseModal: React.FC<AddExpenseButtonProps> =({isMainLayoutButton, isMainButton, variant = "ghost", isOpen=false, setIsOpen, renderButton = true, expenseToEdit, resetExpenseToEdit}) => {
   const [open, setOpen] = useState(isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [isBankAccountsModalOpen, setIsBankAccountsModalOpen] = useState(false);
@@ -64,6 +69,28 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
     },
   });
 
+  useEffect(() => {
+    if (expenseToEdit) {
+      form.reset({
+        name: expenseToEdit.name,
+        amount: expenseToEdit.amount,
+        annotation: expenseToEdit.annotation ? expenseToEdit.annotation : undefined,
+        expenseDate: parse(expenseToEdit.date, 'dd-MM-yyyy', new Date()),
+        bankAccountId: expenseToEdit.bankAccountDto.id,
+        expenseCategories: expenseToEdit.expenseCategoryDtos.map((category: ExpenseCategoryProps) => category.id),
+      });
+    } else {
+      form.reset({
+        name: undefined,
+        amount: undefined,
+        annotation: undefined,
+        expenseDate: undefined,
+        bankAccountId: undefined,
+        expenseCategories: undefined,
+      });
+    }
+  }, [expenseToEdit, form]);
+
   const onSubmit = (data: AddExpenseFormValues) => {
     setIsLoading(true);
     const api = new AdminApi();
@@ -79,23 +106,35 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
 
     const handleSuccessApiCall = (data: ExpenseProps) => {
       setOpen(false);
+      let eventType = "";
       if (setIsOpen) {
         setIsOpen(false);
       }
+      if (expenseToEdit) {
+        eventType = WindowEvents.EDIT_EXPENSE;
+      } else {
+        eventType = WindowEvents.ADD_EXPENSE;
+      }
+
+      const event = new CustomEvent(eventType, { detail: { data: data } });
+      window.dispatchEvent(event);
+
       form.reset();
       setExpenseCategoryToEdit(undefined);
     }
 
     const handleFinishApiCall = () => {
       setIsLoading(false);
+      if (resetExpenseToEdit) {
+        resetExpenseToEdit();
+      }
     }
 
-    // // TODO: 
-    // if (expenseToEdit) {
-    //   api.sendRequest("PUT", "/api/v1/expenses/" + expenseCategoryToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
-    // } else {
+    if (expenseToEdit) {
+      api.sendRequest("PUT", "/api/v1/expenses/" + expenseToEdit.id, { body: body, showToast: true, successToastMessage: data.name + " has been updated!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
+    } else {
     api.sendRequest("POST", "/api/v1/expenses", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
-    // }
+    }
   };
   
   const deleteExpenseCategory = (categoryId: string) => {
@@ -104,27 +143,6 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
     api.sendRequest("DELETE", "/api/v1/categories" + categoryId, {showToast: true, successToastTitle: "Success", successToastMessage: "Expense category deleted succesfully", onSuccessFunction: () => setExpenseCategories([...expenseCategories].filter((category) => category.id === categoryId))});
     setIsLoading(false);
   };
-
-
-  useEffect(() => {
-    const handleAddBankAccount = (event: Event) => {
-      const customEvent = event as CustomEvent<{ data: any }>;
-      const {data: newBankAccount} = customEvent.detail;
-      console.log(newBankAccount);
-      form.setValue('bankAccountId', newBankAccount.id);
-      form.reset({
-        bankAccountId: newBankAccount.id
-      });
-    }
-    
-    window.addEventListener('createBankAccount', handleAddBankAccount);
-    return () => {
-        window.removeEventListener('createBankAccount', handleAddBankAccount);
-        // This is how we will do the same for expense categories!
-        // setBankAccounts((prevBankAccounts) => [...prevBankAccounts, newBankAccount]);
-    };
-  }, []);
-
 
   return (
     <Dialog open={open} onOpenChange={(open) => { setOpen(open); if (setIsOpen) {setIsOpen(open); }}}>
@@ -135,6 +153,12 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
                 { renderButton && (isMainButton ?
                   <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-1' : 'transition-transform'}`}>
                     {EXPENSES_EMOJI}
+                  </Button>
+                :
+                  expenseToEdit ? 
+                  <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
+                    <Edit width={15} height={15} />
+                    <p>Edit Expense</p>
                   </Button>
                 :
                   <Button variant={variant} className="flex flex-row justify-start items-center gap-1 w-full">
@@ -242,6 +266,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
                 <FormItem>
                   <FormLabel>Expense categories</FormLabel>
                   <MultiSelect
+                    defaultValue={field.value ? field.value : []}
                     options={expenseCategories.map((item) => ({label: item.categoryName, value: item.id, emoji: item.iconName}))}
                     onValueChange={field.onChange}
                     placeholder="Select a set of expense categories"
@@ -266,6 +291,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
                 <FormItem>
                   <FormLabel>Bank Account*</FormLabel>
                   <MultiSelect
+                      defaultValue={field.value ? [field.value] : []}
                       options={bankAccounts.map((item) => ({label: item.name, value: item.id, emoji: '0x1FAAA'}))}
                       onValueChange={(data) => field.onChange(data[0])}
                       placeholder="Select a bank account"
@@ -286,7 +312,7 @@ const AddExpenseModal: React.FC<AddButtonsProps> =({isMainLayoutButton, isMainBu
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Add Expense"}
+                {isLoading ? expenseToEdit ? "Updating..." : "Creating..." : expenseToEdit ? "Update Expense" : "Add Expense"}
               </Button>
             </DialogFooter>
           </form>

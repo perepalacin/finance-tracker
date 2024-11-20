@@ -3,7 +3,7 @@ import { IncomeSortByFields, WindowEvents } from '@/helpers/Constants';
 import IncomesTable from '@/tables/IncomesTable';
 import TableQueryBuilder from '@/tables/TableQueryBuilder';
 import { IncomeProps, QueryParamsProps } from '@/types';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { useEffect, useState } from 'react'
 
 const IncomesPage = () => {
@@ -28,20 +28,30 @@ const IncomesPage = () => {
     setQueryParams(newQueryParams);
   }
 
-  useEffect(() => {
+  const fetchIncomes = (isRowUpdate = false, page?: number, pageSize?: number) => {
+    if (pageSize === undefined) {
+      pageSize = queryParams.pageSize;
+    }
+    if (page === undefined) {
+      page = queryParams.page;
+    }
     const onSuccessFetchIncomes = (data: IncomeProps[]) => {
-      if (incomes.length === 0 || queryParams.page === 0) {
+      if (incomes.length === 0 || page === 0 || isRowUpdate) {
         setIncomes(data);
       } else {
         const updatedIncomes= [...incomes, ...data];
         setIncomes(updatedIncomes);
       }
-      if (data.length !== queryParams.pageSize) {
+      if (data.length % 20 !== 0) {
         setHasNextPage(false);
       }
     }
     const api = new AdminApi();
-    api.sendRequest("GET", "/api/v1/incomes?orderBy=" + queryParams.orderBy + "&pageSize=" + queryParams.pageSize + "&page=" + queryParams.page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchIncomes(responseData)});
+    api.sendRequest("GET", "/api/v1/incomes?orderBy=" + queryParams.orderBy + "&pageSize=" + pageSize + "&page=" + page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchIncomes(responseData)});
+  }
+
+  useEffect(() => {
+    fetchIncomes();
   }, [queryParams]);
 
   useEffect(() => {
@@ -71,22 +81,12 @@ const IncomesPage = () => {
           setIncomes(updatedIncomes);
           break;
         }
-      case WindowEvents.ADD_INCOME: {
-        if (incomes.length % 20 !== 0) {
-          setIncomes(handleSortingNewIncome(queryParams, [...incomes, event.detail.data]));
-        }
+      case WindowEvents.ADD_INCOME: 
+      case WindowEvents.EDIT_INCOME: 
+      case WindowEvents.DELETE_INCOME:
+        fetchIncomes(true, 0, (queryParams.page+1)*queryParams.pageSize);
         break;
       }
-      case WindowEvents.EDIT_INCOME: {
-        setIncomes(handleSortingNewIncome(queryParams, [...incomes.filter((income: IncomeProps) => income.id !== event.detail.data.id), event.detail.data]));
-        break;
-      }
-      case WindowEvents.DELETE_INCOME: {
-        const updatedIncomes = incomes.filter((income) => income.id !== event.detail.data);
-        setIncomes(updatedIncomes);
-        break;
-      }
-    }
     }
     
     const handleEvent = (event: Event) => handleEditFetchedIncomes(event as CustomEvent);
@@ -114,24 +114,3 @@ const IncomesPage = () => {
 }
 
 export default IncomesPage
-
-const handleSortingNewIncome = (queryParams: QueryParamsProps, transfersArray: IncomeProps[]): IncomeProps[] => {
-  if (queryParams.orderBy === IncomeSortByFields.AMOUNT) {
-    return transfersArray.sort((a, b) =>
-      queryParams.ascending ? a.amount - b.amount : b.amount - a.amount
-    );
-  } else if (queryParams.orderBy === IncomeSortByFields.DATE) {
-    return transfersArray.sort((a, b) => {
-      const dateA = parse(a.date, 'dd-MM-yyyy', new Date()).getTime();
-      const dateB = parse(b.date, 'dd-MM-yyyy', new Date()).getTime();
-      return queryParams.ascending ? dateA - dateB : dateB - dateA;
-    });
-  } else if (queryParams.orderBy === IncomeSortByFields.NAME) {
-    return transfersArray.sort((a, b) =>
-      queryParams.ascending
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name)
-    );
-  }
-  return [];
-}
