@@ -13,51 +13,57 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { useUserData } from "@/context/UserDataContext"
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
 
 const chartConfig = {
   desktop: {
-    label: "Desktop",
+    label: "Incomes",
     color: "hsl(var(--chart-1))",
   },
   mobile: {
-    label: "Mobile",
+    label: "Expenses",
     color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig
 
 const ExpensesIncomesChart = () => {
+
+  const {incomeAndExpensesChartData: chartData} = useUserData();
+
+  let chartSubtitle = "";
+  if (chartData.length > 1) {
+    if (chartData[0].period.split('.')[1] === chartData[chartData.length-1].period.split('.')[1]) {
+      chartSubtitle = chartData[chartData.length-1].period.split('.')[1] + ": " + chartData[0].period.split('.')[0] + " - " + chartData[chartData.length-1].period.split('.')[0];
+    } else {
+      chartSubtitle = chartData[0].period + ' - ' + chartData[chartData.length-1].period;
+    }
+  } else if (chartData.length === 1) {
+    chartSubtitle = chartData[0].period;
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Expenses & Incomes</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription>{chartSubtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="month"
+              dataKey="period"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
+              content={<ChartTooltipContent indicator="dot" />}
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-            <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+            <Bar dataKey="income"  fill="var(--color-desktop)" radius={2} />
+            <Bar dataKey="expense" fill="var(--color-mobile)" radius={2} />
           </BarChart>
         </ChartContainer>
       </CardContent>

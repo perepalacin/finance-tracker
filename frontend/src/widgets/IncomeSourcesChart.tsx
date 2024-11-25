@@ -1,60 +1,70 @@
-import { TrendingUp } from "lucide-react"
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
-]
-
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "hsl(var(--chart-1))",
-  },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "hsl(var(--chart-3))",
-  },
-  edge: {
-    label: "Edge",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig
+import { useUserData } from "@/context/UserDataContext"
 
 const IncomeSourcesChart = () => {
+
+  const { incomeSourcesTopGraph, incomeSources, incomeAndExpensesChartData } = useUserData();
+
+  const chartData: {categoryName: string, amount: number, fill: string}[] = [];
+  if (incomeSourcesTopGraph.length > 1) {
+    incomeSourcesTopGraph.forEach((value, index) => {
+      if (index < 4) {
+        const incomeSource = incomeSources.find((source) => source.id === value.incomeSourceId);
+        if (incomeSource) {
+          chartData.push({
+            categoryName: incomeSource.name,
+            amount: value.amount,
+            fill: incomeSource.color
+          });
+        }
+      }
+    })
+  }
+
+  const chartConfig: any = {
+    amount: {
+      label: "Amount"
+    }
+  };
+  chartData.forEach((item) => {
+    chartConfig[item.categoryName] = {
+      label: item.categoryName,
+      color: item.fill
+    }
+  });
+
+
+  let chartSubtitle = "";
+  if (incomeAndExpensesChartData.length > 1) {
+    if (incomeAndExpensesChartData[0].period.split('.')[1] === incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period.split('.')[1]) {
+      chartSubtitle = incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period.split('.')[1] + ": " + incomeAndExpensesChartData[0].period.split('.')[0] + " - " + incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period.split('.')[0];
+    } else {
+      chartSubtitle = incomeAndExpensesChartData[0].period + ' - ' + incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period;
+    }
+  } else if (incomeAndExpensesChartData.length === 1) {
+    chartSubtitle = incomeAndExpensesChartData[0].period;
+  }
+
+  chartData.sort((a, b) => b.amount - a.amount);
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Bar Chart - Mixed</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Top 5 Income Sources</CardTitle>
+        <CardDescription>{chartSubtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -67,21 +77,22 @@ const IncomeSourcesChart = () => {
             }}
           >
             <YAxis
-              dataKey="browser"
+              dataKey="categoryName"
               type="category"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
+              style={{fontSize: '0.5rem'}}
               tickFormatter={(value) =>
                 chartConfig[value as keyof typeof chartConfig]?.label
               }
             />
-            <XAxis dataKey="visitors" type="number" hide />
+            <XAxis dataKey="amount" type="number" hide />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent hideLabel/>}
             />
-            <Bar dataKey="visitors" layout="vertical" radius={5} />
+            <Bar dataKey="amount" layout="vertical" radius={5} />
           </BarChart>
         </ChartContainer>
       </CardContent>

@@ -1,67 +1,74 @@
 "use client"
 
-import * as React from "react"
-import { TrendingUp } from "lucide-react"
 import { Label, Pie, PieChart } from "recharts"
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 287, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 190, fill: "var(--color-other)" },
-]
-
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "hsl(var(--chart-1))",
-  },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "hsl(var(--chart-3))",
-  },
-  edge: {
-    label: "Edge",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig
+import { useUserData } from "@/context/UserDataContext"
 
 const InvestmentDiversificationGraph = () => {
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0)
-  }, [])
+
+  const { investmentCategories, bankAccounts, incomeAndExpensesChartData, investmentCategoriesTopGraph } = useUserData();
+
+  const totalAmountInvested = bankAccounts.reduce((acc, account) => acc + account.totalInvested, 0);
+
+  const chartData: {categoryName: string, amount: number, fill: string}[] = [];
+  if (investmentCategoriesTopGraph.length > 1) {
+    investmentCategoriesTopGraph.forEach((value, index) => {
+      if (index < 4) {
+        const investmentCategory = investmentCategories.find((source) => source.id === value.investmentCategoryId);
+        if (investmentCategory) {
+          chartData.push({
+            categoryName: investmentCategory.investmentCategoryName,
+            amount: (value.amount / totalAmountInvested),
+            fill: investmentCategory.color
+          });
+        }
+      }
+    })
+  }
+
+  const chartConfig: any = {
+    amount: {
+      label: "Amount"
+    }
+  };
+  chartData.forEach((item) => {
+    chartConfig[item.categoryName] = {
+      label: item.categoryName,
+      color: item.fill
+    }
+  });
+
+
+  let chartSubtitle = "";
+  if (incomeAndExpensesChartData.length > 1) {
+    if (incomeAndExpensesChartData[0].period.split('.')[1] === incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period.split('.')[1]) {
+      chartSubtitle = incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period.split('.')[1] + ": " + incomeAndExpensesChartData[0].period.split('.')[0] + " - " + incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period.split('.')[0];
+    } else {
+      chartSubtitle = incomeAndExpensesChartData[0].period + ' - ' + incomeAndExpensesChartData[incomeAndExpensesChartData.length-1].period;
+    }
+  } else if (incomeAndExpensesChartData.length === 1) {
+    chartSubtitle = incomeAndExpensesChartData[0].period;
+  }
+
+  chartData.sort((a, b) => b.amount - a.amount);
 
   return (
     <Card className="flex flex-col w-full">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Donut with Text</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Investment Portfolio</CardTitle>
+        <CardDescription>Your 5 biggest investment categories ({chartSubtitle})</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -75,8 +82,8 @@ const InvestmentDiversificationGraph = () => {
             />
             <Pie
               data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
+              dataKey="amount"
+              nameKey="categoryName"
               innerRadius={60}
               strokeWidth={5}
             >
@@ -93,16 +100,16 @@ const InvestmentDiversificationGraph = () => {
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className="fill-foreground text-3xl font-bold"
+                          className="fill-foreground text-xl font-bold"
                         >
-                          {totalVisitors.toLocaleString()}
+                          {totalAmountInvested.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Visitors
+                          Euros
                         </tspan>
                       </text>
                     )
@@ -113,14 +120,6 @@ const InvestmentDiversificationGraph = () => {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter>
     </Card>
   )
 }

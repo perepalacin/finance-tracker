@@ -1,53 +1,69 @@
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useUserData } from '@/context/UserDataContext'
+import { Separator } from '@/components/ui/separator'
+import { AdminApi } from '@/helpers/Api'
+import { BANK_ACCOUNTS_EMOJI } from '@/helpers/Constants'
+import { InvestmentProps } from '@/types'
+import { differenceInCalendarDays, parse } from 'date-fns'
+import { useEffect, useState } from 'react'
 
 const InvestmentsAboutToExpireWidget = () => {
 
-    const {bankAccounts} = useUserData();
+    const [investmentsAboutToExpire, setInvestmentsAboutToExpire] = useState<InvestmentProps[]>([]);
 
-    const totalBalance = bankAccounts.reduce((acc, account) => acc + account.currentBalance + account.totalInvested, 0);
-    const liquidity = bankAccounts.reduce((acc, account) => acc + account.currentBalance, 0);
-    const initialAmount = bankAccounts.reduce((acc, account) => acc + account.initialAmount, 0);
-    const amountInvested = bankAccounts.reduce((acc, account) => acc + account.totalInvested, 0);
-    const totalExpenses = bankAccounts.reduce((acc, account) => acc + account.totalExpenses, 0);
-    const totalIncomes = bankAccounts.reduce((acc, account) => acc + account.totalIncome, 0);
+    useEffect(() => {
+        const onSuccessFetchInvestments = (responseData: InvestmentProps[]) => {
+            const sortedData = responseData.sort((a, b) => {
+                const dateA = parse(a.endDate, 'dd-MM-yyyy', new Date());
+                const dateB = parse(b.endDate, 'dd-MM-yyyy', new Date());
+                return differenceInCalendarDays(dateA, dateB);
+            });
+            setInvestmentsAboutToExpire(sortedData);
+        }
+        const api = new AdminApi();
+        api.sendRequest("GET", "/api/v1/dashboard/investments-to-expire", {onSuccessFunction: onSuccessFetchInvestments})
+    }, [])
+
+
+    console.log(investmentsAboutToExpire);
+
     return (
         <Card className='w-full'>
             <CardHeader>
                 <CardTitle>Investments about to expire</CardTitle>
             </CardHeader>
             <CardContent className='flex flex-col gap-2 '>
-                <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Total:</p>
-                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(totalBalance)}</p>
-                </div>
-                <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Liquidity:</p>
-                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(liquidity)}</p>
-                </div>
-                <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Initial amount:</p>
-                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(initialAmount)}</p>
-                </div>
-                <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Total growth:</p>
-                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(totalBalance-initialAmount)}</p>
-                </div>
-                <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Average Monthly Income:</p>
-                    <p className='text-md'>{}</p>
-                </div>
-                <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Amount Invested:</p>
-                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(amountInvested)}</p>
-                </div>
-                <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Average Monthly Expense:</p>
-                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(totalExpenses)} - {(totalExpenses/totalIncomes).toFixed(2)}%</p>
-                </div>
+                {investmentsAboutToExpire.map((investment: InvestmentProps, index) => {
+                    return (
+                        <>
+                        <article className='flex flex-col items-start gap-2'>
+                            <div className='flex flex-row w-full justify-between items-center gap-8'>
+                                <h1 className='text-xl font-semibold'>{investment.name}</h1>
+                                <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(investment.amountInvested)}</p>
+                            </div>
+                            <p><span className='text-muted-foreground text-sm'>Bank account: </span><Badge color='yellow'>{BANK_ACCOUNTS_EMOJI} {investment.bankAccountDto.name}</Badge></p>
+                            <div className='flex flex-row gap-1'>{
+                                investment.investmentCategoryDtos.map((category) => 
+                                    <Badge key={category.id} color={category.color}>{category.investmentCategoryName}</Badge>)}
+                            </div>
+                            <p className='w-full text-sm text-right'>Ends in {formatEndDate(investment.endDate)}</p>
+                        </article>
+                        {index !== investmentsAboutToExpire.length -1 &&
+                        <Separator />
+                        }
+                        </>
+                    )
+                })}
             </CardContent>
         </Card>
     )
 }
 
 export default InvestmentsAboutToExpireWidget
+
+function formatEndDate(dateStr: string): string {
+    const endDate = parse(dateStr, 'dd-MM-yyyy', new Date());
+    const today = new Date();
+    const daysDiff = differenceInCalendarDays(endDate, today);
+    return daysDiff === 1 ? '1 day' : `${daysDiff} days`;
+}

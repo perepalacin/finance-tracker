@@ -95,4 +95,27 @@ export interface QueryParamsProps {
     ascending: boolean;
     dateRange?: {from: Date, to: Date};
     searchInput: string;
-  }
+}
+
+export interface IncomeExpensesGraphData {
+    period: string;
+    expense: number;
+    income: number;
+}
+
+export interface IncomeExpensesGraphDto {
+    month: number;
+    year: number;
+    expense: number;
+    income: number;
+}
+
+export interface IncomeSourcesTopGraphDto {
+    incomeSourceId: string;
+    amount: number;
+}
+
+export interface InvestmentCategoriesTopGraphDto {
+    investmentCategoryId: string;
+    amount: number;
+}

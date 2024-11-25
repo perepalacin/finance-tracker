@@ -2,6 +2,7 @@ package com.pere_palacin.app.services;
 
 
 import com.pere_palacin.app.domains.InvestmentCategoryDao;
+import com.pere_palacin.app.domains.dto.InvestmentCategoriesWithAmountDto;
 
 import java.util.List;
 import java.util.Set;

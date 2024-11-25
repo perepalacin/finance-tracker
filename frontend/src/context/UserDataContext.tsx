@@ -1,9 +1,11 @@
 import { AdminApi } from "@/helpers/Api"
 import { WindowEvents } from "@/helpers/Constants"
-import { BankAccountProps, ExpenseCategoryProps, IncomeSourceProps, InvestmentCategoryProps } from "@/types"
-import { debug } from "console"
+import { BankAccountProps, ExpenseCategoryProps, IncomeExpensesGraphData, IncomeExpensesGraphDto, IncomeSourceProps, IncomeSourcesTopGraphDto, InvestmentCategoriesTopGraphDto, InvestmentCategoryProps } from "@/types"
 import { createContext, useContext, useEffect, useState } from "react"
 
+const months = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"
+];
 
 type UserDataProviderProps = {
   children: React.ReactNode
@@ -18,6 +20,12 @@ type UserDataProviderState = {
   setIncomeSources: (incomeSources: IncomeSourceProps[]) => void;
   expenseCategories: ExpenseCategoryProps[],
   setExpenseCategories: (categories: ExpenseCategoryProps[]) => void;
+  incomeAndExpensesChartData: IncomeExpensesGraphData[],
+  setIncomeAndExpensesChartData: (monthlyData: IncomeExpensesGraphData[]) => void,
+  incomeSourcesTopGraph: (IncomeSourcesTopGraphDto[]),
+  setIncomeSourcesTopGraph: (data: IncomeSourcesTopGraphDto[]) => void,
+  investmentCategoriesTopGraph: (InvestmentCategoriesTopGraphDto[]),
+  setInvestmentCategoriesTopGraph: (data: InvestmentCategoriesTopGraphDto[]) => void,
 }
 
 const initialState: UserDataProviderState = {
@@ -29,6 +37,12 @@ const initialState: UserDataProviderState = {
   setIncomeSources: () => null,
   expenseCategories: [],
   setExpenseCategories: () => null,
+  incomeAndExpensesChartData: [],
+  setIncomeAndExpensesChartData: () => null,
+  incomeSourcesTopGraph: [],
+  setIncomeSourcesTopGraph: () => null,
+  investmentCategoriesTopGraph: [],
+  setInvestmentCategoriesTopGraph: () => null,
 }
 
 const UserDataProviderContext = createContext<UserDataProviderState>(initialState)
@@ -43,7 +57,65 @@ export function UserDataProvider({
     const [bankAccounts, setBankAccounts] = useState<BankAccountProps[]>([]);
     const [incomeSources, setIncomeSources] = useState<IncomeSourceProps[]>([]);
     const [expenseCategories, setExpenseCategories] = useState<ExpenseCategoryProps[]>([]);
-    
+    const [incomeAndExpensesChartData, setIncomeAndExpensesChartData] = useState<IncomeExpensesGraphData[]>([]);
+    const [incomeSourcesTopGraph, setIncomeSourcesTopGraph] = useState<IncomeSourcesTopGraphDto[]>([]);
+    const [investmentCategoriesTopGraph, setInvestmentCategoriesTopGraph] = useState<InvestmentCategoriesTopGraphDto[]>([]);
+
+    const onSuccessFetchIncomeExpensesGraph = (data: IncomeExpensesGraphDto[]) => {
+      const newChartData: IncomeExpensesGraphData[] = [];
+      let previousMonth = -1;
+      let previousYear = -1;
+      data.forEach((monthlyData: IncomeExpensesGraphDto, index: number) => {
+        if (index === 0) {
+          newChartData.push({
+            income: monthlyData.income,
+            expense: monthlyData.expense,
+            period: months[monthlyData.month-1] + ". " + monthlyData.year
+          });
+          previousMonth = monthlyData.month;
+          previousYear = monthlyData.year;
+        } else {
+          if (previousYear === monthlyData.year && previousMonth + 1 === monthlyData.month || previousYear + 1 === monthlyData.year && monthlyData.month === 1 && previousMonth === 12) {
+            newChartData.push({
+              income: monthlyData.income,
+              expense: monthlyData.expense,
+              period: months[monthlyData.month-1] + ". " + monthlyData.year
+            });
+            previousMonth = monthlyData.month;
+            previousYear = monthlyData.year;
+          } else {
+            let month = previousMonth;
+            let year = previousYear;
+            while (year < 2100) {
+              if (month === 12) {
+                year++;
+                month = 1;
+              } else {
+                month++;
+              }
+              if (month === monthlyData.month && year === monthlyData.year) {
+                break;
+              } else {
+                newChartData.push({
+                  income: 0,
+                  expense: 0,
+                  period: months[month-1] + ". " + year
+                });
+              }
+            }
+            newChartData.push({
+              income: monthlyData.income,
+              expense: monthlyData.expense,
+              period: months[monthlyData.month-1] + ". " + monthlyData.year
+            });
+            previousMonth = monthlyData.month;
+            previousYear = monthlyData.year;
+          }
+        }
+      });
+      setIncomeAndExpensesChartData(newChartData);
+    }
+
     const handleEventsThatEditBankAccounts = (event: CustomEvent) => {
       switch (event.type) {
         case WindowEvents.ADD_EXPENSE:
@@ -63,13 +135,10 @@ export function UserDataProvider({
         }
         case WindowEvents.ADD_TRANSFER:
         case WindowEvents.EDIT_TRANSFER: {
-          console.log(event.detail.data);
           setBankAccounts((prevAccounts) => prevAccounts.map((account) => {
             if (account.id === event.detail.data.sendingBankAccountDto.id) {
-              console.log(event.detail.data.sendingBankAccountDto);
               return event.detail.data.sendingBankAccountDto;
             } else if (account.id === event.detail.data.receivingBankAccountDto.id ) {
-              console.log(event.detail.data.receivingBankAccountDto);
               return event.detail.data.receivingBankAccountDto;
             } else {
               return account;
@@ -86,7 +155,10 @@ export function UserDataProvider({
       api.sendRequest("GET", "/api/v1/categories", {showToast : false, onSuccessFunction: (responseData) =>setExpenseCategories(responseData)});
       api.sendRequest("GET", "/api/v1/sources", {showToast : false, onSuccessFunction: (responseData) =>setIncomeSources(responseData)});
       api.sendRequest("GET", "/api/v1/investment-categories", {showToast : false, onSuccessFunction: (responseData) =>setInvestmentCategories(responseData)});
-      
+      api.sendRequest("GET", "/api/v1/dashboard/incomes-expenses-graph", {onSuccessFunction: (responseData) => onSuccessFetchIncomeExpensesGraph(responseData)});
+      api.sendRequest("GET", "/api/v1/dashboard/income-sources-graph", {onSuccessFunction: (responseData) => setIncomeSourcesTopGraph(responseData)});
+      api.sendRequest("GET", "/api/v1/dashboard/investment-categories-graph", {onSuccessFunction: (responseData) => setInvestmentCategoriesTopGraph(responseData)})
+
       const handleEvent = (event: Event) => handleEventsThatEditBankAccounts(event as CustomEvent);
       addEventListener(WindowEvents.ADD_EXPENSE, handleEvent);
       addEventListener(WindowEvents.EDIT_EXPENSE, handleEvent);
@@ -134,7 +206,19 @@ export function UserDataProvider({
     expenseCategories,
     setExpenseCategories: (categories: ExpenseCategoryProps[]) => {
         setExpenseCategories(categories);
-    } 
+    },
+    incomeAndExpensesChartData,
+    setIncomeAndExpensesChartData: (data: IncomeExpensesGraphData[]) => {
+        setIncomeAndExpensesChartData(data);
+    },
+    incomeSourcesTopGraph,
+    setIncomeSourcesTopGraph: (data: IncomeSourcesTopGraphDto[]) => {
+        setIncomeSourcesTopGraph(data);
+    },
+    investmentCategoriesTopGraph,
+    setInvestmentCategoriesTopGraph: (data: InvestmentCategoriesTopGraphDto[]) => {
+      setInvestmentCategoriesTopGraph(data);
+    }
   }
 
   return (
