@@ -24,9 +24,6 @@ const InvestmentsAboutToExpireWidget = () => {
         api.sendRequest("GET", "/api/v1/dashboard/investments-to-expire", {onSuccessFunction: onSuccessFetchInvestments})
     }, [])
 
-
-    console.log(investmentsAboutToExpire);
-
     return (
         <Card className='w-full'>
             <CardHeader>

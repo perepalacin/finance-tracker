@@ -1,11 +1,10 @@
 import { TrendingUp } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -16,14 +15,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useUserData } from "@/context/UserDataContext"
-// const chartData = [
-//   { month: "January", desktop: 186, mobile: 80 },
-//   { month: "February", desktop: 305, mobile: 200 },
-//   { month: "March", desktop: 237, mobile: 120 },
-//   { month: "April", desktop: 73, mobile: 190 },
-//   { month: "May", desktop: 209, mobile: 130 },
-//   { month: "June", desktop: 214, mobile: 140 },
-// ]
 
 const chartConfig = {
   saving: {
@@ -82,7 +73,19 @@ const NetWorthGraph = () => {
               axisLine={false}
               tickMargin={10}
             />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <YAxis
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => {if (value >=  1000000) {return (value/1000000).toFixed(1) + 'M'}; if (value >=  1000) {return (value/1000).toFixed(2) + 'k'}; return value.toFixed(0)}}
+            />
+            <ChartTooltip
+              formatter={(value, i: string, c: any) => { 
+                return <div className="flex flex-row gap-2 items-center"><div className = 'w-2 h-2' style={{backgroundColor: c.stroke, borderRadius: '0.1rem'}}/>{i.charAt(0).toUpperCase() + i.slice(1) + ": "}<span className="font-bold">{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(Number(value))}</span></div>;
+              }} 
+              cursor={false} 
+              content={<ChartTooltipContent />} 
+            />
             <defs>
               <linearGradient id="fillSaving" x1="0" y1="0" x2="0" y2="1">
                 <stop

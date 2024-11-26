@@ -77,8 +77,11 @@ const InvestmentDiversificationGraph = () => {
         >
           <PieChart>
             <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              formatter={(value, i: string, c: any) => {
+                return <div className="flex flex-row gap-2 items-center"><div className = 'w-2 h-2' style={{backgroundColor: c.payload.fill, borderRadius: '0.1rem'}}/>{i.charAt(0).toUpperCase() + i.slice(1) + ": "}<span className="font-bold">{(Number(value)*100).toFixed(2) + '%'}</span></div>;
+              }} 
+              cursor={false} 
+              content={<ChartTooltipContent />} 
             />
             <Pie
               data={chartData}

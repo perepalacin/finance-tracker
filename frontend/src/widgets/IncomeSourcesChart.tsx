@@ -89,8 +89,11 @@ const IncomeSourcesChart = () => {
             />
             <XAxis dataKey="amount" type="number" hide />
             <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel/>}
+              formatter={(value, i: string, c: any) => { 
+                return <div className="flex flex-row gap-2 items-center"><div className = 'w-2 h-2' style={{backgroundColor: c.payload.fill, borderRadius: '0.1rem'}}/>{i.charAt(0).toUpperCase() + i.slice(1) + ": "}<span className="font-bold">{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(Number(value))}</span></div>;
+              }} 
+              cursor={false} 
+              content={<ChartTooltipContent />} 
             />
             <Bar dataKey="amount" layout="vertical" radius={5} />
           </BarChart>
