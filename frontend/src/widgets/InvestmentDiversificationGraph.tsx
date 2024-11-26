@@ -100,16 +100,9 @@ const InvestmentDiversificationGraph = () => {
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className="fill-foreground text-xl font-bold"
+                          className="fill-foreground text-lg font-bold"
                         >
-                          {totalAmountInvested.toLocaleString()}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground"
-                        >
-                          Euros
+                          {new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(totalAmountInvested)}
                         </tspan>
                       </text>
                     )

@@ -33,7 +33,7 @@ const InvestmentsAboutToExpireWidget = () => {
                 <CardTitle>Investments about to expire</CardTitle>
             </CardHeader>
             <CardContent className='flex flex-col gap-2 '>
-                {investmentsAboutToExpire.map((investment: InvestmentProps, index) => {
+                {investmentsAboutToExpire.length > 0 ? investmentsAboutToExpire.map((investment: InvestmentProps, index) => {
                     return (
                         <>
                         <article className='flex flex-col items-start gap-2'>
@@ -41,19 +41,18 @@ const InvestmentsAboutToExpireWidget = () => {
                                 <h1 className='text-xl font-semibold'>{investment.name}</h1>
                                 <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(investment.amountInvested)}</p>
                             </div>
-                            <p><span className='text-muted-foreground text-sm'>Bank account: </span><Badge color='yellow'>{BANK_ACCOUNTS_EMOJI} {investment.bankAccountDto.name}</Badge></p>
-                            <div className='flex flex-row gap-1'>{
-                                investment.investmentCategoryDtos.map((category) => 
-                                    <Badge key={category.id} color={category.color}>{category.investmentCategoryName}</Badge>)}
+                            <div className='w-full flex flex-row justify-between items-center'>
+                            <Badge color='yellow'>{BANK_ACCOUNTS_EMOJI} {investment.bankAccountDto.name}</Badge>
+                            <p className='text-sm'>Ends in {formatEndDate(investment.endDate)}</p>
                             </div>
-                            <p className='w-full text-sm text-right'>Ends in {formatEndDate(investment.endDate)}</p>
                         </article>
                         {index !== investmentsAboutToExpire.length -1 &&
                         <Separator />
                         }
                         </>
                     )
-                })}
+                }): 
+                <p>Nothing to see here...</p>}
             </CardContent>
         </Card>
     )

@@ -3,14 +3,15 @@ import { useUserData } from '@/context/UserDataContext'
 
 const NetworthWidget = () => {
 
-    const {bankAccounts} = useUserData();
+    const {bankAccounts, incomeAndExpensesChartData} = useUserData();
 
     const totalBalance = bankAccounts.reduce((acc, account) => acc + account.currentBalance + account.totalInvested, 0);
     const liquidity = bankAccounts.reduce((acc, account) => acc + account.currentBalance, 0);
     const initialAmount = bankAccounts.reduce((acc, account) => acc + account.initialAmount, 0);
+    const averageIncome = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.income, 0) / incomeAndExpensesChartData.length);
+    const averageExpense = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.expense, 0) / incomeAndExpensesChartData.length);
     const amountInvested = bankAccounts.reduce((acc, account) => acc + account.totalInvested, 0);
-    const totalExpenses = bankAccounts.reduce((acc, account) => acc + account.totalExpenses, 0);
-    const totalIncomes = bankAccounts.reduce((acc, account) => acc + account.totalIncome, 0);
+    // const totalIncomes = bankAccounts.reduce((acc, account) => acc + account.totalIncome, 0);
     return (
         <Card className='w-full'>
             <CardHeader>
@@ -18,7 +19,7 @@ const NetworthWidget = () => {
             </CardHeader>
             <CardContent className='flex flex-col gap-2 '>
                 <div className='flex flex-row w-full justify-between items-center gap-8'>
-                    <p className='text-muted-foreground text-sm'>Total:</p>
+                    <p className='text-muted-foreground text-sm'>Total Networth:</p>
                     <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(totalBalance)}</p>
                 </div>
                 <div className='flex flex-row w-full justify-between items-center gap-8'>
@@ -35,7 +36,7 @@ const NetworthWidget = () => {
                 </div>
                 <div className='flex flex-row w-full justify-between items-center gap-8'>
                     <p className='text-muted-foreground text-sm'>Average Monthly Income:</p>
-                    <p className='text-md'>{}</p>
+                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(averageIncome)}</p>
                 </div>
                 <div className='flex flex-row w-full justify-between items-center gap-8'>
                     <p className='text-muted-foreground text-sm'>Amount Invested:</p>
@@ -43,7 +44,11 @@ const NetworthWidget = () => {
                 </div>
                 <div className='flex flex-row w-full justify-between items-center gap-8'>
                     <p className='text-muted-foreground text-sm'>Average Monthly Expense:</p>
-                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(totalExpenses)} - {(totalExpenses/totalIncomes).toFixed(2)}%</p>
+                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(averageExpense)}</p>
+                </div>
+                <div className='flex flex-row w-full justify-between items-center gap-8'>
+                    <p className='text-muted-foreground text-sm'>Average Monthly Saving:</p>
+                    <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(averageIncome - averageExpense)}</p>
                 </div>
             </CardContent>
         </Card>

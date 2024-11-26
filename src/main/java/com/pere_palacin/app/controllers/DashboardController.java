@@ -1,10 +1,7 @@
 package com.pere_palacin.app.controllers;
 
 import com.pere_palacin.app.domains.InvestmentDao;
-import com.pere_palacin.app.domains.dto.IncomeAndExpensesChartDto;
-import com.pere_palacin.app.domains.dto.IncomeSourceWithAmountDto;
-import com.pere_palacin.app.domains.dto.InvestmentCategoriesWithAmountDto;
-import com.pere_palacin.app.domains.dto.InvestmentDto;
+import com.pere_palacin.app.domains.dto.*;
 import com.pere_palacin.app.mappers.impl.InvestmentMapper;
 import com.pere_palacin.app.services.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +38,11 @@ public class DashboardController {
     public List<InvestmentDto> findInvestmentsAboutToExpire() {
         List<InvestmentDao> investmentsAboutToExpire = dashboardService.findInvestmentsAboutToExpire();
         return investmentsAboutToExpire.stream().map(investmentMapper::mapTo).toList();
+    }
+
+    @GetMapping("/category-expenses")
+    public List<ExpensesCategoryWithAmountDto> generateExpenseCategoriesWithAmount() {
+        return dashboardService.generateExpenseCategoriesWithAmount();
     }
 
 }

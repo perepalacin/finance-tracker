@@ -3,7 +3,7 @@ import { WindowEvents } from "@/helpers/Constants"
 import { BankAccountProps, ExpenseCategoryProps, IncomeExpensesGraphData, IncomeExpensesGraphDto, IncomeSourceProps, IncomeSourcesTopGraphDto, InvestmentCategoriesTopGraphDto, InvestmentCategoryProps } from "@/types"
 import { createContext, useContext, useEffect, useState } from "react"
 
-const months = [
+export const shortenedMonthNames = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"
 ];
 
@@ -70,7 +70,7 @@ export function UserDataProvider({
           newChartData.push({
             income: monthlyData.income,
             expense: monthlyData.expense,
-            period: months[monthlyData.month-1] + ". " + monthlyData.year
+            period: shortenedMonthNames[monthlyData.month-1] + ". " + monthlyData.year
           });
           previousMonth = monthlyData.month;
           previousYear = monthlyData.year;
@@ -79,7 +79,7 @@ export function UserDataProvider({
             newChartData.push({
               income: monthlyData.income,
               expense: monthlyData.expense,
-              period: months[monthlyData.month-1] + ". " + monthlyData.year
+              period: shortenedMonthNames[monthlyData.month-1] + ". " + monthlyData.year
             });
             previousMonth = monthlyData.month;
             previousYear = monthlyData.year;
@@ -99,14 +99,14 @@ export function UserDataProvider({
                 newChartData.push({
                   income: 0,
                   expense: 0,
-                  period: months[month-1] + ". " + year
+                  period: shortenedMonthNames[month-1] + ". " + year
                 });
               }
             }
             newChartData.push({
               income: monthlyData.income,
               expense: monthlyData.expense,
-              period: months[monthlyData.month-1] + ". " + monthlyData.year
+              period: shortenedMonthNames[monthlyData.month-1] + ". " + monthlyData.year
             });
             previousMonth = monthlyData.month;
             previousYear = monthlyData.year;

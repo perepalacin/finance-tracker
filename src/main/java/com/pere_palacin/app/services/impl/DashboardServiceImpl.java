@@ -3,7 +3,6 @@ package com.pere_palacin.app.services.impl;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +23,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final IncomeRepository incomeRepository;
     private final ExpenseRepository expenseRepository;
     private final InvestmentCategoryRepository investmentCategoryRepository;
+    private final CategoryRepository categoryRepository;
     private final InvestmentRepository investmentRepository;
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -87,5 +87,13 @@ public class DashboardServiceImpl implements DashboardService {
         LocalDate today = LocalDate.now();
         LocalDate after30Days = today.plusDays(30);
         return investmentRepository.findAllByUserIdAndEndDateBetween(userId, today, after30Days);
+    }
+
+    @Override
+    public List<ExpensesCategoryWithAmountDto> generateExpenseCategoriesWithAmount() {
+        UUID userId = userDetailsService.getRequestingUserId();
+        LocalDate today = LocalDate.now();
+        LocalDate after30Days = today.plusDays(30);
+        return categoryRepository.findExpensesGroupedByCategoryID(userId, today, after30Days);
     }
 }

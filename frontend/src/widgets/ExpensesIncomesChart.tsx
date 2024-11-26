@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -58,8 +58,19 @@ const ExpensesIncomesChart = () => {
               tickMargin={10}
               axisLine={false}
             />
+            <YAxis
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => {if (value >=  1000) {return (value/1000).toFixed(2)}; return value.toFixed(0)}}
+
+            />
             <ChartTooltip
               cursor={false}
+              formatter={(value, i: string, c: any) => { 
+                console.log(c);
+                return <div className="flex flex-row gap-2 items-center"><div className = 'w-2 h-2' style={{backgroundColor: c.fill, borderRadius: '0.1rem'}}/>{i.charAt(0).toUpperCase() + i.slice(1) + ": " + new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(Number(value))}</div>;
+              }}              
               content={<ChartTooltipContent indicator="dot" />}
             />
             <Bar dataKey="income"  fill="var(--color-desktop)" radius={2} />

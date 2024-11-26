@@ -22,7 +22,7 @@ const AddButton = () => {
             <AddExpenseModal isMainLayoutButton={isMainLayoutButton} isMainButton={true} />
         </>
     }
-    <Button variant={"outline"} className={`absolute z-50 bottom-6 right-6 rounded-full h-14 w-14 button-transition transition-transform ${isMainLayoutButton ? 'animate-add-button' : ''}`} onClick={() => {setisMainLayoutButton(prevState => !prevState)}}>
+    <Button variant={"outline"} className={`fixed z-50 bottom-6 right-6 rounded-full h-14 w-14 button-transition transition-transform ${isMainLayoutButton ? 'animate-add-button' : ''}`} onClick={() => {setisMainLayoutButton(prevState => !prevState)}}>
         <Plus className='w-full h-full' strokeWidth={3} />
     </Button>
     </>

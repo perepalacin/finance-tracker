@@ -119,3 +119,9 @@ export interface InvestmentCategoriesTopGraphDto {
     investmentCategoryId: string;
     amount: number;
 }
+
+export interface ExpensesCategoryWithAmountDto {
+    expenseCategoryId: string;
+    totalAmount: number;
+    monthlyAmount: number;
+}
