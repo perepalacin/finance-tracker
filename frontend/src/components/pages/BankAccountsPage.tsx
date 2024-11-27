@@ -27,6 +27,7 @@ import { BankAccountProps } from "@/types"
 import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants"
 import { Input } from "../ui/input"
 import AddBankAccountModal from "../modals/AddBankAccountModal"
+import DeleteBankAccountModal from "../modals/DeleteBankAccountModal"
 
 const bankAccountColumns: ColumnDef<BankAccountProps>[] = [
   {
@@ -254,10 +255,7 @@ const BankAccountsPage = () => {
           />
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
-          <Button variant={"secondary"}>
-            <Trash2 />
-            Delete account{table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
-          </Button>
+            <DeleteBankAccountModal rowsSelected={table.getSelectedRowModel().rows} />
           }
           <AddBankAccountModal resetBankAccountToEdit={() => table.resetRowSelection()} bankAccountToEdit={table.getSelectedRowModel().rows.length === 1 ? table.getSelectedRowModel().rows[0].original : undefined} variant="default" isMainButton={false} isMainLayoutButton={false}/>
         </div>

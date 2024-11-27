@@ -19,7 +19,7 @@ const IncomeSourcesChart = () => {
   const { incomeSourcesTopGraph, incomeSources, incomeAndExpensesChartData } = useUserData();
 
   const chartData: {categoryName: string, amount: number, fill: string}[] = [];
-  if (incomeSourcesTopGraph.length > 1) {
+  if (incomeSourcesTopGraph.length > 0) {
     incomeSourcesTopGraph.forEach((value, index) => {
       if (index < 4) {
         const incomeSource = incomeSources.find((source) => source.id === value.incomeSourceId);
@@ -63,7 +63,7 @@ const IncomeSourcesChart = () => {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Top 5 Income Sources</CardTitle>
+        <CardTitle>Top {chartData.length > 1 && chartData.length} Income Source{chartData.length>1 && "s"}</CardTitle>
         <CardDescription>{chartSubtitle}</CardDescription>
       </CardHeader>
       <CardContent>

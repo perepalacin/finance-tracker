@@ -156,7 +156,7 @@ const AddIncomeModal: React.FC<AddIncomeButtonProps> =({isMainLayoutButton, isMa
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-2' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`fixed bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-2' : 'transition-transform'}`}>
                     {INCOMES_EMOJI}
                   </Button>
                 :

@@ -55,7 +55,7 @@ const ExpensesIncomesChart = () => {
             <XAxis
               dataKey="period"
               tickLine={false}
-              tickMargin={10}
+              tickMargin={5}
               axisLine={false}
             />
             <YAxis

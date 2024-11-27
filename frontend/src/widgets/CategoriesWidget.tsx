@@ -43,7 +43,7 @@ const CategoriesWidget = () => {
 
         const api = new AdminApi();
         api.sendRequest("GET", "/api/v1/dashboard/category-expenses", {onSuccessFunction: onSuccessFetchExpensesByCategories})
-    }, [expenseCategories]);
+    }, [expenseCategories, bankAccounts]);
 
     return (
     <div className='grid grid-cols-1 lg:grid-cols-2 w-full gap-2'>

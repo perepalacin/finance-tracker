@@ -136,7 +136,7 @@ const AddExpenseModal: React.FC<AddExpenseButtonProps> =({isMainLayoutButton, is
     api.sendRequest("POST", "/api/v1/expenses", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
     }
   };
-  
+
   const deleteExpenseCategory = (categoryId: string) => {
     setIsLoading(true);
     const api = new AdminApi();
@@ -151,7 +151,7 @@ const AddExpenseModal: React.FC<AddExpenseButtonProps> =({isMainLayoutButton, is
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 { renderButton && (isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-1' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`fixed bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-1' : 'transition-transform'}`}>
                     {EXPENSES_EMOJI}
                   </Button>
                 :

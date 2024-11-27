@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { useUserData } from '@/context/UserDataContext'
 import { AdminApi } from '@/helpers/Api'
 import { BANK_ACCOUNTS_EMOJI } from '@/helpers/Constants'
 import { InvestmentProps } from '@/types'
@@ -10,6 +11,8 @@ import { useEffect, useState } from 'react'
 const InvestmentsAboutToExpireWidget = () => {
 
     const [investmentsAboutToExpire, setInvestmentsAboutToExpire] = useState<InvestmentProps[]>([]);
+
+    const {bankAccounts} = useUserData();
 
     useEffect(() => {
         const onSuccessFetchInvestments = (responseData: InvestmentProps[]) => {
@@ -22,7 +25,7 @@ const InvestmentsAboutToExpireWidget = () => {
         }
         const api = new AdminApi();
         api.sendRequest("GET", "/api/v1/dashboard/investments-to-expire", {onSuccessFunction: onSuccessFetchInvestments})
-    }, [])
+    }, [bankAccounts])
 
     return (
         <Card className='w-full'>
@@ -33,7 +36,7 @@ const InvestmentsAboutToExpireWidget = () => {
                 {investmentsAboutToExpire.length > 0 ? investmentsAboutToExpire.map((investment: InvestmentProps, index) => {
                     return (
                         <>
-                        <article className='flex flex-col items-start gap-2'>
+                        <article key={investment.id} className='flex flex-col items-start gap-2'>
                             <div className='flex flex-row w-full justify-between items-center gap-8'>
                                 <h1 className='text-xl font-semibold'>{investment.name}</h1>
                                 <p className='text-md'>{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(investment.amountInvested)}</p>

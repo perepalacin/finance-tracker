@@ -129,7 +129,7 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> =({isMainLayoutBut
               <DialogTrigger asChild>
                 {renderButton &&
                 ( isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-5' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`fixed bottom-6 right-6 rounded-full h-14 w-14 text-2xl button-transition ${isMainLayoutButton ? 'animate-nested-add-button-5' : 'transition-transform'}`}>
                     {BANK_ACCOUNTS_EMOJI}
                   </Button>
                 :

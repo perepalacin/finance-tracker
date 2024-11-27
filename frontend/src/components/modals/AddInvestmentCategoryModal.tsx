@@ -115,7 +115,7 @@ const AddInvestmentCategoryModal: React.FC<AddInvestmentCategoryModalProps> =({i
               <DialogTrigger asChild>
                 {renderButton && 
                 ( isMainButton ?
-                  <Button variant={"secondary"} className={`absolute bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
+                  <Button variant={"secondary"} className={`fixed bottom-6 right-6 rounded-full h-12 w-12 button-transition ${isMainLayoutButton ? 'animate-nested-add-button-4' : 'transition-transform'}`}>
                     {/* <IdCard width={15} height={15} /> */}
                     {String.fromCodePoint(0x1FAAA)}
                   </Button>

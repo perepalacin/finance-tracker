@@ -23,7 +23,7 @@ const InvestmentDiversificationGraph = () => {
   const totalAmountInvested = bankAccounts.reduce((acc, account) => acc + account.totalInvested, 0);
 
   const chartData: {categoryName: string, amount: number, fill: string}[] = [];
-  if (investmentCategoriesTopGraph.length > 1) {
+  if (investmentCategoriesTopGraph.length > 0) {
     investmentCategoriesTopGraph.forEach((value, index) => {
       if (index < 4) {
         const investmentCategory = investmentCategories.find((source) => source.id === value.investmentCategoryId);
@@ -68,7 +68,7 @@ const InvestmentDiversificationGraph = () => {
     <Card className="flex flex-col w-full">
       <CardHeader className="items-center pb-0">
         <CardTitle>Investment Portfolio</CardTitle>
-        <CardDescription>Your 5 biggest investment categories ({chartSubtitle})</CardDescription>
+        <CardDescription>Your {chartData.length > 1 && chartData.length} biggest investment categor{chartData.length > 1 ? "ies" : "y"} ({chartSubtitle})</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer

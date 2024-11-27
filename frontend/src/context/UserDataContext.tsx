@@ -52,7 +52,6 @@ export function UserDataProvider({
   ...props
 }: UserDataProviderProps) {
 
-
     const [investmentCategories, setInvestmentCategories] = useState<InvestmentCategoryProps[]>([]);
     const [bankAccounts, setBankAccounts] = useState<BankAccountProps[]>([]);
     const [incomeSources, setIncomeSources] = useState<IncomeSourceProps[]>([]);
@@ -118,12 +117,12 @@ export function UserDataProvider({
 
     const handleEventsThatEditBankAccounts = (event: CustomEvent) => {
       switch (event.type) {
-        case WindowEvents.ADD_EXPENSE:
-        case WindowEvents.EDIT_EXPENSE:
-        case WindowEvents.ADD_INCOME:
+        case WindowEvents.EDIT_EXPENSE:    
         case WindowEvents.EDIT_INCOME:
-        case WindowEvents.ADD_INVESTMENT:
-        case WindowEvents.EDIT_INVESTMENT:{
+        case WindowEvents.EDIT_INVESTMENT:
+        case WindowEvents.ADD_INCOME:
+        case WindowEvents.ADD_EXPENSE:
+        case WindowEvents.ADD_INVESTMENT: {
           setBankAccounts((prevAccounts) => prevAccounts.map((account) => {
             if (account.id === event.detail.data.bankAccountDto.id) {
               return event.detail.data.bankAccountDto;
@@ -186,9 +185,17 @@ export function UserDataProvider({
         removeEventListener(WindowEvents.EDIT_INVESTMENT, handleEvent);
         removeEventListener(WindowEvents.DELETE_INVESTMENT, handleEvent);
       }
-
-
     }, []);
+
+    useEffect(() => {
+      if (window && window?.location?.pathname === "/") {
+        const api = new AdminApi();
+        api.sendRequest("GET", "/api/v1/dashboard/incomes-expenses-graph", {onSuccessFunction: (responseData) => onSuccessFetchIncomeExpensesGraph(responseData)});
+        api.sendRequest("GET", "/api/v1/dashboard/income-sources-graph", {onSuccessFunction: (responseData) => setIncomeSourcesTopGraph(responseData)});
+        api.sendRequest("GET", "/api/v1/dashboard/investment-categories-graph", {onSuccessFunction: (responseData) => setInvestmentCategoriesTopGraph(responseData)})
+      }
+    }, [bankAccounts])
+
 
   const value = {
     investmentCategories,
