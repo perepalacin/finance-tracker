@@ -16,7 +16,7 @@ const InvestmentsPage = () => {
     orderBy: InvestmentSortByFields.START_DATE,
     ascending: false,
     searchInput: "",
-  });
+  }); 
 
   const requestNextPage = () => {
     setQueryParams({...queryParams, page: queryParams.page + 1});
@@ -49,7 +49,6 @@ const InvestmentsPage = () => {
     }
     const api = new AdminApi();
     api.sendRequest("GET", "/api/v1/investments?orderBy=" + queryParams.orderBy + "&pageSize=" + pageSize + "&page=" + page + "&ascending=" + queryParams.ascending + (queryParams.dateRange?.from ? '&fromDate=' + format(queryParams.dateRange.from, 'dd-MM-yyyy') : '') + (queryParams.dateRange?.to ? '&toDate=' + format(queryParams.dateRange.to, 'dd-MM-yyyy') : '') + (queryParams.searchInput ? '&searchInput=' + queryParams.searchInput : ''), {showToast : false, onSuccessFunction: (responseData) => onSuccessFetchInvestments(responseData)});
-  
   }
 
   useEffect(() => {

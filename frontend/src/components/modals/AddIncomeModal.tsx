@@ -173,9 +173,11 @@ const AddIncomeModal: React.FC<AddIncomeButtonProps> =({isMainLayoutButton, isMa
                 )}
             </DialogTrigger>
               </TooltipTrigger>
+              { isMainLayoutButton &&
               <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Income</p>
               </TooltipContent>
+              }
             </Tooltip>
           </TooltipProvider>
         <DialogContent className="w-1/2">

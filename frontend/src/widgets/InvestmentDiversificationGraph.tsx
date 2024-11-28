@@ -15,6 +15,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useUserData } from "@/context/UserDataContext"
+import AddInvestmentModal from "@/components/modals/AddInvestmentModal"
 
 const InvestmentDiversificationGraph = () => {
 
@@ -65,15 +66,16 @@ const InvestmentDiversificationGraph = () => {
   chartData.sort((a, b) => b.amount - a.amount);
 
   return (
-    <Card className="flex flex-col w-full">
-      <CardHeader className="items-center pb-0">
+    <Card className="flex flex-col w-full items-start">
+      <CardHeader className="items-center pb-0 text-left">
         <CardTitle>Investment Portfolio</CardTitle>
-        <CardDescription>Your {chartData.length > 1 && chartData.length} biggest investment categor{chartData.length > 1 ? "ies" : "y"} ({chartSubtitle})</CardDescription>
+        {chartData.length > 0 && <CardDescription>Your {chartData.length > 1 && chartData.length} biggest investment categor{chartData.length > 1 ? "ies" : "y"} ({chartSubtitle})</CardDescription>}
       </CardHeader>
       <CardContent className="flex-1 pb-0">
+        {chartData.length > 0 ?
         <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
+        config={chartConfig}
+        className="mx-auto aspect-square max-h-[250px]"
         >
           <PieChart>
             <ChartTooltip
@@ -82,39 +84,51 @@ const InvestmentDiversificationGraph = () => {
               }} 
               cursor={false} 
               content={<ChartTooltipContent />} 
-            />
+              />
             <Pie
               data={chartData}
               dataKey="amount"
               nameKey="categoryName"
               innerRadius={60}
               strokeWidth={5}
-            >
+              >
               <Label
                 content={({ viewBox }) => {
                   if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                     return (
                       <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
+                      x={viewBox.cx}
+                      y={viewBox.cy}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
                       >
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
                           className="fill-foreground text-lg font-bold"
-                        >
+                          >
                           {new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR"}).format(totalAmountInvested)}
                         </tspan>
                       </text>
                     )
                   }
                 }}
-              />
+                />
             </Pie>
           </PieChart>
         </ChartContainer>
+        :
+        <div className="w-full flex flex-col items-start justify-start gap-4 pt-8 pb-6">
+          <p>Nothing to see here...</p>
+          <div className="flex flex-row gap-2 w-full">
+            <AddInvestmentModal
+              variant="default"
+              isMainButton={false}
+              isMainLayoutButton={false}
+            />
+          </div>
+        </div>
+        }
       </CardContent>
     </Card>
   )

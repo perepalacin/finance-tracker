@@ -1,3 +1,4 @@
+import AddExpenseModal from '@/components/modals/AddExpenseModal';
 import { Card } from '@/components/ui/card';
 import { useUserData } from '@/context/UserDataContext'
 import { AdminApi } from '@/helpers/Api';
@@ -45,6 +46,30 @@ const CategoriesWidget = () => {
         api.sendRequest("GET", "/api/v1/dashboard/category-expenses", {onSuccessFunction: onSuccessFetchExpensesByCategories})
     }, [expenseCategories, bankAccounts]);
 
+    if (expensesByCategoriesDto.length === 0) {
+        return (
+            <div className='grid grid-cols-1 w-full gap-2'>
+                <Card className='p-4 flex flex-col gap-2 items-start justify-center w-full'>
+                <div className='flex flex-row justify-start gap-2'>
+                    <h1>Nothing to see here...</h1>
+                </div>
+                <div className='flex flex-col gap-2 w-full'>
+                    <div className='flex flex-col w-full justify-start items-start gap-4'>
+                        <p className='text-sm'>Create expenses to be able to see this widget</p>
+                        <div className='w-1/2'>
+                            <AddExpenseModal
+                                variant="default"
+                                isMainButton={false}
+                                isMainLayoutButton={false}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+        )
+    } 
+    
     return (
     <div className='grid grid-cols-1 lg:grid-cols-2 w-full gap-2'>
         {expensesByCategoriesDto.map((category: ExpenseCategoryWidgetDataProps) => 

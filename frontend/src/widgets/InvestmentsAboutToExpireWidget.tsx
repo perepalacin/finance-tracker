@@ -1,3 +1,4 @@
+import AddInvestmentModal from '@/components/modals/AddInvestmentModal'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -52,7 +53,17 @@ const InvestmentsAboutToExpireWidget = () => {
                         </>
                     )
                 }): 
-                <p>Nothing to see here...</p>}
+                <div className="w-full flex flex-col items-start justify-start gap-4">
+                <p>Nothing to see here...</p>
+                <div className="flex flex-row gap-2 w-3/5">
+                  <AddInvestmentModal
+                    variant="default"
+                    isMainButton={false}
+                    isMainLayoutButton={false}
+                  />
+                  </div>
+                </div>
+                }
             </CardContent>
         </Card>
     )

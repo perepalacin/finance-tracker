@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { InvestmentCategoryProps, InvestmentProps } from "@/types"
-import { BANK_ACCOUNTS_EMOJI } from "@/helpers/Constants"
+import { BANK_ACCOUNTS_EMOJI, WindowEvents } from "@/helpers/Constants"
 import AddInvestmentModal from "@/components/modals/AddInvestmentModal"
 import { Badge } from "@/components/ui/badge"
 import { AdminApi } from "@/helpers/Api"
@@ -203,8 +203,15 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data, hasNextPage, req
   const deleteInvestment = (investmentId: string) => {
     setIsLoading(true);
     const api = new AdminApi();
-    api.sendRequest("DELETE", "/api/v1/investments/" + investmentId, {showToast: true, successToastMessage: "Deleted investment", successToastTitle: "Success!", onSuccessFunction: (data) => console.log("DELETED WITH DATA", data)});
-    setIsLoading(false);
+    const handleSuccessApiCall = () => {
+      table.resetRowSelection();
+      const event = new CustomEvent(WindowEvents.DELETE_INVESTMENT, { detail: { data: investmentId } });
+      window.dispatchEvent(event);
+    }
+    const handleFinishApiCall = () => {
+      setIsLoading(false);
+    }
+    api.sendRequest("DELETE", "/api/v1/investments/" + investmentId, { showToast: true, successToastMessage: "Investment has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
   }
 
   const [rowSelection, setRowSelection] = React.useState({})

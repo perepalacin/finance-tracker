@@ -170,16 +170,20 @@ const AddInvestmentModal: React.FC<AddInvestmentModalProps> =({isMainLayoutButto
                 )}
             </DialogTrigger>
               </TooltipTrigger>
+              {isMainLayoutButton &&
               <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Investment</p>
               </TooltipContent>
+              }
             </Tooltip>
           </TooltipProvider>
         <DialogContent className="w-1/2">
           <DialogHeader>
-          <DialogTitle className="w-full">Add a new Investment</DialogTitle>
+          <DialogTitle className="w-full">{investmentToEdit ? "Edit investment" : "Add a new Investment"}</DialogTitle>
           <DialogDescription>
-            Add a new investment to keep track of it
+            {!investmentToEdit &&
+            "Add a new investment to keep track of it"
+            }
           </DialogDescription>
         </DialogHeader>
         <Form {...form} >
@@ -358,7 +362,7 @@ const AddInvestmentModal: React.FC<AddInvestmentModalProps> =({isMainLayoutButto
             />
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Add Investment"}
+                {isLoading ? investmentToEdit ? "Updating..." : "Creating..." : investmentToEdit ? "Edit Investment" : "Add Investment"}
               </Button>
             </DialogFooter>
           </form>

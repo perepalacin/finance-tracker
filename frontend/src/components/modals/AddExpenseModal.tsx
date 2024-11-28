@@ -168,9 +168,11 @@ const AddExpenseModal: React.FC<AddExpenseButtonProps> =({isMainLayoutButton, is
                 )}
             </DialogTrigger>
               </TooltipTrigger>
+              {isMainLayoutButton &&
               <TooltipContent className="px-2 py-1 rounded-md mb-2">
                 <p>Add an Expense</p>
               </TooltipContent>
+              }
             </Tooltip>
           </TooltipProvider>
         <DialogContent className="w-1/2">

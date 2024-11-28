@@ -13,6 +13,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useUserData } from "@/context/UserDataContext"
+import AddIncomeModal from "@/components/modals/AddIncomeModal"
 
 const IncomeSourcesChart = () => {
 
@@ -67,6 +68,7 @@ const IncomeSourcesChart = () => {
         <CardDescription>{chartSubtitle}</CardDescription>
       </CardHeader>
       <CardContent>
+        {chartData.length > 0 ?
         <ChartContainer config={chartConfig}>
           <BarChart
             accessibilityLayer
@@ -75,7 +77,7 @@ const IncomeSourcesChart = () => {
             margin={{
               left: 0,
             }}
-          >
+            >
             <YAxis
               dataKey="categoryName"
               type="category"
@@ -86,7 +88,7 @@ const IncomeSourcesChart = () => {
               tickFormatter={(value) =>
                 chartConfig[value as keyof typeof chartConfig]?.label
               }
-            />
+              />
             <XAxis dataKey="amount" type="number" hide />
             <ChartTooltip
               formatter={(value, i: string, c: any) => { 
@@ -94,10 +96,22 @@ const IncomeSourcesChart = () => {
               }} 
               cursor={false} 
               content={<ChartTooltipContent />} 
-            />
+              />
             <Bar dataKey="amount" layout="vertical" radius={5} />
           </BarChart>
         </ChartContainer>
+        :
+        <div className="w-full flex flex-col items-start justify-start gap-4">
+        <p>Nothing to see here...</p>
+        <div className="flex flex-row gap-2 w-3/5">
+          <AddIncomeModal
+            variant="default"
+            isMainButton={false}
+            isMainLayoutButton={false}
+          />
+          </div>
+        </div>
+        }
       </CardContent>
     </Card>
   )

@@ -5,12 +5,12 @@ const NetworthWidget = () => {
 
     const {bankAccounts, incomeAndExpensesChartData} = useUserData();
 
-    const totalBalance = bankAccounts.reduce((acc, account) => acc + account.currentBalance + account.totalInvested, 0);
-    const liquidity = bankAccounts.reduce((acc, account) => acc + account.currentBalance, 0);
-    const initialAmount = bankAccounts.reduce((acc, account) => acc + account.initialAmount, 0);
-    const averageIncome = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.income, 0) / incomeAndExpensesChartData.length);
-    const averageExpense = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.expense, 0) / incomeAndExpensesChartData.length);
-    const amountInvested = bankAccounts.reduce((acc, account) => acc + account.totalInvested, 0);
+    const totalBalance = bankAccounts.reduce((acc, account) => acc + account.currentBalance + account.totalInvested, 0) ?? 0;
+    const liquidity = bankAccounts.reduce((acc, account) => acc + account.currentBalance, 0) ?? 0;
+    const initialAmount = bankAccounts.reduce((acc, account) => acc + account.initialAmount, 0) ?? '';
+    const averageIncome = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.income, 0) / incomeAndExpensesChartData.length) || 0;
+    const averageExpense = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.expense, 0) / incomeAndExpensesChartData.length) || 0;
+    const amountInvested = bankAccounts.reduce((acc, account) => acc + account.totalInvested, 0) ?? 0;
     // const totalIncomes = bankAccounts.reduce((acc, account) => acc + account.totalIncome, 0);
     return (
         <Card className='w-full'>

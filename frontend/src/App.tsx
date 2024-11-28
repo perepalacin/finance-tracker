@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, useNavigate } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import SignUpForm from './components/auth/SignUpForm';
 import Home from './components/pages/Home';
 import ErrorPage from './components/pages/error-page';
@@ -7,7 +7,6 @@ import TransfersPage from './components/pages/TransfersPage';
 import InvestmentsPage from './components/pages/InvestmentsPage';
 import IncomesPage from './components/pages/IncomesPage';
 import ExpensesPage from './components/pages/ExpensesPage';
-import { useEffect } from 'react';
 import Dashboard from './components/pages/Dashboard';
 
 function App() {
@@ -53,8 +52,6 @@ function App() {
       element: <SignUpForm />
     }
   ]);
-
-  // const {authUser} = useAuthContext();
 
   return (
     <div>
