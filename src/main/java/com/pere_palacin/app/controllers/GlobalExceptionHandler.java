@@ -117,4 +117,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(BatchDeleteRequestToLargeException.class)
+    public ResponseEntity<CustomErrorResponse> handleTooLargeBatchRequest (BatchDeleteRequestToLargeException ex) {
+        CustomErrorResponse errorResponse = new CustomErrorResponse(BAD_REQUEST.value(), ex.getMessage());
+        return ResponseEntity.status(BAD_REQUEST).body(errorResponse);
+    }
+
 }

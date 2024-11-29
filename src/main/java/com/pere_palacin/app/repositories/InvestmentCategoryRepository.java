@@ -1,6 +1,5 @@
 package com.pere_palacin.app.repositories;
 
-import com.pere_palacin.app.domains.IncomeSourceDao;
 import com.pere_palacin.app.domains.InvestmentCategoryDao;
 import com.pere_palacin.app.domains.dto.InvestmentCategoriesWithAmountDto;
 import org.springframework.data.jpa.repository.JpaRepository;

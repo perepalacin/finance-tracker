@@ -1,6 +1,7 @@
 package com.pere_palacin.app.controllers;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -58,15 +59,20 @@ public class ExpenseController {
     @PutMapping("/{id}")
     public ResponseEntity<ExpenseDto> editExpense(@Valid @RequestBody ExpenseDto expenseDto, @PathVariable UUID id) {
         ExpenseDao expenseDao = expenseMapper.mapFrom(expenseDto);
-//       //TODO: category ids are missing!
         ExpenseDao updatedExpenseDao = expenseService.updateExpense(id, expenseDao, expenseDto.getBankAccountId());
         ExpenseDto updatedExpenseDto = expenseMapper.mapTo(updatedExpenseDao);
         return new ResponseEntity<>(updatedExpenseDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ExpenseDto> deleteCategory (@PathVariable UUID id) {
+    public ResponseEntity<ExpenseDto> deleteExpense (@PathVariable UUID id) {
         expenseService.deleteExpense(id);
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<ExpenseDto> deleteExpensesInBatch(@RequestBody Set<UUID> expensesId) {
+        expenseService.deleteInBatch(expensesId);
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 }

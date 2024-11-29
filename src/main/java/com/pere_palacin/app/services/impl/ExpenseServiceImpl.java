@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.pere_palacin.app.exceptions.BatchDeleteRequestToLargeException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -150,5 +151,16 @@ public class ExpenseServiceImpl implements ExpenseService {
         BankAccountDao bankAccountDao = bankAccountService.findById(expenseToDelete.getBankAccount().getId());
         bankAccountService.deleteAssociatedExpense(bankAccountDao, expenseToDelete.getAmount());
         expenseRepository.delete(expenseToDelete);
+    }
+
+    @Transactional
+    @Override
+    public void deleteInBatch(Set<UUID> expensesId) {
+        if (expensesId.size() > 20) {
+            throw new BatchDeleteRequestToLargeException();
+        }
+        UUID userId = userDetailsService.getRequestingUserId();
+        List<ExpenseDao> expenseDaos = expensesId.stream().map((id) -> ExpenseDao.builder().id(id).build()).toList();
+        expenseRepository.deleteByIdInAndUserId(expensesId.stream().toList(), userId);
     }
 }

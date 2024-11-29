@@ -10,7 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Trash2 } from "lucide-react";
+import { Apple, ToyBrick, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -139,18 +139,34 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, ha
   );
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const deleteExpense = (expenseId: string) => {
+  const deleteExpense = () => {
     setIsLoading(true);
     const api = new AdminApi();
-    const handleSuccessApiCall = () => {
-      table.resetRowSelection();
-      const event = new CustomEvent(WindowEvents.DELETE_EXPENSE, { detail: { data: expenseId } });
-      window.dispatchEvent(event);
+    if (table.getSelectedRowModel().rows.length === 1) {
+      const expenseId = table.getSelectedRowModel().rows[0].original.id;
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_EXPENSE, { detail: { data: expenseId } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      api.sendRequest("DELETE", "/api/v1/expenses/" + expenseId, { showToast: true, successToastMessage: "Expense has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
+    } else {
+      const body = table.getSelectedRowModel().rows.map((expense) => expense.original.id);
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_EXPENSE, { detail: { data: [] } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      console.log(body); //Post because delete doesn't accept a body
+      api.sendRequest("POST", "/api/v1/expenses/batch", {body: body, showToast: true, successToastMessage: "Expense has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
+      
     }
-    const handleFinishApiCall = () => {
-      setIsLoading(false);
-    }
-    api.sendRequest("DELETE", "/api/v1/expenses/" + expenseId, { showToast: true, successToastMessage: "Expense has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
   }
 
   const [rowSelection, setRowSelection] = React.useState({});
@@ -181,13 +197,11 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, ha
     <div className="w-[95%]">
       <div className="flex items-center justify-between px-1 py-4">
         <div className="flex flex-row gap-2">
-          {table.getSelectedRowModel().rows.length > 0 && (
+          {table.getSelectedRowModel().rows.length > 0 && table.getSelectedRowModel().rows.length < 21 && (
             <Button
               disabled={isLoading}
               variant={"secondary"}
-              onClick={() => {
-                deleteExpense(table.getSelectedRowModel().rows[0].original.id);
-              }}
+              onClick={deleteExpense}
             >
               <Trash2 />
               Delete expense

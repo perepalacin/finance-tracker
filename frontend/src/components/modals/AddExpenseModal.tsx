@@ -128,6 +128,7 @@ const AddExpenseModal: React.FC<AddExpenseButtonProps> =({isMainLayoutButton, is
       if (resetExpenseToEdit) {
         resetExpenseToEdit();
       }
+      form.reset();
     }
 
     if (expenseToEdit) {

@@ -1,6 +1,7 @@
 package com.pere_palacin.app.services;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.pere_palacin.app.domains.ExpenseDao;
@@ -12,4 +13,5 @@ public interface ExpenseService {
     ExpenseDao registerExpense(ExpenseDao expenseDao, UUID bankAccountId);
     ExpenseDao updateExpense(UUID id, ExpenseDao expenseDao, UUID bankAccountId);
     void deleteExpense(UUID id);
+    void deleteInBatch(Set<UUID> expensesId);
 }
