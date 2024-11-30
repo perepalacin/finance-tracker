@@ -1,6 +1,7 @@
 package com.pere_palacin.app.controllers;
 
 import com.pere_palacin.app.domains.InvestmentDao;
+import com.pere_palacin.app.domains.dto.IncomeDto;
 import com.pere_palacin.app.domains.dto.InvestmentDto;
 import com.pere_palacin.app.domains.sortBys.IncomeSortBy;
 import com.pere_palacin.app.domains.sortBys.InvestmentSortBy;
@@ -9,10 +10,12 @@ import com.pere_palacin.app.services.InvestmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.*;
@@ -60,5 +63,11 @@ public class InvestmentController {
     public ResponseEntity<InvestmentDto> deleteInvestment (@PathVariable UUID id) {
         investmentService.deleteInvestment(id);
     return new ResponseEntity<>(null, NO_CONTENT);
+    }
+
+    @PostMapping("/delete-batch")
+    public ResponseEntity<InvestmentDto> deleteInvestmentInBatch(@RequestBody Set<UUID> investmentsId) {
+        investmentService.deleteInBatch(investmentsId);
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 }

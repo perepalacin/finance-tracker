@@ -1,11 +1,15 @@
 package com.pere_palacin.app.controllers;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
+
+import com.pere_palacin.app.domains.dto.IncomeDto;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,6 +73,12 @@ public class TransferController {
     public ResponseEntity<TransferDto> deleteTransfer(@PathVariable UUID id) {
         transferService.deleteTransfer(id);
         return new ResponseEntity<>(null, NO_CONTENT);
+    }
+
+    @PostMapping("/delete-batch")
+    public ResponseEntity<IncomeDto> deleteExpensesInBatch(@RequestBody Set<UUID> transfersId) {
+        transferService.deleteInBatch(transfersId);
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
 }

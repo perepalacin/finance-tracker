@@ -156,11 +156,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Transactional
     @Override
     public void deleteInBatch(Set<UUID> expensesId) {
-        if (expensesId.size() > 20) {
+        if (expensesId.size() > 60) {
             throw new BatchDeleteRequestToLargeException();
         }
         UUID userId = userDetailsService.getRequestingUserId();
-        List<ExpenseDao> expenseDaos = expensesId.stream().map((id) -> ExpenseDao.builder().id(id).build()).toList();
         expenseRepository.deleteByIdInAndUserId(expensesId.stream().toList(), userId);
     }
 }

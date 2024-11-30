@@ -2,10 +2,7 @@ package com.pere_palacin.app.services.impl;
 
 import com.pere_palacin.app.domains.*;
 import com.pere_palacin.app.domains.sortBys.TransferSortBy;
-import com.pere_palacin.app.exceptions.ExpenseNotFoundException;
-import com.pere_palacin.app.exceptions.IncomeNotFoundException;
-import com.pere_palacin.app.exceptions.TransferNotFoundException;
-import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
+import com.pere_palacin.app.exceptions.*;
 import com.pere_palacin.app.repositories.TransferRepository;
 import com.pere_palacin.app.repositories.UserRepository;
 import com.pere_palacin.app.services.AuthService;
@@ -24,6 +21,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -117,5 +115,15 @@ public class TransferServiceImpl implements TransferService {
         BankAccountDao sendingBankAccount = bankAccountService.findById(transferToDelete.getSendingAccount().getId());
         bankAccountService.deleteTransfer(receivingBankAccount, sendingBankAccount, transferToDelete.getAmount());
         transferRepository.delete(transferToDelete);
+    }
+
+    @Transactional
+    @Override
+    public void deleteInBatch(Set<UUID> transfersId) {
+        if (transfersId.size() > 60) {
+            throw new BatchDeleteRequestToLargeException();
+        }
+        UUID userId = userDetailsService.getRequestingUserId();
+        transferRepository.deleteByIdInAndUserId(transfersId.stream().toList(), userId);
     }
 }

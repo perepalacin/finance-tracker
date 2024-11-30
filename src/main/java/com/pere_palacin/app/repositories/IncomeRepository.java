@@ -32,4 +32,5 @@ public interface IncomeRepository extends JpaRepository<IncomeDao, UUID> {
             "FROM IncomeDao i WHERE i.user.id = :userId " +
             "GROUP BY i.incomeSourceDao.id")
     List<IncomeSourceWithAmountDto> findIncomesByCategories(UUID userId);
+    void deleteByIdInAndUserId(List<UUID> ids, UUID userId);
 }

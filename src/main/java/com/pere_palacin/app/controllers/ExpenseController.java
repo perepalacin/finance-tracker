@@ -70,7 +70,7 @@ public class ExpenseController {
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/batch")
+    @PostMapping("/delete-batch")
     public ResponseEntity<ExpenseDto> deleteExpensesInBatch(@RequestBody Set<UUID> expensesId) {
         expenseService.deleteInBatch(expensesId);
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);

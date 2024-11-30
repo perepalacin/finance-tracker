@@ -4,6 +4,3 @@
 
 # Frontend:
 - Fix empty dashboard on init bug
-- Add multiple deletes feature -> Done for expenses
-    - Allow Delete method to send body
-    - Replicate for all tables

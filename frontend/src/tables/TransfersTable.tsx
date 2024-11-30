@@ -27,6 +27,7 @@ import { TransferProps } from "@/types"
 import AddTransferModal from "@/components/modals/AddTransferModal"
 import { BANK_ACCOUNTS_EMOJI, WindowEvents } from "@/helpers/Constants"
 import { AdminApi } from "@/helpers/Api"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 const transferColumns: ColumnDef<TransferProps>[] = [
   {
@@ -186,18 +187,32 @@ const TransferTable:React.FC<TransferTableProps> = ({data, requestNextPage, hasN
   );
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const deleteTransfer = (transferId: string) => {
+  const deleteTransfer = () => {
     setIsLoading(true);
     const api = new AdminApi();
-    const handleSuccessApiCall = () => {
-      table.resetRowSelection();
-      const event = new CustomEvent(WindowEvents.DELETE_TANSFER, { detail: { data: transferId } });
-      window.dispatchEvent(event);
+    if (table.getSelectedRowModel().rows.length === 1) {
+      const transferId = table.getSelectedRowModel().rows[0].original.id;
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_TANSFER, { detail: { data: transferId } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      api.sendRequest("DELETE", "/api/v1/transfers/" + transferId, { showToast: true, successToastMessage: "Transfer has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
+    } else {
+      const body = table.getSelectedRowModel().rows.map((transfer) => transfer.original.id);
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_TANSFER, { detail: { data: [] } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      api.sendRequest("POST", "/api/v1/transfers/delete-batch", {body: body, showToast: true, successToastMessage: "All selected transfers have been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
     }
-    const handleFinishApiCall = () => {
-      setIsLoading(false);
-    }
-    api.sendRequest("DELETE", "/api/v1/transfers/" + transferId, { showToast: true, successToastMessage: "Transfer has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
   }
 
   const [rowSelection, setRowSelection] = React.useState({})
@@ -229,10 +244,30 @@ const TransferTable:React.FC<TransferTableProps> = ({data, requestNextPage, hasN
       <div className="flex items-center justify-between px-1 py-4">
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
-          <Button disabled = {isLoading} variant={"secondary"} onClick={() => {deleteTransfer(table.getSelectedRowModel().rows[0].original.id)}}>
-            <Trash2 />
-            Delete transfer{table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                disabled={isLoading}
+                variant={"secondary"}
+              >
+                <Trash2 />
+                Delete income
+                {table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. Please proceed with caution.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={deleteTransfer}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           }
           <AddTransferModal variant="default" isMainButton={false} isMainLayoutButton={false} resetTransferToEdit={() => table.resetRowSelection()} transferToEdit={table.getSelectedRowModel().rows.length === 1 ? table.getSelectedRowModel().rows[0].original : undefined}/>
         </div>

@@ -6,6 +6,7 @@ import com.pere_palacin.app.exceptions.ImproperInvestmentDatesExpection;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface InvestmentService {
@@ -15,4 +16,6 @@ public interface InvestmentService {
     InvestmentDao updateInvestment(UUID id, InvestmentDao investmentDao, UUID bankAccountId);
     void deleteInvestment(UUID id);
     void verifyInvestmentDates(LocalDate startDate, LocalDate endDate) throws ImproperInvestmentDatesExpection;
+    void deleteInBatch(Set<UUID> investmentsId);
+
 }

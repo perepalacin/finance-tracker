@@ -4,6 +4,7 @@ import com.pere_palacin.app.domains.IncomeDao;
 import com.pere_palacin.app.domains.sortBys.IncomeSortBy;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface IncomeService {
@@ -12,4 +13,5 @@ public interface IncomeService {
     IncomeDao registerIncome(IncomeDao incomeDao, UUID incomeSourceId, UUID bankAccountId);
     IncomeDao updateIncome(UUID id, IncomeDao incomeDao, UUID incomeSourceId, UUID bankAccountId);
     void deleteIncome(UUID id);
+    void deleteInBatch(Set<UUID> incomesId);
 }

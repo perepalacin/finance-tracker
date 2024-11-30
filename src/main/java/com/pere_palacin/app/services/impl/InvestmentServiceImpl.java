@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.pere_palacin.app.exceptions.BatchDeleteRequestToLargeException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -160,6 +161,16 @@ public class InvestmentServiceImpl implements InvestmentService {
         if (startDate.isAfter(endDate)) {
             throw new ImproperInvestmentDatesExpection();
         }
+    }
+
+    @Transactional
+    @Override
+    public void deleteInBatch(Set<UUID> investmentsId) {
+        if (investmentsId.size() > 60) {
+            throw new BatchDeleteRequestToLargeException();
+        }
+        UUID userId = userDetailsService.getRequestingUserId();
+        investmentRepository.deleteByIdInAndUserId(investmentsId.stream().toList(), userId);
     }
 }
 

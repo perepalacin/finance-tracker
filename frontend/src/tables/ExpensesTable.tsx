@@ -10,7 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Apple, ToyBrick, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +27,7 @@ import { BANK_ACCOUNTS_EMOJI, WindowEvents } from "@/helpers/Constants";
 import { Badge } from "@/components/ui/badge";
 import AddExpenseModal from "@/components/modals/AddExpenseModal";
 import { AdminApi } from "@/helpers/Api";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const expenseColumns: ColumnDef<ExpenseProps>[] = [
   {
@@ -163,9 +164,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, ha
       const handleFinishApiCall = () => {
         setIsLoading(false);
       }
-      console.log(body); //Post because delete doesn't accept a body
-      api.sendRequest("POST", "/api/v1/expenses/batch", {body: body, showToast: true, successToastMessage: "Expense has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
-      
+      api.sendRequest("POST", "/api/v1/expenses/delete-batch", {body: body, showToast: true, successToastMessage: "All selected expenses have been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
     }
   }
 
@@ -197,16 +196,31 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({ data, requestNextPage, ha
     <div className="w-[95%]">
       <div className="flex items-center justify-between px-1 py-4">
         <div className="flex flex-row gap-2">
-          {table.getSelectedRowModel().rows.length > 0 && table.getSelectedRowModel().rows.length < 21 && (
-            <Button
-              disabled={isLoading}
-              variant={"secondary"}
-              onClick={deleteExpense}
-            >
-              <Trash2 />
-              Delete expense
-              {table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
-            </Button>
+          {table.getSelectedRowModel().rows.length > 0 && table.getSelectedRowModel().rows.length < 60 && (
+                  <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      disabled={isLoading}
+                      variant={"secondary"}
+                    >
+                      <Trash2 />
+                      Delete expense
+                      {table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. Please proceed with caution.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={deleteExpense}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
           )}
           <AddExpenseModal
             variant="default"

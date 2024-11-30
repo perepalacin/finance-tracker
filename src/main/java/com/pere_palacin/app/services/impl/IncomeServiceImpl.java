@@ -4,9 +4,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
+import com.pere_palacin.app.domains.*;
 import com.pere_palacin.app.domains.sortBys.IncomeSortBy;
+import com.pere_palacin.app.exceptions.BatchDeleteRequestToLargeException;
 import com.pere_palacin.app.services.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,16 +18,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.pere_palacin.app.domains.BankAccountDao;
-import com.pere_palacin.app.domains.IncomeDao;
-import com.pere_palacin.app.domains.IncomeSourceDao;
-import com.pere_palacin.app.domains.UserDao;
 import com.pere_palacin.app.exceptions.IncomeNotFoundException;
 import com.pere_palacin.app.exceptions.UnauthorizedRequestException;
 import com.pere_palacin.app.repositories.IncomeRepository;
 import com.pere_palacin.app.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -108,5 +108,15 @@ public class IncomeServiceImpl implements IncomeService {
         BankAccountDao bankAccountDao = bankAccountService.findById(incomeToDelete.getBankAccount().getId());
         bankAccountService.deleteAssociatedIncome(bankAccountDao, incomeToDelete.getAmount());
         incomeRepository.delete(incomeToDelete);
+    }
+
+    @Transactional
+    @Override
+    public void deleteInBatch(Set<UUID> incomesId) {
+        if (incomesId.size() > 60) {
+            throw new BatchDeleteRequestToLargeException();
+        }
+        UUID userId = userDetailsService.getRequestingUserId();
+        incomeRepository.deleteByIdInAndUserId(incomesId.stream().toList(), userId);
     }
 }

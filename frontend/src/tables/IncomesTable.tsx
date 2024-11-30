@@ -27,6 +27,7 @@ import { BANK_ACCOUNTS_EMOJI, WindowEvents } from "@/helpers/Constants"
 import { Badge } from "@/components/ui/badge"
 import AddIncomeModal from "@/components/modals/AddIncomeModal"
 import { AdminApi } from "@/helpers/Api"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 const incomeColumns: ColumnDef<IncomeProps>[] = [
   {
@@ -138,18 +139,32 @@ const IncomesTable:React.FC<IncomeTableProps> = ({data, requestNextPage, hasNext
   );
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const deleteIncome = (incomeId: string) => {
+  const deleteIncome = () => {
     setIsLoading(true);
     const api = new AdminApi();
-    const handleSuccessApiCall = () => {
-      table.resetRowSelection();
-      const event = new CustomEvent(WindowEvents.DELETE_INCOME, { detail: { data: incomeId } });
-      window.dispatchEvent(event);
+    if (table.getSelectedRowModel().rows.length === 1) {
+      const incomeId = table.getSelectedRowModel().rows[0].original.id;
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_INCOME, { detail: { data: incomeId } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      api.sendRequest("DELETE", "/api/v1/incomes/" + incomeId, { showToast: true, successToastMessage: "Income has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
+    } else {
+      const body = table.getSelectedRowModel().rows.map((income) => income.original.id);
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_INCOME, { detail: { data: [] } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      api.sendRequest("POST", "/api/v1/incomes/delete-batch", {body: body, showToast: true, successToastMessage: "All selected incomes have been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
     }
-    const handleFinishApiCall = () => {
-      setIsLoading(false);
-    }
-    api.sendRequest("DELETE", "/api/v1/incomes/" + incomeId, { showToast: true, successToastMessage: "Income has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
   }
 
   const [rowSelection, setRowSelection] = React.useState({})
@@ -181,10 +196,30 @@ const IncomesTable:React.FC<IncomeTableProps> = ({data, requestNextPage, hasNext
       <div className="flex items-center justify-between px-1 py-4">
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
-          <Button disabled = {isLoading} variant={"secondary"} onClick={() => {deleteIncome(table.getSelectedRowModel().rows[0].original.id)}}>
-            <Trash2 />
-            Delete income{table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
-          </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={isLoading}
+                  variant={"secondary"}
+                >
+                  <Trash2 />
+                  Delete income
+                  {table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. Please proceed with caution.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteIncome}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           }
           <AddIncomeModal variant="default" isMainButton={false} isMainLayoutButton={false} resetIncomeToEdit={() => table.resetRowSelection()} incomeToEdit={table.getSelectedRowModel().rows.length === 1 ? table.getSelectedRowModel().rows[0].original : undefined}/>
         </div>

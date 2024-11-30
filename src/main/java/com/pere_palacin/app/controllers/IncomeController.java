@@ -7,10 +7,12 @@ import com.pere_palacin.app.mappers.impl.IncomeMapper;
 import com.pere_palacin.app.services.IncomeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.*;
@@ -57,5 +59,11 @@ public class IncomeController {
     public ResponseEntity<IncomeDto> deleteIncome (@PathVariable UUID id) {
         incomeService.deleteIncome(id);
         return new ResponseEntity<>(null, NO_CONTENT);
+    }
+
+    @PostMapping("/delete-batch")
+    public ResponseEntity<IncomeDto> deleteIncomesInBatch(@RequestBody Set<UUID> incomesId) {
+        incomeService.deleteInBatch(incomesId);
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 }

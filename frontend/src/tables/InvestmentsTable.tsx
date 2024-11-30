@@ -27,6 +27,7 @@ import { BANK_ACCOUNTS_EMOJI, WindowEvents } from "@/helpers/Constants"
 import AddInvestmentModal from "@/components/modals/AddInvestmentModal"
 import { Badge } from "@/components/ui/badge"
 import { AdminApi } from "@/helpers/Api"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 const investmentColumns: ColumnDef<InvestmentProps>[] = [
   {
@@ -200,18 +201,32 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data, hasNextPage, req
   );
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const deleteInvestment = (investmentId: string) => {
+  const deleteInvestment = () => {
     setIsLoading(true);
     const api = new AdminApi();
-    const handleSuccessApiCall = () => {
-      table.resetRowSelection();
-      const event = new CustomEvent(WindowEvents.DELETE_INVESTMENT, { detail: { data: investmentId } });
-      window.dispatchEvent(event);
+    if (table.getSelectedRowModel().rows.length === 1) {
+      const investmentId = table.getSelectedRowModel().rows[0].original.id;
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_INVESTMENT, { detail: { data: investmentId } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      api.sendRequest("DELETE", "/api/v1/investments/" + investmentId, { showToast: true, successToastMessage: "Investment has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
+    } else {
+      const body = table.getSelectedRowModel().rows.map((investment) => investment.original.id);
+      const handleSuccessApiCall = () => {
+        table.resetRowSelection();
+        const event = new CustomEvent(WindowEvents.DELETE_INVESTMENT, { detail: { data: [] } });
+        window.dispatchEvent(event);
+      }
+      const handleFinishApiCall = () => {
+        setIsLoading(false);
+      }
+      api.sendRequest("POST", "/api/v1/investments/delete-batch", {body: body, showToast: true, successToastMessage: "All selected investments have been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
     }
-    const handleFinishApiCall = () => {
-      setIsLoading(false);
-    }
-    api.sendRequest("DELETE", "/api/v1/investments/" + investmentId, { showToast: true, successToastMessage: "Investment has been deleted succesfully!", successToastTitle: "Deleted", onSuccessFunction: () => handleSuccessApiCall(), onFinishFunction: handleFinishApiCall})
   }
 
   const [rowSelection, setRowSelection] = React.useState({})
@@ -243,10 +258,30 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data, hasNextPage, req
       <div className="flex items-center justify-between px-1 py-4">
         <div className="flex flex-row gap-2">
           {table.getSelectedRowModel().rows.length > 0 &&
-          <Button disabled = {isLoading} variant={"secondary"} onClick={() => {deleteInvestment(table.getSelectedRowModel().rows[0].original.id)}}>
-            <Trash2 />
-            Delete investment{table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
-          </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={isLoading}
+                  variant={"secondary"}
+                >
+                  <Trash2 />
+                  Delete income
+                  {table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. Please proceed with caution.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteInvestment}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           }
           <AddInvestmentModal variant="default" isMainButton={false} isMainLayoutButton={false} 
           resetInvestmentToEdit={() => table.resetRowSelection()} investmentToEdit={table.getSelectedRowModel().rows.length === 1 ? table.getSelectedRowModel().rows[0].original : undefined}
