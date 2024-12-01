@@ -227,6 +227,9 @@ export const MultiSelect = React.forwardRef<
                 <div className="flex flex-wrap items-center gap-2">
                   {selectedValues.slice(0, maxCount).map((value) => {
                     const option = options.find((o) => o.value === value);
+                    if (!option) {
+                      return null;
+                    }
                     const IconComponent = option?.icon;
                     let emoji;
                     if (option?.emoji) {

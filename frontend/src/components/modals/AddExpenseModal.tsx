@@ -141,7 +141,15 @@ const AddExpenseModal: React.FC<AddExpenseButtonProps> =({isMainLayoutButton, is
   const deleteExpenseCategory = (categoryId: string) => {
     setIsLoading(true);
     const api = new AdminApi();
-    api.sendRequest("DELETE", "/api/v1/categories" + categoryId, {showToast: true, successToastTitle: "Success", successToastMessage: "Expense category deleted succesfully", onSuccessFunction: () => setExpenseCategories([...expenseCategories].filter((category) => category.id === categoryId))});
+    const onSuccessDeleteCategory = () => {
+      setExpenseCategories([...expenseCategories].filter((category) => category.id !== categoryId));
+      const selectedCategories = form.getValues("expenseCategories") || [];
+      const updatedSelectedCategories = selectedCategories.filter(
+        (id: string) => id !== categoryId
+      );
+      form.setValue("expenseCategories", updatedSelectedCategories);
+    }
+    api.sendRequest("DELETE", "/api/v1/categories/" + categoryId, {showToast: true, successToastTitle: "Success", successToastMessage: "Expense category deleted succesfully", onSuccessFunction: onSuccessDeleteCategory});
     setIsLoading(false);
   };
 

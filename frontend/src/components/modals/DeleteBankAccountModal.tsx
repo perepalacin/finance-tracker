@@ -23,9 +23,7 @@ const DeleteBankAccountModal:React.FC<DeleteBankAccountModalProps> = ({rowsSelec
 
     const handleDeleteBankAccount = () => {
         const api = new AdminApi();
-        if (rowsSelected.length > 1) {
-            console.log("array delete");
-        } else {
+        if (rowsSelected.length === 1) {
             api.sendRequest(("DELETE"), `/api/v1/accounts/${rowsSelected[0].original.id}`);
         }
     }

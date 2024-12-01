@@ -3,6 +3,7 @@ package com.pere_palacin.app.services.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.pere_palacin.app.domains.ExpenseDao;
 import com.pere_palacin.app.exceptions.CategoryNotFoundException;
 import com.pere_palacin.app.repositories.CategoryRepository;
 import com.pere_palacin.app.services.AuthService;
@@ -76,6 +77,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(UUID id) {
         CategoryDao categoryDao = this.findById(id);
+        for (ExpenseDao expense : categoryDao.getExpensesAssociated()) {
+            expense.getExpenseCategories().remove(categoryDao);
+        }
+        categoryDao.getExpensesAssociated().clear();
         categoryRepository.delete(categoryDao);
     }
 }

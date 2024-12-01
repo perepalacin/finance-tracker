@@ -88,6 +88,7 @@ const ExpensesPage = () => {
           case WindowEvents.EDIT_EXPENSE: 
           case WindowEvents.DELETE_EXPENSE: 
             fetchExpenses(true, 0, (queryParams.page+1)*queryParams.pageSize);
+            setHasNextPage(false);
             break;
         }
       } 

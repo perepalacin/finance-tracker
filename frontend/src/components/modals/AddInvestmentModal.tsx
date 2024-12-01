@@ -66,7 +66,7 @@ const AddInvestmentModal: React.FC<AddInvestmentModalProps> =({isMainLayoutButto
   const [bankAccountToEdit, setBankAccountToEdit] = useState<BankAccountProps>();
   const [investmentCategoryToEdit, setInvestmentCategoryToEdit] = useState<InvestmentCategoryProps>();
 
-  const { investmentCategories, bankAccounts } = useUserData();
+  const { investmentCategories, setInvestmentCategories, bankAccounts } = useUserData();
   // const IdCardIcon = () => <IdCard />;
 
   const form = useForm<AddInvestmentFormValues>({
@@ -143,6 +143,21 @@ const AddInvestmentModal: React.FC<AddInvestmentModalProps> =({isMainLayoutButto
     } else {
     api.sendRequest("POST", "/api/v1/investments", { body: body, showToast: true, successToastMessage: data.name + " has been created!", successToastTitle: "Success", onSuccessFunction: (data) => handleSuccessApiCall(data), onFinishFunction: handleFinishApiCall})
     }
+  };
+
+  const handleDeleteInvestmentCategory = (categoryId: string) => {
+    setIsLoading(true);
+    const api = new AdminApi();
+    const onSuccessDeleteCategory = () => {
+      setInvestmentCategories([...investmentCategories].filter((category) => category.id !== categoryId));
+      const selectedCategories = form.getValues("investmentCategoriesId") || [];
+      const updatedSelectedCategories = selectedCategories.filter(
+        (id: string) => id !== categoryId
+      );
+      form.setValue("investmentCategoriesId", updatedSelectedCategories);
+    }
+    api.sendRequest("DELETE", "/api/v1/investment-categories/" + categoryId, {showToast: true, successToastTitle: "Success", successToastMessage: "Investment category deleted succesfully", onSuccessFunction: onSuccessDeleteCategory});
+    setIsLoading(false);
   };
   
   return (
@@ -323,7 +338,7 @@ const AddInvestmentModal: React.FC<AddInvestmentModalProps> =({isMainLayoutButto
                     animation={2}
                     renderBadge={true}
                     onEdit={(optionId) => {setInvestmentCategoryToEdit(investmentCategories.find((item) => item.id === optionId)); setIsInvestmentCategoryModalOpen(true)}}
-                    onDelete={() => {}}
+                    onDelete={handleDeleteInvestmentCategory}
                   >
                     <Button variant={"ghost"} className="w-full flex flex-row" onClick={() => setIsInvestmentCategoryModalOpen(true)}>
                       <Plus />

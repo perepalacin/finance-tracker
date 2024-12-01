@@ -1,9 +1,6 @@
 package com.pere_palacin.app.services.impl;
 
-import com.pere_palacin.app.domains.CategoryDao;
-import com.pere_palacin.app.domains.IncomeSourceDao;
-import com.pere_palacin.app.domains.InvestmentCategoryDao;
-import com.pere_palacin.app.domains.UserDao;
+import com.pere_palacin.app.domains.*;
 import com.pere_palacin.app.exceptions.CategoryNotFoundException;
 import com.pere_palacin.app.exceptions.IncomeSourceNotFoundException;
 import com.pere_palacin.app.exceptions.InvestmentCategoryNotFoundException;
@@ -79,6 +76,10 @@ public class InvestmentCategoryServiceImpl implements InvestmentCategoryService 
     @Override
     public void deleteInvestmentCategory(UUID id) {
         InvestmentCategoryDao investmentCategoryToDelete = this.findById(id);
+        for (InvestmentDao investment : investmentCategoryToDelete.getInvestmentAssociated()) {
+            investment.getInvestmentCategories().remove(investmentCategoryToDelete);
+        }
+        investmentCategoryToDelete.getInvestmentAssociated().clear();
         investmentCategoryRepository.delete(investmentCategoryToDelete);
     }
 }
