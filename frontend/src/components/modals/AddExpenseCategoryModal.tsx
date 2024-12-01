@@ -170,7 +170,7 @@ const AddExpenseCategoryModal: React.FC<AddExpenseCategoryModalProps> =({isMainL
                             {
                                 isEmojiModalOpen &&
                                 <div className="absolute -top-24 left-4">
-                                    <Picker theme={theme} onClickOutside={() => {setIsEmojiModalOpen(false)}} data={data} onEmojiSelect={(data) => {setIsEmojiModalOpen(false); field.onChange('0x' + data.unified.split('-')[0])}}/>
+                                    <Picker theme={theme} onClickOutside={() => {setIsEmojiModalOpen(false)}} data={data} onEmojiSelect={(data: any) => {setIsEmojiModalOpen(false); field.onChange('0x' + data.unified.split('-')[0])}}/>
                                 </div>
                             }
                         </Button>

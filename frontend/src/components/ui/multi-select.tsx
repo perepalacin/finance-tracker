@@ -158,7 +158,6 @@ export const MultiSelect = React.forwardRef<
     const [selectedValues, setSelectedValues] =
       React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-    const [isAnimating, setIsAnimating] = React.useState(false);
 
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>
@@ -228,7 +227,7 @@ export const MultiSelect = React.forwardRef<
                   {selectedValues.slice(0, maxCount).map((value) => {
                     const option = options.find((o) => o.value === value);
                     if (!option) {
-                      return null;
+                      return null
                     }
                     const IconComponent = option?.icon;
                     let emoji;
@@ -241,7 +240,6 @@ export const MultiSelect = React.forwardRef<
                         key={value}
                         className={cn(
                           "rounded-sm",
-                          isAnimating ? "animate-bounce" : "",
                           option && option.color ? option.color : "", 
                           // multiSelectVariants({ variant })
                         )}
@@ -272,7 +270,6 @@ export const MultiSelect = React.forwardRef<
                     color={'var(bg-primary)'}
                       className={cn(
                         "bg-transparent rounded-sm text-foreground border-foreground/1 hover:bg-transparent",
-                        isAnimating ? "animate-bounce" : "",
                         multiSelectVariants({ variant })
                       )}
                       style={{ animationDuration: `${animation}s` }}

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ArrowDown, ArrowUp, CalendarIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import CalendarWrapper from '@/components/ui/CalendarWrapper';
 
 interface QueryBuilderProps {

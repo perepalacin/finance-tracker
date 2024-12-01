@@ -81,7 +81,7 @@ const NetWorthGraph = () => {
               tickFormatter={(value) => {if (value >=  1000000) {return (value/1000000).toFixed(1) + 'M'}; if (value >=  1000) {return (value/1000).toFixed(2) + 'k'}; return value.toFixed(0)}}
               />
             <ChartTooltip
-              formatter={(value, i: string, c: any) => { 
+              formatter={(value, _i: string, c: any) => { 
                 return <div className="flex flex-row gap-2 items-center"><div className = 'w-2 h-2' style={{backgroundColor: c.stroke, borderRadius: '0.1rem'}}/>Total networth: <span className="font-bold">{new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(Number(value))}</span></div>;
               }} 
               cursor={false} 

@@ -4,14 +4,12 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { BANK_ACCOUNTS_EMOJI, EXPENSES_EMOJI, INCOMES_EMOJI, INVESTMENTS_EMOJI, OPERATIONS_EMOJI, TRANSFERS_EMOJI } from "@/helpers/Constants";
+import { BANK_ACCOUNTS_EMOJI, EXPENSES_EMOJI, INCOMES_EMOJI, INVESTMENTS_EMOJI, TRANSFERS_EMOJI } from "@/helpers/Constants";
 import { ThemeToggler } from "./ThemeToggler";
 import { Button } from "../ui/button";
 import { PanelLeft } from "lucide-react";

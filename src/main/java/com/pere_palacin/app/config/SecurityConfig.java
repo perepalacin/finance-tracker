@@ -25,7 +25,14 @@ public class SecurityConfig {
 
     //We inject the interface, but spring will look for our implementation
     private final UserDetailsService userDetailsService;
-    private static final String[] WHITE_LIST_URL = {"/api/v1/auth/**", };
+    private static final String[] WHITE_LIST_URL = {
+            "/api/v1/auth/**",
+            "/",
+            "/index.html",
+            "/assets/**",
+            "/favicon.ico"
+    };
+
     private final JwtFilter jwtFilter;
     //this class tells spring boot that we will not use the default security configuration.
     //But no filter is applied if we don't add anything else!
@@ -87,4 +94,5 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
 }

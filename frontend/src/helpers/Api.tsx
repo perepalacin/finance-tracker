@@ -1,6 +1,5 @@
 import { toast } from "@/hooks/use-toast";
 import axios from "axios";
-import { redirect } from "react-router-dom";
 
 export class AdminApi {
   getToken(): string | null {

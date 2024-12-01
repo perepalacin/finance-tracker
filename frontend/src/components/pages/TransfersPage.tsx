@@ -3,7 +3,7 @@ import { TransferSortByFields, WindowEvents } from '@/helpers/Constants';
 import TableQueryBuilder from '@/tables/TableQueryBuilder';
 import TransferTable from '@/tables/TransfersTable';
 import { QueryParamsProps, TransferProps } from '@/types';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { useEffect, useState } from 'react'
 
 const TransfersPage = () => {
