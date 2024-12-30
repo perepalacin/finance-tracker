@@ -65,17 +65,19 @@ const InvestmentDiversificationGraph = () => {
 
   chartData.sort((a, b) => b.amount - a.amount);
 
+  console.log("Chart data", investmentCategoriesTopGraph);
+
   return (
-    <Card className="flex flex-col w-full items-start">
+    <Card className="flex flex-col w-full h-full items-start">
       <CardHeader className="items-center pb-0 text-left">
         <CardTitle>Investment Portfolio</CardTitle>
         {chartData.length > 0 && <CardDescription>Your {chartData.length > 1 && chartData.length} biggest investment categor{chartData.length > 1 ? "ies" : "y"} ({chartSubtitle})</CardDescription>}
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex-1 pb-0 w-full h-full">
         {chartData.length > 0 ?
         <ChartContainer
         config={chartConfig}
-        className="mx-auto aspect-square max-h-[250px]"
+        className="mx-auto aspect-square w-full h-full  max-h-[250px]"
         >
           <PieChart>
             <ChartTooltip

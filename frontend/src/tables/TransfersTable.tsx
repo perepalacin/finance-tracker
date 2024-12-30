@@ -251,7 +251,7 @@ const TransferTable:React.FC<TransferTableProps> = ({data, requestNextPage, hasN
                 variant={"secondary"}
               >
                 <Trash2 />
-                Delete income
+                Delete investment
                 {table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
               </Button>
             </AlertDialogTrigger>

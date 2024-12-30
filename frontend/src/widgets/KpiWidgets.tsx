@@ -43,7 +43,7 @@ const KpiWidgets = () => {
       <Card className='p-6'>
             <h1 className='text-sm p-0'>Percent Spent</h1>
         <p className='text-3xl font-semibold'>
-            {percentSpent.toFixed(2) + ' %'}
+            {(percentSpent*100).toFixed(2) + ' %'}
         </p>
       </Card>
     </div>

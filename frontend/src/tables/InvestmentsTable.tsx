@@ -265,7 +265,7 @@ const InvestmentsTable:React.FC<InvestmentTableProps> = ({data, hasNextPage, req
                   variant={"secondary"}
                 >
                   <Trash2 />
-                  Delete income
+                  Delete investment
                   {table.getSelectedRowModel().rows.length > 1 ? "s" : ""}
                 </Button>
               </AlertDialogTrigger>
