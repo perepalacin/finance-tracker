@@ -57,18 +57,19 @@ Potential enhancements:
 ## 🚦 Running the Project
 
 To set up locally:
-
-0. **Configure .env file**:
+0. Clone the repository to your local machine.
+1. **Configure .env file**:
    ```
    DB_USERNAME=username
    DB_PASSWORD=password
    JWT_SECRET=jwt_secret
    ```
-1. Clone the repository to your local machine.
-2. Execute `.mvn clean install` to install backend dependencies.
-3. Run `cd ./frontend && npm install` to set up frontend dependencies.
-4. Start the backend with `mvn spring-boot:run` and the frontend with `cd ./frontend && npm run dev`.
-5. Open [http://localhost:5173](http://localhost:5173) in your web browser to view the app.
+   Or run and modify the .env file
+   ```bash
+   cp .env.example .env
+   ```
+2. Run `docker-compose up -d --build`
+3. Open [http://localhost:5173](http://localhost:5173) in your web browser to view the app.
 
 ## 🎥 Video
 

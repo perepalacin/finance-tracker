@@ -10,7 +10,7 @@ const NetworthWidget = () => {
     const averageIncome = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.income, 0) / incomeAndExpensesChartData.length) || 0;
     const averageExpense = (incomeAndExpensesChartData.reduce((acc, month) => acc + month.expense, 0) / incomeAndExpensesChartData.length) || 0;
     const amountInvested = bankAccounts.reduce((acc, account) => acc + account.totalInvested, 0) ?? 0;
-    const liquidity = bankAccounts.reduce((acc, account) => acc + account.currentBalance, 0) - amountInvested ?? 0;
+    const liquidity = bankAccounts.reduce((acc, account) => acc + account.currentBalance, 0) - amountInvested;
     // const totalIncomes = bankAccounts.reduce((acc, account) => acc + account.totalIncome, 0);
     return (
         <Card className='w-full'>
